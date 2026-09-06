@@ -12,10 +12,12 @@ const CYCLE_DAYS = [26, 27, 28, 29, 30, 31, 32];
 export default function OnboardingCycleLengthPage(): React.JSX.Element {
   const router = useRouter();
   const { draft, update } = useOnboardingDraft();
-  const [selected, setSelected] = useState<number | null>(draft.usualCycleLength);
+  const [selected, setSelected] = useState<number | null | undefined>(
+    draft.usualCycleLength ?? undefined,
+  );
 
   function onContinue(): void {
-    update({ usualCycleLength: selected });
+    update({ usualCycleLength: selected ?? null });
     router.push('/onboarding/concerns');
   }
 

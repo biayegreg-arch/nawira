@@ -19,10 +19,12 @@ const OPTIONS: Array<{ label: string; value: number | null }> = [
 export default function OnboardingPeriodLengthPage(): React.JSX.Element {
   const router = useRouter();
   const { draft, update } = useOnboardingDraft();
-  const [selected, setSelected] = useState<number | null>(draft.usualPeriodLength);
+  const [selected, setSelected] = useState<number | null | undefined>(
+    draft.usualPeriodLength ?? undefined,
+  );
 
   function onContinue(): void {
-    update({ usualPeriodLength: selected });
+    update({ usualPeriodLength: selected ?? null });
     router.push('/onboarding/cycle-length');
   }
 
