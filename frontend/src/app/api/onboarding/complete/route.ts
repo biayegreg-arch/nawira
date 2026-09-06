@@ -20,6 +20,7 @@ import { zPositiveInt } from '@/lib/server/zod-helpers';
 import { isAdult } from '@/lib/age';
 import { makeRequestContext, withRequestContext } from '@/lib/server/observability/request-context';
 import { log } from '@/lib/server/observability/log';
+import { recomputeCyclesAndPrediction } from '@/lib/server/cycles/recompute';
 
 const CONSENT_VERSION = 1;
 
@@ -127,6 +128,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           },
         });
       }
+
+      await recomputeCyclesAndPrediction(tx, auth.user.sub);
     });
 
     log.info('onboarding complete', { userId: auth.user.sub });

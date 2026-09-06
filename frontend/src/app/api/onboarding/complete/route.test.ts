@@ -8,9 +8,13 @@ vi.mock('@/lib/server/middleware', () => ({
 vi.mock('@/lib/server/auth', () => ({
   verifyCsrf: vi.fn(() => null),
 }));
+vi.mock('@/lib/server/cycles/recompute', () => ({
+  recomputeCyclesAndPrediction: vi.fn(async () => {}),
+}));
 
 import { requireAuth } from '@/lib/server/middleware';
 import { verifyCsrf } from '@/lib/server/auth';
+import { recomputeCyclesAndPrediction } from '@/lib/server/cycles/recompute';
 import { POST } from './route';
 
 const VALID_BODY = {
@@ -135,5 +139,26 @@ describe('POST /api/onboarding/complete', () => {
     );
     const res = await POST(makeReq(VALID_BODY));
     expect(res.status).toBe(403);
+  });
+
+  it('calls recomputeCyclesAndPrediction after creating a PeriodEvent from lastPeriodDate', async () => {
+    prismaMock.profile.findUnique.mockResolvedValue(null);
+    prismaMock.profile.create.mockResolvedValue({} as never);
+    prismaMock.consent.create.mockResolvedValue({} as never);
+    prismaMock.periodEvent.create.mockResolvedValue({} as never);
+
+    await POST(makeReq({ ...VALID_BODY, lastPeriodDate: '2026-08-01' }));
+
+    expect(recomputeCyclesAndPrediction).toHaveBeenCalledWith(prismaMock, 'u1');
+  });
+
+  it('calls recomputeCyclesAndPrediction even when lastPeriodDate is null', async () => {
+    prismaMock.profile.findUnique.mockResolvedValue(null);
+    prismaMock.profile.create.mockResolvedValue({} as never);
+    prismaMock.consent.create.mockResolvedValue({} as never);
+
+    await POST(makeReq(VALID_BODY));
+
+    expect(recomputeCyclesAndPrediction).toHaveBeenCalledWith(prismaMock, 'u1');
   });
 });
