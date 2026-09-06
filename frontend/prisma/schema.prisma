@@ -38,6 +38,14 @@ model User {
   uploads           FileUpload[]
   notifications     Notification[]
   notifPrefs        NotificationPreferences?
+  profile           Profile?
+  consents          Consent[]
+  periodEvents      PeriodEvent[]
+  cycles            Cycle[]
+  dailyLogs         DailyLog[]
+  fertilitySignals  FertilitySignal[]
+  prediction        Prediction?
+  insights          Insight[]
   orders            Order[]
   withdrawals       Withdrawal[]
   oauthAccounts     OAuthAccount[]
@@ -46,7 +54,7 @@ model User {
   // Multi-tenancy is opt-in per project: by default no resource is org-scoped.
   // Apps that need it (marketplace, B2B SaaS, classifieds) wire owner relations
   // on their domain models.
-  ownedOrganizations Organization[]      @relation("OrgOwner")
+  ownedOrganizations Organization[]       @relation("OrgOwner")
   memberships        OrganizationMember[] @relation("OrgMembership")
 
   @@index([email])
@@ -95,14 +103,14 @@ model AdminAction {
 // used as a stable URL segment.
 // ───────────────────────────────────────────────────────────────────────
 model Organization {
-  id        String   @id @default(cuid())
-  slug      String   @unique
+  id        String               @id @default(cuid())
+  slug      String               @unique
   name      String
   ownerId   String
-  owner     User     @relation("OrgOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  owner     User                 @relation("OrgOwner", fields: [ownerId], references: [id], onDelete: Restrict)
   members   OrganizationMember[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
 
   @@index([ownerId])
 }
@@ -273,21 +281,21 @@ model WebhookLog {
 // at the call site — the schema is currency-agnostic.
 // ───────────────────────────────────────────────────────────────────────
 model Order {
-  id              String    @id @default(cuid())
-  userId          String? // nullable — guest checkout supported
-  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  amount          Int // gross amount, smallest unit
-  currency        String    @default("XOF") // ISO 4217
-  status          String    @default("PENDING") // PENDING | PAID | EXPIRED | FAILED | REFUNDED
-  customerEmail   String?
-  customerPhone   String?
-  customerName    String?
-  metadata        Json? // app-specific fields
+  id            String  @id @default(cuid())
+  userId        String? // nullable — guest checkout supported
+  user          User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  amount        Int // gross amount, smallest unit
+  currency      String  @default("XOF") // ISO 4217
+  status        String  @default("PENDING") // PENDING | PAID | EXPIRED | FAILED | REFUNDED
+  customerEmail String?
+  customerPhone String?
+  customerName  String?
+  metadata      Json? // app-specific fields
 
   // Stripe-grade idempotency. Required header on POST /api/orders; replay
   // with same value returns the original Order row instead of double-charging.
   // Nullable so existing rows pre-migration don't break the @unique constraint.
-  idempotencyKey  String?   @unique
+  idempotencyKey String? @unique
 
   // Provider reference
   provider         String // e.g. "bictorys"
@@ -311,12 +319,12 @@ model Order {
 }
 
 model Withdrawal {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user        User   @relation(fields: [userId], references: [id], onDelete: Restrict)
   amount      Int // requested amount, smallest unit
-  currency    String   @default("XOF")
-  status      String   @default("PENDING") // PENDING | PROCESSING | COMPLETED | FAILED | CANCELLED
+  currency    String @default("XOF")
+  status      String @default("PENDING") // PENDING | PROCESSING | COMPLETED | FAILED | CANCELLED
   destination Json // { method: "WAVE" | "ORANGE_MONEY" | ..., phone: "+221...", accountName?: "..." }
 
   // Provider reference
@@ -331,4 +339,126 @@ model Withdrawal {
   @@index([userId, requestedAt])
   @@index([status, requestedAt])
   @@index([provider, providerPayoutId])
+}
+
+// ───────────────────────────────────────────────────────────────────────
+// NAWIRA Phase 1 — cycle-tracking domain models.
+// See docs/superpowers/specs/2026-09-06-phase1-data-model-design.md for
+// the full rationale (PRD section references, why Cycle/Prediction are
+// materialized rather than computed on read, why enums are plain String
+// columns matching the rest of this schema).
+// ───────────────────────────────────────────────────────────────────────
+
+model Profile {
+  userId            String   @id
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  birthDate         DateTime
+  goal              String // PERIOD_TRACKING | UNDERSTAND_CYCLE | TRYING_TO_CONCEIVE
+  usualCycleLength  Int?
+  usualPeriodLength Int?
+  trackedConcerns   String[] @default([])
+  plan              String   @default("FREE") // FREE | PLUS | BABY
+  temperatureUnit   String   @default("CELSIUS") // CELSIUS | FAHRENHEIT
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Consent {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // ACCOUNT | HEALTH_DATA | ASSISTANT_HISTORY | NOTIFICATIONS | ANALYTICS | MARKETING
+  version   Int
+  grantedAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  @@index([userId, type])
+}
+
+model PeriodEvent {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date   DateTime
+  flow   String // SPOTTING | LIGHT | MEDIUM | HEAVY
+
+  @@unique([userId, date])
+}
+
+model Cycle {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startDate DateTime
+  endDate   DateTime?
+  length    Int?
+  isOutlier Boolean   @default(false)
+
+  @@index([userId, startDate])
+}
+
+model DailyLog {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date         DateTime
+  painLevel    Int?
+  painLocation String?
+  mood         String? // VERY_GOOD | GOOD | TIRED | STRESSED | LOW
+  energy       String? // VERY_LOW | LOW | MEDIUM | HIGH | VERY_HIGH
+  sleepQuality String? // POOR | FAIR | GOOD | EXCELLENT
+  sleepHours   Float?
+  note         String?
+  symptoms     SymptomLog[]
+
+  @@unique([userId, date])
+}
+
+model SymptomLog {
+  id         String   @id @default(cuid())
+  dailyLogId String
+  dailyLog   DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  symptom    String // CRAMPS | HEADACHE | BLOATING | NAUSEA | ACNE | TENDER_BREASTS | FATIGUE | BACK_PAIN | CONSTIPATION | DIARRHEA | FOOD_CRAVINGS | LIBIDO_CHANGE
+
+  @@index([dailyLogId])
+}
+
+model FertilitySignal {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date              DateTime
+  type              String // BASAL_TEMPERATURE | CERVICAL_MUCUS | LH_TEST
+  temperatureValue  Float?
+  temperatureUnit   String? // CELSIUS | FAHRENHEIT
+  cervicalMucusType String? // DRY | STICKY | CREAMY | WATERY | EGG_WHITE
+  lhResult          String? // NEGATIVE | POSITIVE | PEAK | INCONCLUSIVE
+
+  @@index([userId, date])
+}
+
+model Prediction {
+  userId              String    @id
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  algorithmVersion    String
+  confidence          String // LOW | MEDIUM | HIGH
+  expectedPeriodStart DateTime
+  expectedPeriodEnd   DateTime
+  ovulationEstimate   DateTime?
+  fertileWindowStart  DateTime?
+  fertileWindowEnd    DateTime?
+  computedAt          DateTime
+}
+
+model Insight {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type             String
+  payload          Json
+  periodAnalyzed   Json
+  cyclesConsidered Int
+  createdAt        DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
