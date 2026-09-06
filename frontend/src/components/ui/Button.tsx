@@ -14,7 +14,10 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  md: 'px-5 py-2.5',
+  // py-3 (not py-2.5) so the rendered height clears the 44px minimum
+  // touch target (WCAG 2.5.5 / Apple HIG) at text-sm — measured 40px
+  // before this change.
+  md: 'px-5 py-3',
   lg: 'px-6 py-3.5',
 };
 

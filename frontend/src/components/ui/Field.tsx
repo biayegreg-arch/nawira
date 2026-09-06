@@ -14,7 +14,10 @@ export function Field({ label, hint, id, className, ...props }: FieldProps): Rea
       <input
         id={inputId}
         className={cn(
-          'rounded-lg border border-border px-3.5 py-2.5 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary',
+          // py-3 (not py-2.5) so the rendered height clears the 44px
+          // minimum touch target (WCAG 2.5.5 / Apple HIG) at text-sm —
+          // measured 42px before this change.
+          'rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary',
           className,
         )}
         {...props}
