@@ -59,7 +59,7 @@ export default function OnboardingNotificationsPage(): React.JSX.Element {
   }
 
   return (
-    <OnboardingLayout step={10} backHref="/onboarding/consent">
+    <OnboardingLayout step={10}>
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="font-headings text-xl font-bold text-navy">Notifications</h1>

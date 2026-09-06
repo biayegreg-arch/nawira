@@ -9,15 +9,15 @@ import { useOnboardingDraft } from '@/lib/onboarding-draft';
 
 const CYCLE_DAYS = [26, 27, 28, 29, 30, 31, 32];
 
+type SelectionKey = number | 'IRREGULAR' | 'UNKNOWN' | undefined;
+
 export default function OnboardingCycleLengthPage(): React.JSX.Element {
   const router = useRouter();
   const { draft, update } = useOnboardingDraft();
-  const [selected, setSelected] = useState<number | null | undefined>(
-    draft.usualCycleLength ?? undefined,
-  );
+  const [selectedKey, setSelectedKey] = useState<SelectionKey>(draft.usualCycleLength ?? undefined);
 
   function onContinue(): void {
-    update({ usualCycleLength: selected ?? null });
+    update({ usualCycleLength: typeof selectedKey === 'number' ? selectedKey : null });
     router.push('/onboarding/concerns');
   }
 
@@ -45,23 +45,23 @@ export default function OnboardingCycleLengthPage(): React.JSX.Element {
             <button
               key={days}
               type="button"
-              onClick={() => setSelected(days)}
-              className={chipClass(selected === days)}
+              onClick={() => setSelectedKey(days)}
+              className={chipClass(selectedKey === days)}
             >
               {days} j
             </button>
           ))}
           <button
             type="button"
-            onClick={() => setSelected(null)}
-            className={chipClass(selected === null)}
+            onClick={() => setSelectedKey('IRREGULAR')}
+            className={chipClass(selectedKey === 'IRREGULAR')}
           >
             Irrégulier
           </button>
           <button
             type="button"
-            onClick={() => setSelected(null)}
-            className={chipClass(selected === null)}
+            onClick={() => setSelectedKey('UNKNOWN')}
+            className={chipClass(selectedKey === 'UNKNOWN')}
           >
             Je ne sais pas
           </button>
