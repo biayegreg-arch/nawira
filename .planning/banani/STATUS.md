@@ -3,7 +3,7 @@
 Last updated: 2026-09-06
 
 Source flow: **"Design System NAWIRA"** — Banani flow id `acguXQuGeGbU` (https://app.banani.co/flow/acguXQuGeGbU)
-Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`.
+Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope.
 
 ## Done
 
@@ -48,12 +48,22 @@ _(none)_
 | `Subscription` | `/app/billing` | ⚠️ partial — Bictorys/webhooks/circuit-breaker exist, but Prisma has `Order`/`Withdrawal`, not a `Subscription` model (PRD §14) | `CurrentPlanCard`, `PremiumPlansGrid`, `PaymentMethods`, `BillingHistory`. Needs Phase 1 data model + entitlements wiring (roadmap Phase 7). |
 | `DashboardAujourdhui` | `/app/today` | ❌ needs Phase 1-3 (Cycle model + prediction engine) | Home screen (PRD HOME01). Depends on `Cycle`/`Prediction` models existing. |
 | `Calendar` | `/app/calendar` | ❌ needs Phase 1 + 3 | Composes `FullMonthCalendar`, `MiniCalendar`. |
-| `CycleDetail` vs `CycleDetailFull` | sub-route/modal under `/app/calendar` or `/app/insights` | ❌ needs Phase 1 + 3 | **Near-duplicate — clarify with user.** `CycleDetail` = `CycleDetailView` only. `CycleDetailFull` = `CycleDetailView` + `MiniCalendar` + `PredictionCards`. Likely two states of the same screen (collapsed vs expanded) rather than two separate routes — confirm before building both. |
-| `AddData` vs `AddFatigue` | `/app/log` | ❌ needs Phase 1 (daily_logs/symptom_logs models) | **Clarify with user.** `AddData` = generic `DataEntryForm`. `AddFatigue` = same shell but `FatigueDetailForm` only — looks like a focused single-symptom quick-entry variant (e.g. reached from a "Comment te sens-tu ?" notification, PRD N02) rather than a separate top-level screen. |
+| `CycleDetailFull` | sub-route/modal under `/app/calendar` or `/app/insights` | ❌ needs Phase 1 + 3 | Composes `CycleDetailView` + `MiniCalendar` + `PredictionCards`. (`CycleDetail`, the lighter variant with just `CycleDetailView`, was dropped as redundant — see below.) |
+| `AddData` | `/app/log` | ❌ needs Phase 1 (daily_logs/symptom_logs models) | Generic `DataEntryForm` — matches PRD LOG01's single consolidated quick-entry screen. (`AddFatigue`, a single-symptom variant, was dropped as redundant — see below.) |
 | `Analytics` | `/app/insights` | ❌ needs Phase 1 + 3 + 6 (insights/Cycle Score) | Composes `AnalyticsRecommendations`, `TrendsChart`, `MoodDistributionChart`, `CycleComparisonCard`, `SymptomStatistics`. |
 | `FertilityCalendar` | part of `/app/calendar` (Projet Bébé view) or `/app/baby` | ❌ needs Phase 1 + 5 (fertility engine) | Composes `FertilityCalendarInfo`, `FertilityCalendarLegend`. |
-| `ProjetBebe` vs `ProjetBebeDiscovery` | `/app/baby` | ❌ needs Phase 1 + 5 | **Near-duplicate — clarify with user.** Sources are almost identical (same 4 components: `FertilityWindowCard`, `ConceptionTipsCard`, `LHTestTracker`, `ConceptionStatistics`); `Discovery` additionally imports `UserAvatar`. Confirm which is canonical before building both. |
+| `ProjetBebe` | `/app/baby` | ❌ needs Phase 1 + 5 | Composes `FertilityWindowCard`, `ConceptionTipsCard`, `LHTestTracker`, `ConceptionStatistics`. (`ProjetBebeDiscovery`, a near-identical duplicate, was dropped as redundant — see below.) |
 | `Assistant` | `/app/assistant` | ❌ needs Phase 8 (AI Gateway + medical guardrails) | Composes `AssistantChatMessages`, `AssistantSidebarTopics`. Highest complexity — build last. |
+
+## Duplicate screens dropped (user decision, 2026-09-06)
+
+Of the 15 Banani screens, 3 were near-duplicates of another screen in the set with no PRD-identified need for two separate routes. Dropped from scope entirely — not just deferred:
+
+| Dropped | Kept instead | Why |
+|---|---|---|
+| `CycleDetail` | `CycleDetailFull` | `CycleDetailFull` is a strict superset (adds `MiniCalendar` + `PredictionCards`) and better matches the PRD's need to show predictions/navigation on the detail view. |
+| `AddFatigue` | `AddData` | PRD LOG01 specifies one consolidated quick-entry screen (saignement/douleur/humeur/énergie/sommeil/symptômes/glaire/température/LH/note together), not a per-symptom screen. `AddFatigue`'s single-symptom pattern isn't called for anywhere in the PRD; revisit only if a future notification deep-link needs a focused single-field entry (as a modal, not a route). |
+| `ProjetBebeDiscovery` | `ProjetBebe` | The two sources are functionally identical (same 4 components); `Discovery` only added a `UserAvatar` import with no other distinguishing content. `ProjetBebe` is kept as the simpler name matching the `/app/baby` route. |
 
 ## Shared layout (prerequisite for every `/app/*` screen)
 
@@ -75,8 +85,5 @@ _(none)_
 
 ## Open design questions
 
-- `CycleDetail` vs `CycleDetailFull` — one screen with two states, or genuinely two routes? — raised 2026-09-06, pending user answer
-- `AddData` vs `AddFatigue` — is `AddFatigue` a per-symptom quick-entry pattern (template for all symptom types) or a one-off? — raised 2026-09-06, pending user answer
-- `ProjetBebe` vs `ProjetBebeDiscovery` — which is canonical; is `Discovery` the pre-subscription teaser (PW02) and the other the post-subscription active view? — raised 2026-09-06, pending user answer
-- Exact hex values for Banani's `navy`/`background`/`primary`/`muted-foreground` tokens (theme panel export) — proposed PRD-palette mapping above needs confirmation — raised 2026-09-06, pending user answer
+- Exact hex values for Banani's `navy`/`background`/`primary`/`muted-foreground` tokens (theme panel export) — proposed PRD-palette mapping above needs confirmation — raised 2026-09-06, pending user answer. **Note:** the Landing Page implementation ended up confirming the real hexes directly from component source (`#6C43C1` primary, `#1F2937` navy, plus accent colors `#D968A6` rose / `#4F9D78` green / `#D9A441` amber / `#8058D4` purple) — see `frontend/src/app/globals.css`. Still open for any screen not yet built.
 - Mobile nav has no Banani source — confirm we design it ourselves (bottom nav per PRD §6) — raised 2026-09-06, pending user answer
