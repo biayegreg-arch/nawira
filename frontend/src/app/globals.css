@@ -1,1 +1,37 @@
 @import 'tailwindcss';
+
+/*
+ * NAWIRA design tokens — extracted from the Banani "Design System NAWIRA"
+ * export (flow acguXQuGeGbU). Confirmed against the PRD's official palette
+ * (§0 Identité de marque) where they overlap: primary and navy match exactly.
+ * See .planning/banani/STATUS.md for the full token mapping decision.
+ */
+@theme {
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-headings: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: #fff7f3;
+  --color-surface: #fdfbfd;
+  --color-border: #e5e7eb;
+
+  --color-navy: #1f2937;
+  --color-body: #374151;
+  --color-muted-foreground: #6b7280;
+  --color-muted-light: #9ca3af;
+
+  --color-primary: #6c43c1;
+  --color-primary-light: #a78be8;
+  --color-primary-soft: #eee7fa;
+
+  --color-rose: #d968a6;
+  --color-rose-soft: #f9e4ef;
+
+  --color-green: #4f9d78;
+  --color-green-soft: #e2f3ea;
+
+  --color-amber: #d9a441;
+  --color-amber-soft: #fbf1d8;
+
+  --color-purple: #8058d4;
+  --color-purple-soft: #eee7fa;
+}
