@@ -41,7 +41,17 @@ function VerifyEmailForm(): React.JSX.Element {
       await refresh();
       router.push('/app/today');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.');
+      if (err instanceof ApiError) {
+        const map: Record<string, string> = {
+          VALIDATION_FAILED: 'Champs invalides.',
+          TOO_MANY_VERIFY_ATTEMPTS: 'Trop de tentatives. Réessaie plus tard.',
+          VERIFICATION_CODE_INVALID: 'Code de vérification invalide.',
+          VERIFICATION_CODE_EXPIRED: 'Ce code a expiré. Demande-en un nouveau.',
+        };
+        setError(map[err.code] ?? 'Une erreur est survenue.');
+      } else {
+        setError('Une erreur est survenue.');
+      }
     } finally {
       setSubmitting(false);
     }

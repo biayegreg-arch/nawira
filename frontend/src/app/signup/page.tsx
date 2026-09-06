@@ -30,7 +30,18 @@ export default function SignupPage(): React.JSX.Element {
       });
       router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.');
+      if (err instanceof ApiError) {
+        const map: Record<string, string> = {
+          VALIDATION_FAILED: 'Champs invalides.',
+          PASSWORD_BANNED: 'Ce mot de passe est trop courant.',
+          PASSWORD_TOO_SHORT: 'Le mot de passe doit contenir au moins 10 caractères.',
+          PASSWORD_PWNED: 'Ce mot de passe a fuité — choisis-en un autre.',
+          TOO_MANY_SIGNUP_ATTEMPTS: "Trop de tentatives d'inscription. Réessaie plus tard.",
+        };
+        setError(map[err.code] ?? 'Une erreur est survenue.');
+      } else {
+        setError('Une erreur est survenue.');
+      }
     } finally {
       setSubmitting(false);
     }

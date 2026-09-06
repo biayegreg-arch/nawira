@@ -32,7 +32,19 @@ export default function LoginPage(): React.JSX.Element {
       // c'est la destination cible per PRD §28.2.
       router.push('/app/today');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.');
+      if (err instanceof ApiError) {
+        const map: Record<string, string> = {
+          VALIDATION_FAILED: 'Champs invalides.',
+          TOO_MANY_LOGIN_ATTEMPTS: 'Trop de tentatives de connexion. Réessaie plus tard.',
+          LOCKED_OUT: 'Compte temporairement verrouillé. Réessaie plus tard.',
+          INVALID_CREDENTIALS: 'Email ou mot de passe incorrect.',
+          EMAIL_NOT_VERIFIED: 'Merci de vérifier ton email avant de te connecter.',
+          ACCOUNT_SUSPENDED: 'Ce compte a été suspendu. Contacte le support.',
+        };
+        setError(map[err.code] ?? 'Une erreur est survenue.');
+      } else {
+        setError('Une erreur est survenue.');
+      }
     } finally {
       setSubmitting(false);
     }

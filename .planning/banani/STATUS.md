@@ -25,12 +25,17 @@ New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/co
 - Google OAuth button — omitted from Signup/Login (not configured in this environment; would 404).
 - Login/Verify-email redirect to `/app/today` (PRD §28.2 target) — **this route doesn't exist yet** (Phase 3 — moteur de cycle). Expected temporary 404 until that phase ships; kept as the correct target rather than a throwaway route name.
 - Password minLength bumped from the example's 8 to 10, matching `AUTH_PASSWORD_MIN_LENGTH=10` default.
+- Footer's "Entreprise" column (À propos/Blog/Carrières/Contact) — dropped entirely; every item pointed to a non-existent page, leaving nothing to keep in that category.
+- Footer bottom-bar language selector (FR dropdown) — dropped; app is French-only, no i18n switcher exists.
+- LandingCTA's supporting paragraph — reworded to drop Banani's implied "des milliers de femmes qui ont déjà fait confiance" trust claim, consistent with the fake-social-proof removal elsewhere on the page.
 
 ### Verified
 
 - `pnpm typecheck`, `pnpm lint`, `pnpm format`, `pnpm test` (570/570) and `pnpm build` all green.
 - Rendered check via headless Chrome at 375px / 768px / 1280px — no horizontal scroll, no overlap, colors/tokens render correctly (after clearing a stale Turbopack cache that had briefly masked the new `@theme` tokens).
 - Real signup → verify-email flow driven end-to-end in a browser against the live dev server (real Neon DB, real Resend-configured env) — 201 on signup, correct redirect with prefilled email, code peeked from DB the same way `scripts/smoke-auth.ts` does.
+- **2026-09-06 audit** (re-fetched `LandingPage.jsx` from Banani via MCP and diffed line-by-line against the shipped components): every observed deviation traces back to a decision already logged above; three minor undocumented ones backfilled into the delta list this pass (Entreprise footer column, language selector, CTA copy). No unintended drift found.
+- **API-wiring audit (2026-09-06):** signup/login/verify-email request bodies and success/error shapes checked against their route handlers — all match. Found and fixed a real gap: all three pages rendered the backend's raw `ApiError.message` (always English — e.g. "Invalid email or password.") in a French-only UI. Added `err.code` → French-string maps in each page, matching the pattern already used in `src/app/settings/page.tsx` and the convention documented in CLAUDE.md ("Frontend switches on `ApiError.code`, not translated messages"). Also confirmed the `if (res.csrfToken) storeCsrfToken(...)` calls in login/verify-email (and in `api.ts`'s own refresh handler) are inert dead code — no backend route actually echoes `csrfToken` in its JSON body; the token only ever travels via the non-httpOnly cookie `setCsrfCookie()` sets, which `api.ts`'s `getCsrfToken()` already reads directly. Harmless, left as-is (pre-existing pattern from the starter's example pages).
 
 ## In progress
 
