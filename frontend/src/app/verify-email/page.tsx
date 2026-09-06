@@ -33,13 +33,19 @@ function VerifyEmailForm(): React.JSX.Element {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await api<{ csrfToken?: string }>('/api/auth/verify-email', {
-        method: 'POST',
-        body: { email: emailValue, code: codeValue },
-      });
+      const res = await api<{ csrfToken?: string; user?: { hasProfile: boolean } }>(
+        '/api/auth/verify-email',
+        {
+          method: 'POST',
+          body: { email: emailValue, code: codeValue },
+        },
+      );
       if (res.csrfToken) storeCsrfToken(res.csrfToken);
       await refresh();
-      router.push('/app/today');
+      // Un compte tout juste vérifié n'a jamais de Profile — mais on relit
+      // hasProfile depuis la réponse plutôt que de supposer false, au cas où
+      // un flux futur créerait un Profile avant vérification.
+      router.push(res.user?.hasProfile ? '/app/today' : '/onboarding/welcome');
     } catch (err) {
       if (err instanceof ApiError) {
         const map: Record<string, string> = {

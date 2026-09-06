@@ -22,15 +22,19 @@ export default function LoginPage(): React.JSX.Element {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await api<{ csrfToken?: string }>('/api/auth/login', {
-        method: 'POST',
-        body: { email, password },
-      });
+      const res = await api<{ csrfToken?: string; user?: { hasProfile: boolean } }>(
+        '/api/auth/login',
+        {
+          method: 'POST',
+          body: { email, password },
+        },
+      );
       if (res.csrfToken) storeCsrfToken(res.csrfToken);
       await refresh();
       // /app/today n'existe pas encore (roadmap Phase 3 — moteur de cycle) ;
-      // c'est la destination cible per PRD §28.2.
-      router.push('/app/today');
+      // c'est la destination cible per PRD §28.2. Un compte sans Profile
+      // (onboarding jamais terminé) est redirigé vers l'onboarding à la place.
+      router.push(res.user?.hasProfile ? '/app/today' : '/onboarding/welcome');
     } catch (err) {
       if (err instanceof ApiError) {
         const map: Record<string, string> = {

@@ -16,6 +16,8 @@ export interface User {
   hasPassword: boolean;
   /** Provider names already linked, e.g. ['google']. Empty for pure email/password accounts. */
   linkedProviders: string[];
+  /** false until the user has completed onboarding (Phase 2) and has a Profile row. */
+  hasProfile: boolean;
 }
 
 interface AuthContextValue {
