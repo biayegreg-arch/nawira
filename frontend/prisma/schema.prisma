@@ -379,7 +379,7 @@ model PeriodEvent {
   id     String   @id @default(cuid())
   userId String
   user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date   DateTime
+  date   DateTime @db.Date
   flow   String // SPOTTING | LIGHT | MEDIUM | HEAVY
 
   @@unique([userId, date])
@@ -389,19 +389,19 @@ model Cycle {
   id        String    @id @default(cuid())
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  startDate DateTime
-  endDate   DateTime?
+  startDate DateTime  @db.Date
+  endDate   DateTime? @db.Date
   length    Int?
   isOutlier Boolean   @default(false)
 
-  @@index([userId, startDate])
+  @@unique([userId, startDate])
 }
 
 model DailyLog {
   id           String       @id @default(cuid())
   userId       String
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date         DateTime
+  date         DateTime     @db.Date
   painLevel    Int?
   painLocation String?
   mood         String? // VERY_GOOD | GOOD | TIRED | STRESSED | LOW
@@ -420,14 +420,14 @@ model SymptomLog {
   dailyLog   DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
   symptom    String // CRAMPS | HEADACHE | BLOATING | NAUSEA | ACNE | TENDER_BREASTS | FATIGUE | BACK_PAIN | CONSTIPATION | DIARRHEA | FOOD_CRAVINGS | LIBIDO_CHANGE
 
-  @@index([dailyLogId])
+  @@unique([dailyLogId, symptom])
 }
 
 model FertilitySignal {
   id                String   @id @default(cuid())
   userId            String
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date              DateTime
+  date              DateTime @db.Date
   type              String // BASAL_TEMPERATURE | CERVICAL_MUCUS | LH_TEST
   temperatureValue  Float?
   temperatureUnit   String? // CELSIUS | FAHRENHEIT
@@ -454,7 +454,7 @@ model Insight {
   id               String   @id @default(cuid())
   userId           String
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type             String
+  type             String // e.g. CYCLE_SCORE | SYMPTOM_TREND
   payload          Json
   periodAnalyzed   Json
   cyclesConsidered Int
