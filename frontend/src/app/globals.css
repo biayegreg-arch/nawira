@@ -7,10 +7,10 @@
  * See .planning/banani/STATUS.md for the full token mapping decision.
  */
 @theme {
-  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-headings: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-headings: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 
-  --color-background: #fff7f3;
+  --color-background: #fdfbfd;
   --color-surface: #fdfbfd;
   --color-border: #e5e7eb;
 
