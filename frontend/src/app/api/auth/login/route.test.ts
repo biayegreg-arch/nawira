@@ -64,6 +64,7 @@ describe('POST /api/auth/login', () => {
       passwordHash: '$2a$12$hashhashhashhashhashhashhashhashhashhashhashhashhashhha',
       emailVerifiedAt: new Date(),
       tokenVersion: 0,
+      profile: null,
     } as never);
     vi.mocked(verifyPassword).mockResolvedValue(true);
 
@@ -71,11 +72,32 @@ describe('POST /api/auth/login', () => {
 
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toMatchObject({ ok: true, user: { sub: 'u1', email: 'a@b.com' } });
+    expect(body).toMatchObject({
+      ok: true,
+      user: { sub: 'u1', email: 'a@b.com', hasProfile: false },
+    });
     expect(recordSuccess).toHaveBeenCalledWith('a@b.com');
     expect(__cookieStore.has('app-token')).toBe(true);
     expect(__cookieStore.has('app-refresh')).toBe(true);
     expect(__cookieStore.has('app-csrf')).toBe(true);
+  });
+
+  it('Test 1b: hasProfile is true when a Profile row exists', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'u1',
+      email: 'a@b.com',
+      passwordHash: '$2a$12$hashhashhashhashhashhashhashhashhashhashhashhashhashhha',
+      emailVerifiedAt: new Date(),
+      tokenVersion: 0,
+      profile: { userId: 'u1' },
+    } as never);
+    vi.mocked(verifyPassword).mockResolvedValue(true);
+
+    const res = await POST(makeReq({ email: 'a@b.com', password: 'longenough' }));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.user.hasProfile).toBe(true);
   });
 
   it('Test 2: no user — INVALID_CREDENTIALS, dummy compare called, no recordFailure', async () => {

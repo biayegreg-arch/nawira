@@ -46,6 +46,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         updatedAt: true,
         passwordHash: true,
         oauthAccounts: { select: { provider: true } },
+        profile: { select: { userId: true } },
       },
     });
 
@@ -72,6 +73,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         : null,
       hasPassword: !!dbUser?.passwordHash,
       linkedProviders: (dbUser?.oauthAccounts ?? []).map((a) => a.provider),
+      hasProfile: !!dbUser?.profile,
     };
 
     return NextResponse.json({ user }, { status: 200, headers: { 'x-request-id': ctx.requestId } });

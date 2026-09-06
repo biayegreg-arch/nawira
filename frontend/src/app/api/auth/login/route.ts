@@ -99,6 +99,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         emailVerifiedAt: true,
         tokenVersion: true,
         status: true,
+        profile: { select: { userId: true } },
       },
     });
 
@@ -175,7 +176,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await setCsrfCookie();
 
     return NextResponse.json(
-      { ok: true, user: { sub: user.id, email: user.email } },
+      { ok: true, user: { sub: user.id, email: user.email, hasProfile: !!user.profile } },
       { status: 200, headers: { 'x-request-id': ctx.requestId } },
     );
   });

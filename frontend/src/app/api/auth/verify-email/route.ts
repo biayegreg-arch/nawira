@@ -65,7 +65,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, email: true, tokenVersion: true },
+      select: { id: true, email: true, tokenVersion: true, profile: { select: { userId: true } } },
     });
     // Enumeration resistance: don't distinguish user-not-found from
     // code-not-found.
@@ -171,7 +171,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     log.info('verify-email success', { userId: user.id });
     const res = NextResponse.json({
       ok: true,
-      user: { sub: user.id, email: user.email },
+      user: { sub: user.id, email: user.email, hasProfile: !!user.profile },
     });
     res.headers.set('x-request-id', ctx.requestId);
     return res;

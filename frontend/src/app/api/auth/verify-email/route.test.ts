@@ -43,6 +43,7 @@ describe('POST /api/auth/verify-email', () => {
       id: 'u1',
       email: 'a@b.com',
       tokenVersion: 0,
+      profile: null,
     } as never);
     prismaMock.verificationCode.findFirst.mockResolvedValue({
       id: 'vc1',
@@ -57,7 +58,7 @@ describe('POST /api/auth/verify-email', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
-    expect(body.user).toEqual({ sub: 'u1', email: 'a@b.com' });
+    expect(body.user).toEqual({ sub: 'u1', email: 'a@b.com', hasProfile: false });
 
     expect(prismaMock.verificationCode.updateMany).toHaveBeenCalledTimes(1);
     const updateArg = prismaMock.verificationCode.updateMany.mock.calls[0]?.[0];
@@ -165,6 +166,31 @@ describe('POST /api/auth/verify-email', () => {
     expect(limited).toBeTruthy();
     const body = await limited.json();
     expect(body.error).toBe('TOO_MANY_VERIFY_ATTEMPTS');
+  });
+
+  it('hasProfile is true when a Profile row exists', async () => {
+    // Distinct email (not 'a@b.com') — the module-level per-email rate
+    // limiter for this bucket (max 5/15m) is shared across every `it()` in
+    // this file, and 'a@b.com' is already exhausted by the 5 earlier tests
+    // above. Mirrors the existing 'rl@example.com' pattern used by the
+    // TOO_MANY_VERIFY_ATTEMPTS test for the same reason.
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'u1',
+      email: 'hasprofile@b.com',
+      tokenVersion: 0,
+      profile: { userId: 'u1' },
+    } as never);
+    prismaMock.verificationCode.findFirst.mockResolvedValue({
+      id: 'vc1',
+      code: VALID_CODE,
+      expiresAt: new Date(Date.now() + 60_000),
+    } as never);
+    prismaMock.verificationCode.updateMany.mockResolvedValue({ count: 1 } as never);
+
+    const res = await POST(makeReq({ email: 'hasprofile@b.com', code: VALID_CODE }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.user.hasProfile).toBe(true);
   });
 
   it("source contains runtime='nodejs' and withRequestContext", () => {

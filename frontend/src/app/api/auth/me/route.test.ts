@@ -54,7 +54,7 @@ describe('GET /api/auth/me', () => {
     const res = await GET(makeReq({ bearer: 'valid-access-token' }));
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({
-      user: { sub: 'u1', email: 'a@b.com' },
+      user: { sub: 'u1', email: 'a@b.com', hasProfile: false },
     });
   });
 
@@ -91,5 +91,25 @@ describe('GET /api/auth/me', () => {
 
     const res = await GET(makeReq({ bearer: 'orphan-jwt' }));
     expect(res.status).toBe(401);
+  });
+
+  it('Test 5: hasProfile is true when a Profile row exists', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      sub: 'u1',
+      email: 'a@b.com',
+      tokenVersion: 0,
+    });
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'u1',
+      email: 'a@b.com',
+      tokenVersion: 0,
+      profile: { userId: 'u1' },
+    } as never);
+
+    const res = await GET(makeReq({ bearer: 'valid-access-token' }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      user: { sub: 'u1', hasProfile: true },
+    });
   });
 });
