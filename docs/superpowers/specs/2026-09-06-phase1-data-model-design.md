@@ -57,6 +57,17 @@ generic `User` model) — no multi-tenancy needed, consistent with
 `CLAUDE.md`'s "default project surface stays user-owned" guidance. None of
 this touches or renames the starter's generic models.
 
+**Convention correction (caught while writing the implementation plan):**
+the existing schema has zero native Prisma `enum` blocks — `User.role`,
+`User.status`, `Order.status`, `Order.paymentMethod` etc. are all plain
+`String` columns with a `@default(...)` and an inline comment listing
+valid values, validated at the Zod/route layer rather than by Postgres.
+Every "`X` enum" column below is implemented that same way: a `String`
+field with a default and a `// VALUE_A | VALUE_B | ...` comment, **not**
+a Prisma `enum` block. The semantic names (`Goal`, `ConsentType`, etc.)
+below are just labels for this document — no such types exist in the
+schema itself.
+
 ### `Profile` (1:1 with `User`)
 
 | Field | Type | Notes |
