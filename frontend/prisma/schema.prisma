@@ -359,6 +359,7 @@ model Profile {
   trackedConcerns   String[] @default([])
   plan              String   @default("FREE") // FREE | PLUS | BABY
   temperatureUnit   String   @default("CELSIUS") // CELSIUS | FAHRENHEIT
+  notificationLevel String   @default("NORMAL") // NORMAL | DISCREET | NONE
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
