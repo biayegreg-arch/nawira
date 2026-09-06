@@ -7,6 +7,8 @@ function d(iso: string): Date {
 }
 
 beforeEach(() => {
+  // No Cycle rows exist yet by default: every derived cycle is "new" and gets written.
+  prismaMock.cycle.findMany.mockResolvedValue([] as never);
   prismaMock.cycle.upsert.mockResolvedValue({} as never);
   prismaMock.prediction.upsert.mockResolvedValue({} as never);
   prismaMock.prediction.deleteMany.mockResolvedValue({ count: 0 } as never);
@@ -82,5 +84,64 @@ describe('recomputeCyclesAndPrediction', () => {
 
     expect(prismaMock.cycle.upsert).toHaveBeenCalledTimes(2);
     expect(prismaMock.prediction.upsert).toHaveBeenCalledTimes(1);
+  });
+
+  it('writes no Cycle row on a second recompute when nothing changed', async () => {
+    prismaMock.periodEvent.findMany.mockResolvedValue([
+      { date: d('2026-01-01') },
+      { date: d('2026-01-29') },
+    ] as never);
+    prismaMock.profile.findUnique.mockResolvedValue({
+      usualCycleLength: null,
+      usualPeriodLength: null,
+    } as never);
+
+    await recomputeCyclesAndPrediction(prismaMock, 'u1');
+    expect(prismaMock.cycle.upsert).toHaveBeenCalledTimes(2);
+
+    // Persist what the first run wrote, then replay the exact same input.
+    const persisted = prismaMock.cycle.upsert.mock.calls.map((call) => {
+      const create = call[0].create as {
+        startDate: Date;
+        endDate: Date | null;
+        length: number | null;
+        isOutlier: boolean;
+      };
+      return {
+        startDate: create.startDate,
+        endDate: create.endDate,
+        length: create.length,
+        isOutlier: create.isOutlier,
+      };
+    });
+    prismaMock.cycle.upsert.mockClear();
+    prismaMock.cycle.findMany.mockResolvedValue(persisted as never);
+
+    await recomputeCyclesAndPrediction(prismaMock, 'u1');
+
+    expect(prismaMock.cycle.upsert).not.toHaveBeenCalled();
+    // The Prediction row is still refreshed — only Cycle writes are diffed.
+    expect(prismaMock.prediction.upsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('writes only the Cycle rows whose derived state actually changed', async () => {
+    prismaMock.periodEvent.findMany.mockResolvedValue([
+      { date: d('2026-01-01') },
+      { date: d('2026-01-29') },
+    ] as never);
+    prismaMock.profile.findUnique.mockResolvedValue({
+      usualCycleLength: null,
+      usualPeriodLength: null,
+    } as never);
+    // The first cycle is already stored and unchanged; the open cycle is not stored yet.
+    prismaMock.cycle.findMany.mockResolvedValue([
+      { startDate: d('2026-01-01'), endDate: d('2026-01-28'), length: 28, isOutlier: false },
+    ] as never);
+
+    await recomputeCyclesAndPrediction(prismaMock, 'u1');
+
+    expect(prismaMock.cycle.upsert).toHaveBeenCalledTimes(1);
+    const arg = prismaMock.cycle.upsert.mock.calls[0]?.[0];
+    expect(arg?.where).toEqual({ userId_startDate: { userId: 'u1', startDate: d('2026-01-29') } });
   });
 });

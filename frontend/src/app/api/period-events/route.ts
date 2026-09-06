@@ -48,12 +48,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return auth;
     }
 
+    // An absent/empty body is valid (every field has a default); malformed
+    // JSON is NOT — parsing it to `{}` would silently 200 on client garbage.
     let body: z.infer<typeof Body>;
     try {
-      const json = await req.json().catch(() => ({}));
+      const text = await req.text();
+      const json: unknown = text.trim().length > 0 ? JSON.parse(text) : {};
       body = Body.parse(json);
     } catch {
       return jsonError('VALIDATION_FAILED', 400, ctx.requestId, 'Invalid request body');
+    }
+
+    // Writing health data requires a completed onboarding — that is where the
+    // HEALTH_DATA consent is granted. No Profile means no consent.
+    const profile = await prisma.profile.findUnique({
+      where: { userId: auth.user.sub },
+      select: { userId: true },
+    });
+    if (!profile) {
+      return jsonError('PROFILE_NOT_FOUND', 404, ctx.requestId);
     }
 
     const today = todayUtcDate();

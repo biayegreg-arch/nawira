@@ -55,10 +55,23 @@ function nonOutlierLengths(group: ComputedCycle[]): number[] {
   return nonOutlier.length > 0 ? nonOutlier : group.map((c) => c.length!);
 }
 
+/**
+ * Period length in days: the declared `Profile.usualPeriodLength` when set,
+ * otherwise the median of the SETTLED episodes' lengths, otherwise
+ * `DEFAULT_PERIOD_LENGTH_DAYS`.
+ *
+ * The most recent episode is deliberately excluded from the median: it is
+ * still in progress at recompute time (the only writer logs today), so its
+ * length is a partial count, not an observation. Onboarding's single
+ * `lastPeriodDate` row is likewise structurally always length 1 and never a
+ * real measurement — including it would predict a 1-day period for every
+ * brand-new user.
+ */
 function resolvePeriodLengthDays(usualPeriodLength: number | null, episodes: Episode[]): number {
   if (usualPeriodLength !== null) return usualPeriodLength;
-  if (episodes.length === 0) return DEFAULT_PERIOD_LENGTH_DAYS;
-  return Math.round(median(episodes.map((e) => e.length)));
+  const settled = episodes.slice(0, -1);
+  if (settled.length === 0) return DEFAULT_PERIOD_LENGTH_DAYS;
+  return Math.round(median(settled.map((e) => e.length)));
 }
 
 /**

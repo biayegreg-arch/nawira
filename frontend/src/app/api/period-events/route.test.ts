@@ -25,6 +25,15 @@ function makeReq(body?: unknown): NextRequest {
   });
 }
 
+/** Sends `raw` verbatim — used to exercise a body that is not valid JSON at all. */
+function makeRawReq(raw: string): NextRequest {
+  return new NextRequest('http://test/api/period-events', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: raw,
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(requireAuth).mockResolvedValue({ user: { sub: 'u1', email: 'a@b.com' } });
@@ -36,6 +45,7 @@ beforeEach(() => {
     return Promise.resolve(cb);
   });
   prismaMock.periodEvent.upsert.mockResolvedValue({} as never);
+  prismaMock.profile.findUnique.mockResolvedValue({ userId: 'u1' } as never);
 });
 
 describe('POST /api/period-events', () => {
@@ -73,6 +83,27 @@ describe('POST /api/period-events', () => {
     const body = await res.json();
     expect(body.error).toBe('VALIDATION_FAILED');
     expect(prismaMock.periodEvent.upsert).not.toHaveBeenCalled();
+  });
+
+  it('rejects a malformed JSON body with VALIDATION_FAILED', async () => {
+    const res = await POST(makeRawReq('not json'));
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('VALIDATION_FAILED');
+    expect(prismaMock.periodEvent.upsert).not.toHaveBeenCalled();
+    expect(recomputeCyclesAndPrediction).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 PROFILE_NOT_FOUND when the user never completed onboarding', async () => {
+    prismaMock.profile.findUnique.mockResolvedValue(null);
+
+    const res = await POST(makeReq({}));
+
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toBe('PROFILE_NOT_FOUND');
+    expect(prismaMock.periodEvent.upsert).not.toHaveBeenCalled();
+    expect(recomputeCyclesAndPrediction).not.toHaveBeenCalled();
   });
 
   it('returns 401 when unauthenticated', async () => {
