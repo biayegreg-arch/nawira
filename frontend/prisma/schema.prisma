@@ -435,7 +435,7 @@ model FertilitySignal {
   cervicalMucusType String? // DRY | STICKY | CREAMY | WATERY | EGG_WHITE
   lhResult          String? // NEGATIVE | POSITIVE | PEAK | INCONCLUSIVE
 
-  @@index([userId, date])
+  @@unique([userId, date, type])
 }
 
 model Prediction {
