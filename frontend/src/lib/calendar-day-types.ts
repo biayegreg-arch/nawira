@@ -7,6 +7,9 @@ interface CycleSummary {
 
 interface PredictionSummary {
   expectedPeriodStart: string;
+  fertileWindowStart?: string | null;
+  fertileWindowEnd?: string | null;
+  ovulationEstimate?: string | null;
 }
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -27,9 +30,12 @@ function isoRange(startIso: string, endIso: string): string[] {
 }
 
 /**
- * Derives per-day calendar markers from the Phase 3 API responses.
+ * Derives per-day calendar markers from the Phase 3/5 API responses.
  * Precedence when a date matches more than one type: today > observed >
- * predicted (assignment order below, later wins).
+ * predicted > ovulation > fertile (assignment order below, later wins) —
+ * real logged data always beats an estimate, and estimates never override
+ * each other by accident (ovulation is a single day inside the fertile
+ * range, so it's assigned after so it stays visible on that one day).
  */
 export function buildDayTypes(
   cycles: CycleSummary[],
@@ -37,6 +43,16 @@ export function buildDayTypes(
   today: string,
 ): Record<string, CalendarDayType> {
   const dayTypes: Record<string, CalendarDayType> = {};
+
+  if (prediction?.fertileWindowStart && prediction.fertileWindowEnd) {
+    for (const iso of isoRange(prediction.fertileWindowStart, prediction.fertileWindowEnd)) {
+      dayTypes[iso] = 'fertile';
+    }
+  }
+
+  if (prediction?.ovulationEstimate) {
+    dayTypes[prediction.ovulationEstimate] = 'ovulation';
+  }
 
   if (prediction) {
     dayTypes[prediction.expectedPeriodStart] = 'predicted';

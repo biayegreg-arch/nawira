@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-export type CalendarDayType = 'observed' | 'predicted' | 'today';
+export type CalendarDayType = 'observed' | 'predicted' | 'fertile' | 'ovulation' | 'today';
 
 interface MonthGridProps {
   /** Full year, e.g. 2026. */
@@ -10,6 +10,13 @@ interface MonthGridProps {
   /** Keyed by ISO date (`YYYY-MM-DD`). */
   dayTypes: Record<string, CalendarDayType>;
   size?: 'compact' | 'full';
+  /**
+   * Called when a day cell is tapped. Only wire this up for days the app
+   * can actually act on (e.g. today, since daily-logs/today is the only
+   * editable date) — a tappable-looking cell that does nothing is a fake
+   * affordance.
+   */
+  onDayClick?: (iso: string, type: CalendarDayType | undefined) => void;
 }
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -17,6 +24,8 @@ const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const TYPE_STYLES: Record<CalendarDayType, string> = {
   observed: 'bg-rose-soft text-rose font-semibold',
   predicted: 'bg-primary-soft text-primary-light font-semibold',
+  fertile: 'bg-green-soft text-green font-semibold',
+  ovulation: 'bg-amber-soft text-amber font-semibold',
   today: 'bg-primary text-white font-bold',
 };
 
@@ -31,6 +40,7 @@ export function MonthGrid({
   month,
   dayTypes,
   size = 'full',
+  onDayClick,
 }: MonthGridProps): React.JSX.Element {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   // JS getDay(): 0=Sunday..6=Saturday. Convert to a Monday-first index.
@@ -56,17 +66,22 @@ export function MonthGrid({
           if (day === null) return <div key={`empty-${i}`} />;
           const iso = toIsoDate(year, month, day);
           const type = dayTypes[iso];
+          const clickable = type === 'today' && onDayClick;
           return (
             <div key={iso} className="flex items-center justify-center">
-              <div
+              <button
+                type="button"
+                disabled={!clickable}
+                onClick={() => onDayClick?.(iso, type)}
                 className={cn(
                   'flex items-center justify-center rounded-full text-xs',
                   cellSize,
                   type ? TYPE_STYLES[type] : 'text-navy',
+                  clickable ? 'cursor-pointer ring-primary hover:ring-2' : 'cursor-default',
                 )}
               >
                 {day}
-              </div>
+              </button>
             </div>
           );
         })}

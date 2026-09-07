@@ -1,6 +1,9 @@
-import { Info, Sparkles } from 'lucide-react';
+import { Info, Heart, Droplet, Activity, Moon, Lightbulb } from 'lucide-react';
 
 interface Tip {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  bg: string;
+  color: string;
   title: string;
   body: string;
 }
@@ -12,45 +15,64 @@ interface Tip {
 // professional.
 const TIPS: Tip[] = [
   {
-    title: 'Suis ta fenêtre fertile',
-    body: 'Les rapports pendant la fenêtre fertile estimée augmentent les chances de conception. C’est une estimation basée sur ton historique de cycle, pas une certitude — elle s’affine au fil des cycles suivis.',
+    icon: Heart,
+    bg: 'bg-amber-soft',
+    color: 'text-rose',
+    title: 'Relations intimes régulières',
+    body: 'Les rapports réguliers (tous les 2-3 jours) pendant la fenêtre fertile augmentent les chances de conception.',
   },
   {
+    icon: Droplet,
+    bg: 'bg-green-soft',
+    color: 'text-green',
+    title: 'Reste bien hydratée',
+    body: 'Une bonne hydratation soutient le bon fonctionnement général de ton cycle.',
+  },
+  {
+    icon: Activity,
+    bg: 'bg-primary-soft',
+    color: 'text-purple',
+    title: 'Réduis le stress',
+    body: 'Le stress chronique peut influencer la régularité du cycle. Essaie la respiration, la marche ou le yoga.',
+  },
+  {
+    icon: Moon,
+    bg: 'bg-rose-soft',
+    color: 'text-rose',
+    title: 'Dors suffisamment',
+    body: '7 à 9 heures de sommeil soutiennent ta fertilité et ton bien-être général.',
+  },
+  {
+    icon: Lightbulb,
+    bg: 'bg-primary-soft',
+    color: 'text-primary',
     title: 'Acide folique',
-    body: 'La prise d’acide folique avant une grossesse est une recommandation courante. Parles-en à un professionnel de santé pour un dosage adapté à ta situation.',
-  },
-  {
-    title: 'Hygiène de vie',
-    body: 'Une alimentation équilibrée, une activité physique régulière et un sommeil suffisant soutiennent le bon fonctionnement du cycle.',
-  },
-  {
-    title: 'Alcool et tabac',
-    body: 'Réduire ou arrêter l’alcool et le tabac est généralement recommandé en période de conception. Un professionnel de santé peut t’accompagner dans cette démarche.',
-  },
-  {
-    title: 'Stress',
-    body: 'Le stress chronique peut influencer la régularité du cycle. Des pratiques de relaxation (respiration, marche, sommeil régulier) peuvent aider.',
+    body: 'La prise d’acide folique avant une grossesse est une recommandation courante. Parles-en à un professionnel de santé.',
   },
 ];
 
 export function ConceptionTipsCard(): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-border bg-white p-6">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-soft text-rose">
-          <Sparkles size={18} />
-        </div>
-        <h2 className="text-lg font-bold text-navy">Conseils</h2>
-      </div>
+    <div className="rounded-lg border border-border bg-white p-6">
+      <h2 className="mb-5 flex items-center gap-2 text-lg font-bold text-navy">
+        <Lightbulb size={18} className="text-amber" />
+        Conseils pour cette période
+      </h2>
 
-      <ul className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {TIPS.map((tip) => (
-          <li key={tip.title}>
-            <div className="text-sm font-semibold text-navy">{tip.title}</div>
-            <p className="mt-0.5 text-sm text-muted-foreground">{tip.body}</p>
-          </li>
+          <div
+            key={tip.title}
+            className={`flex gap-3 rounded-lg border border-border p-3 ${tip.bg}`}
+          >
+            <tip.icon size={18} className={`mt-0.5 shrink-0 ${tip.color}`} />
+            <div>
+              <div className={`mb-1 text-sm font-semibold ${tip.color}`}>{tip.title}</div>
+              <p className="text-xs text-muted-foreground">{tip.body}</p>
+            </div>
+          </div>
         ))}
-      </ul>
+      </div>
 
       <div className="mt-5 rounded-lg bg-green-soft p-4">
         <div className="flex gap-3">

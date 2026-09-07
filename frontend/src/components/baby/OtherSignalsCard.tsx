@@ -18,31 +18,23 @@ const MUCUS_OPTIONS = [
   { value: 'EGG_WHITE', label: "Blanc d'œuf" },
 ];
 
-const LH_OPTIONS = [
-  { value: 'NEGATIVE', label: 'Négatif' },
-  { value: 'POSITIVE', label: 'Positif' },
-  { value: 'PEAK', label: 'Pic' },
-  { value: 'INCONCLUSIVE', label: 'Non concluant' },
-];
-
-export interface TodaySignalsValues {
+export interface OtherSignalsValues {
   temperatureValue: number | null;
   temperatureUnit: 'CELSIUS' | 'FAHRENHEIT' | null;
   cervicalMucusType: string | null;
-  lhResult: string | null;
 }
 
-interface TodaySignalsCardProps {
-  initialValues: TodaySignalsValues;
+interface OtherSignalsCardProps {
+  initialValues: OtherSignalsValues;
   saving: boolean;
-  onSubmit: (values: TodaySignalsValues) => void;
+  onSubmit: (values: OtherSignalsValues) => void;
 }
 
-export function TodaySignalsCard({
+export function OtherSignalsCard({
   initialValues,
   saving,
   onSubmit,
-}: TodaySignalsCardProps): React.JSX.Element {
+}: OtherSignalsCardProps): React.JSX.Element {
   const [temperatureValue, setTemperatureValue] = useState(
     initialValues.temperatureValue !== null ? String(initialValues.temperatureValue) : '',
   );
@@ -52,12 +44,6 @@ export function TodaySignalsCard({
   const [cervicalMucusType, setCervicalMucusType] = useState<string | null>(
     initialValues.cervicalMucusType,
   );
-  const [lhResult, setLhResult] = useState<string | null>(initialValues.lhResult);
-
-  const toggleSingle =
-    (current: string | null, setValue: (v: string | null) => void) =>
-    (value: string): void =>
-      setValue(current === value ? null : value);
 
   const handleSubmit = (e: FormEvent): void => {
     e.preventDefault();
@@ -70,7 +56,6 @@ export function TodaySignalsCard({
       temperatureValue: validTemperature,
       temperatureUnit: validTemperature !== null ? (temperatureUnit ?? 'CELSIUS') : null,
       cervicalMucusType,
-      lhResult,
     });
   };
 
@@ -83,7 +68,7 @@ export function TodaySignalsCard({
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-soft text-rose">
           <Thermometer size={18} />
         </div>
-        <h2 className="text-lg font-bold text-navy">Signaux du jour</h2>
+        <h2 className="text-lg font-bold text-navy">Autres signaux du jour</h2>
       </div>
 
       <section className="flex flex-col gap-2">
@@ -114,21 +99,12 @@ export function TodaySignalsCard({
         <ChipGroup
           options={MUCUS_OPTIONS}
           selectedValues={cervicalMucusType ? [cervicalMucusType] : []}
-          onToggle={toggleSingle(cervicalMucusType, setCervicalMucusType)}
-        />
-      </section>
-
-      <section className="flex flex-col gap-2">
-        <span className="text-sm font-medium text-navy">Test d&rsquo;ovulation (LH)</span>
-        <ChipGroup
-          options={LH_OPTIONS}
-          selectedValues={lhResult ? [lhResult] : []}
-          onToggle={toggleSingle(lhResult, setLhResult)}
+          onToggle={(value) => setCervicalMucusType(value === cervicalMucusType ? null : value)}
         />
       </section>
 
       <Button type="submit" disabled={saving} className="w-full">
-        {saving ? 'Enregistrement…' : 'Enregistrer les signaux du jour'}
+        {saving ? 'Enregistrement…' : 'Enregistrer'}
       </Button>
     </form>
   );

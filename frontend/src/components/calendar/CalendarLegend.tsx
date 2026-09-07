@@ -4,12 +4,16 @@ import type { CalendarDayType } from './MonthGrid';
 const ITEMS: Array<{ type: CalendarDayType; label: string }> = [
   { type: 'observed', label: 'Règles' },
   { type: 'predicted', label: 'Prédit' },
+  { type: 'fertile', label: 'Fenêtre fertile' },
+  { type: 'ovulation', label: 'Ovulation estimée' },
   { type: 'today', label: "Aujourd'hui" },
 ];
 
 const DOT_STYLES: Record<CalendarDayType, string> = {
   observed: 'bg-rose',
   predicted: 'bg-primary-light',
+  fertile: 'bg-green',
+  ovulation: 'bg-amber',
   today: 'bg-primary',
 };
 

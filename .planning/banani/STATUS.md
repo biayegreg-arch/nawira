@@ -1,9 +1,9 @@
 # Banani implementation status
 
-Last updated: 2026-09-07 (real-Banani-source reconciliation pass — user flagged that /app/today, /app/baby, /app/calendar, /app/assistant, /app/insights, /app/log all diverged from Banani/PRD; AddDataPage rebuilt against its now-real source, remaining 5 screens pending user multi-select in Banani)
+Last updated: 2026-09-07 (ProjetBebe expanded into 5 real routes — Aperçu/Calendrier/Ressources/Conseils/Ajouter-un-test — against newly-fetched Banani sources; Analytics/Assistant still deferred, see delta below)
 
 Source flow: **"Design System NAWIRA"** — Banani flow id `acguXQuGeGbU` (https://app.banani.co/flow/acguXQuGeGbU)
-Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope.
+Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope. A later, separate fetch (2026-09-07) added 7 more screens the user created directly for the Projet Bébé flow: `ProjetBebe` (re-fetch), `ProjetBebeRessources`, `ProjetBebeCalendarV2`, `AddLHTest`, `ConceptionAdvice`, plus 2 duplicates (`ProjetBebe_next1`, `ProjetBebeDiscovery`) dropped per the same duplicate-screen policy.
 
 ## Done
 
@@ -12,15 +12,15 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] Login (no Banani source) — `frontend/src/app/login/page.tsx` — restyled from `examples/frontend-pages/login.tsx` — 2026-09-06
 - [x] Verify-email (no Banani source) — `frontend/src/app/verify-email/page.tsx` — restyled from `examples/frontend-pages/verify-email.tsx` — 2026-09-06
 - [x] Shared `/app/*` shell — `frontend/src/app/app/layout.tsx` (auth+profile gate), `frontend/src/components/app/AppSidebar.tsx`, `frontend/src/components/app/AppTopBar.tsx` — plan: `.planning/banani/app-shell.md` — 2026-09-07
-- [x] `DashboardAujourdhui` — `frontend/src/app/app/today/page.tsx` — plan: `.planning/banani/dashboard-aujourdhui.md` — 2026-09-07
-- [x] `Calendar` — `frontend/src/app/app/calendar/page.tsx` — plan: `.planning/banani/calendar.md` — 2026-09-07
+- [x] `DashboardAujourdhui` — **rebuilt against its real Banani source** (added `MoodSelector`, `PredictionCards` [3 real predictions], `DailyTip`, `ProjetBebeCard`, fertile-aware `CycleRing` segment) — `frontend/src/app/app/today/page.tsx` — plan: this file (see delta below) — 2026-09-07
+- [x] `Calendar` — **rebuilt against its real Banani source** (added fertile/ovulation day-types + legend entries, today-tap → `/app/log`) — `frontend/src/app/app/calendar/page.tsx` — plan: this file (see delta below) — 2026-09-07
 - [x] `Profile` — `frontend/src/app/app/profile/page.tsx` — plan: `.planning/banani/profile.md` — 2026-09-07
 - [x] `Settings` — `frontend/src/app/app/settings/page.tsx` (izikit's generic `/settings` untouched) — plan: `.planning/banani/settings.md` — 2026-09-07
 - [x] `Logout` (modal, not a route) — `frontend/src/components/app/LogoutModal.tsx` + `LogoutButton.tsx`, wired into `AppSidebar` and `/app/profile`'s mobile account block — plan: `.planning/banani/logout-modal.md` — 2026-09-07
 - [x] `HelpCenter` — `frontend/src/app/app/help/page.tsx` — plan: `.planning/banani/help-center.md` — 2026-09-07
 - [x] `CycleDetailFull` — **replaced** by `frontend/src/app/app/cycles/page.tsx` ("Historique des cycles") — plan: `.planning/banani/cycles-history.md` — 2026-09-07
 - [x] `AddData` — **rebuilt against its real Banani source** `AddDataPage.jsx` (superseding the earlier no-source version) — `frontend/src/app/app/log/page.tsx` + `frontend/src/components/log/*` — plan: `.planning/banani/add-data.md` — 2026-09-07
-- [x] `ProjetBebe` — **built without a Banani source** (3 fetch attempts this session all returned stale `DashboardAujourdhui`) — `frontend/src/app/app/baby/page.tsx` + `frontend/src/components/baby/*` — plan: `.planning/banani/projet-bebe.md` — 2026-09-07
+- [x] `ProjetBebe` — **rebuilt against its real Banani source, then expanded into 5 real routes** after the user pasted a screenshot of the real desktop screen (proving the prior no-source build had drifted) and then created 6 new Banani screens for the surrounding flow — `frontend/src/app/app/baby/{page.tsx,calendar,resources,tips,add-lh-test}` + `frontend/src/components/baby/*` — plan: `.planning/banani/projet-bebe.md` — 2026-09-07
 - [x] `/app/insights`, `/app/billing`, `/app/assistant` — honest "Bientôt disponible" placeholders (no Banani source; unbuilt future epics E6/E7/E8) — `frontend/src/components/app/ComingSoonPage.tsx` + 3 thin page wrappers — 2026-09-07
 
 New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Field.tsx`, `frontend/src/components/auth/AuthCard.tsx`. Design tokens added to `frontend/src/app/globals.css` (`@theme` block — primary/navy confirmed exact match with PRD §0; rose/green/amber/purple are Banani's actual accent hexes, renamed to avoid colliding with Tailwind's built-in default palette names of the same words).
@@ -65,6 +65,20 @@ New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/co
 - `pnpm typecheck`, `pnpm lint`, and `pnpm build` all green.
 - Caught and fixed a routing bug during verification: the shared layout was first built under a route **group** `(app)/`, which Next.js excludes from the URL — pages resolved to `/today`/`/calendar` instead of `/app/today`/`/app/calendar`. Renamed to a literal `frontend/src/app/app/` folder; rebuilt and confirmed the route list now shows `/app/today` and `/app/calendar`.
 - Rendered check via a real logged-in session (seeded `user@example.com`, real onboarding + period-logging API calls) at 375px / 768px / 1280px on both screens: no horizontal scroll (`scrollWidth === clientWidth` at all six checks), no overlapping elements, mobile bottom nav / desktop sidebar+topbar both render correctly, cards and calendar legend match the trimmed design.
+
+### Delta vs Banani source — `DashboardAujourdhui` / `Calendar` reconciliation pass (2026-09-07)
+
+User flagged that this screen (and others) diverged from Banani/PRD; re-fetched the real sources (previously stuck on a stale editor selection) and reconciled — approved scope (AskUserQuestion, 2026-09-07): "Oui, vas-y avec ce périmètre".
+
+- `CycleRing` — kept the single neutral progress arc (still not Banani's fixed 4-phase/28-day ring, which hardcodes generic day ranges 1–5/6–13/14–16/17–28 that PRD §8.1 explicitly forbids — "ne jamais généraliser « jour 14 »"). **Added** a green fertile-window arc segment computed from the user's own real `fertileWindowStart`/`fertileWindowEnd` (Phase 5 data), positioned via real day-offsets from the current cycle's start — never a fixed range.
+- `PredictionCards` — **restored**, now showing all 3 real predictions (Prochaines règles / Ovulation estimée / Fenêtre fertile with "En cours" badge), replacing the single-card `PredictionCard.tsx` (deleted). All values are real (Phase 5 API), "≈" framing preserved.
+- `MoodSelector` — **added**, a quick mood-log widget wired to `PUT /api/daily-logs/today` with a fetch-then-merge pattern (the endpoint is full-replace; merging avoids clobbering the day's other fields).
+- `DailyTip` — **added**, a day-of-year-indexed rotating tip from a fixed set of 7 general, non-diagnostic wellness tips (not Banani's single hardcoded tip, and not a fake "personalized" tip).
+- `ProjetBebeCard` — **added**, a real promo card linking to `/app/baby`.
+- `TrendsChart`, `KeyDataCards` — **still dropped**, this time by explicit user confirmation: both overlap the deferred Analytics/Insights epic (cycle averages, top symptom, "meilleure phase") and would either fabricate data or duplicate that future epic's scope.
+- Hero gradient — updated to Banani's exact `linear-gradient(135deg, #F8F5FD 0%, #FDF5F9 100%)` (previously a generic `primary-soft`→`rose-soft` Tailwind gradient).
+- `calendar-day-types.ts` — extended with `fertile`/`ovulation` day types (real data from Phase 5's `fertileWindowStart`/`fertileWindowEnd`/`ovulationEstimate`), consumed by both `/app/today`'s `MiniCalendar` and `/app/calendar`. Precedence: today > observed > predicted > ovulation > fertile.
+- `/app/calendar` — legend moved above the grid (was below) to match Banani; legend extended with Fenêtre fertile/Ovulation estimée. **Tap-to-journal added for today's cell only** (PRD §6.2 CAL01 wants "tap sur une date → journal du jour" for any date, but `/api/daily-logs/today` is today-only — making past/future cells look tappable when they do nothing would be a fake affordance, so only today's cell navigates to `/app/log`). Dropped Banani's "Exporter"/"Partager" buttons (no backend).
 
 ### Delta vs Banani source — `Profile` / `Settings` / `Logout` / `HelpCenter` / `CycleDetailFull` (2026-09-07)
 
@@ -194,3 +208,80 @@ Of the 15 Banani screens, 3 were near-duplicates of another screen in the set wi
 - Real browser check at 375/768/1280px — no horizontal scroll, no overlap, empty-state (no prediction yet) renders correctly.
 - Real save round-trip against the live dev server: filled temperature + cervical mucus + LH test → saved → reloaded → all 3 values persisted correctly, then cleared back out.
 - Caught and fixed a real bug during verification: the running dev server's Prisma Client predated this session's `fertility_signal_unique_type` migration (stale generated client, missing the `userId_date_type` compound key), causing `PUT /api/fertility-signals/today` to 500. Fixed by regenerating the client (`prisma generate`) and restarting the dev server — no application code was at fault.
+
+### Delta vs Banani source — `ProjetBebe` expanded to 5 routes (2026-09-07)
+
+The user pasted a screenshot of the real desktop `ProjetBebe` screen, proving the earlier no-source
+build (above) had drifted from the actual design. Re-fetched via MCP — this time the selection
+correctly returned `ProjetBebe.jsx` plus 6 more screens the user had newly created in Banani for the
+surrounding flow: `ProjetBebeRessources.jsx`, `ProjetBebeCalendarV2.jsx`, `AddLHTest.jsx`,
+`ConceptionAdvice.jsx`, `ProjetBebe_next1.jsx` (duplicate of `ProjetBebe`), `ProjetBebeDiscovery.jsx`
+(duplicate, already dropped above). Each real screen has its own breadcrumb/URL (`Projet Bébé / X`),
+so this became 5 real routes instead of one page with in-page tabs.
+
+- **`/app/baby` (Aperçu)** — rebuilt against the real source: 3-box `FertilityWindowCard` (range +
+  ovulation estimate + confidence label), `LHTestTracker`, `ConceptionStatsCard`
+  ("Ton parcours de conception"), plus a new `OtherSignalsCard` (temperature + cervical mucus —
+  **addition beyond Banani**, flagged: Banani's source has no UI anywhere for these two signal
+  types, but the existing backend/UI was their only entry point, so removing it without a
+  replacement would have been a functionality regression).
+- **Confidence score**: Banani's mockup shows a fabricated `74/100` next to the confidence label.
+  The backend (`src/lib/server/cycles/prediction.ts`) only ever produces a `LOW/MEDIUM/HIGH`
+  bucket from cycle-variance — no numeric score exists anywhere. **Confirmed with user via
+  AskUserQuestion**: kept the label only, no invented number.
+- **`/app/baby/calendar`** (new route, `FertilityCalendarV2` source) — real month grids (current +
+  next month) via the existing `MonthGrid`/`buildDayTypes`, real `FertilityCalendarLegend` (trimmed
+  to the day types the grid actually renders: Règles/Fenêtre fertile/Ovulation estimée/Prochaines
+  règles/Aujourd'hui — dropped Banani's fake "Phase lutéale"/"Phase folliculaire" legend colors,
+  since no per-day phase classification is computed beyond the fertile window, and PRD §8.1 bans
+  generalizing cycle-day phases; also dropped Banani's decorative "Symboles" row — 🩸/🌡️/💬/🟢 icons
+  that don't correspond to anything actually rendered on a day cell). Dropped "Exporter le
+  calendrier"/"Partager avec médecin" buttons (no backend), matching `/app/calendar`'s existing
+  precedent.
+- **`/app/baby/resources`** (new route, `ProjetBebeRessources` source) — real cautious article
+  content (`conception-articles.ts`), client-side search + category filter (real, not decorative),
+  real FAQ. Dropped Banani's fabricated named-expert quote ("Dr. Aminata Diallo, gynécologue") and
+  its "Approuvé par des gynécologues" claim — same discipline as the earlier fake-testimonial
+  removal on the landing page; replaced with an honest "Bon à savoir: ressource de sensibilisation,
+  pas un avis médical" note. "NAWIRA Plus" CTA → real `<Link href="/app/billing">`.
+- **`/app/baby/tips`** (new route, `ConceptionAdvice` source) — 6 real cautious tips
+  (`conception-tips-full.ts`), each softened from Banani's more assertive claims into hedged,
+  non-diagnostic phrasing ("peut affecter" not "affecte", "est couramment recommandé" not a bare
+  instruction). Dropped the same "approuvé par" style claim. Premium CTA → `/app/billing` link.
+- **`/app/baby/add-lh-test`** (new route, `AddLHTest` source) — real form wired to the existing
+  `GET`/`PUT /api/fertility-signals/today` (fetch-merge-PUT pattern, preserving
+  temperature/mucus). Banani's 3 result options were remapped to the real 4-value enum
+  (`NEGATIVE | POSITIVE | PEAK | INCONCLUSIVE`): Banani's "Positif" → `PEAK` (its own description,
+  "pic de LH détecté", is literally what `PEAK` means), "Faible" → `POSITIVE`, "Négatif" →
+  `NEGATIVE`; added a 4th real option, "Non concluant" → `INCONCLUSIVE`, not shown in Banani's mock
+  but a real enum value that needs to be reachable somewhere. Sidebar context ("Ton cycle
+  aujourd'hui") uses real cycle-day and fertile-window-status data; dropped Banani's fabricated
+  "Pic d'estradiol: Hier" line (no such signal is tracked, no scientific claim we can back) and its
+  generic "Phase actuelle: Ovulation" label (same phase-generalization concern as the calendar
+  legend). **Dropped "Heure du test" and "Marque du test" fields** — `FertilitySignal` has no
+  columns for either and the PRD doesn't call for them; building selectable-but-unsaved fields
+  would be a fake affordance. "Notes personnelles" dropped for the same reason (no `note` column on
+  `FertilitySignal`).
+- **Premium CTA** on `/app/baby` ("Déverrouille Projet Bébé complet / Essayer gratuitement") — no
+  `Subscription` model exists in Prisma (confirmed against `/app/billing`'s own "Bientôt
+  disponible" placeholder). **Confirmed with user via AskUserQuestion**: kept as a real,
+  functioning `<Link href="/app/billing">` rather than a dead button or a dropped section.
+- New shared components: `ProjetBebeTabs.tsx` (the 3-way Aperçu/Calendrier/Ressources nav, reused
+  on all 3 tab-bar pages), `ProjetBebeBreadcrumb.tsx` (the "Projet Bébé / X" breadcrumb, reused on
+  the 2 drill-down pages that don't show the tab bar, matching their real Banani sources).
+
+### Verified — `ProjetBebe` 5-route expansion (2026-09-07)
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm format`, `pnpm test` (695/695), and `pnpm build` all green —
+  all 4 new routes (`/app/baby/{calendar,resources,tips,add-lh-test}`) resolve correctly.
+- Real browser check (logged-in session) at 375/768/1280px across all 5 routes: no horizontal
+  overflow at any of the 15 checks. Caught and fixed one real layout bug during verification: the
+  Ressources page's search input was being squeezed by the filter-pill row on the same line,
+  truncating its placeholder text — fixed by stacking search above filters instead of sharing a row.
+- Tab navigation (`ProjetBebeTabs`) driven end-to-end in a real browser: Aperçu → Calendrier →
+  Ressources, each a real route change.
+- Resources page's category filter driven for real (Alimentation filter → correct article subset).
+- Full LH-test save round-trip driven end-to-end: selected "Pic positif" on `/app/baby/add-lh-test`
+  → saved → redirected to `/app/baby` → `LHTestTracker` correctly shows "Aujourd'hui / Pic positif /
+  L'ovulation arrive généralement 24 à 36 heures après un pic de LH." confirming the
+  fetch-merge-PUT round-trip persisted correctly without clobbering the day's other signals.

@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
 import { buildDayTypes, todayIso } from '@/lib/calendar-day-types';
-import { MonthGrid } from '@/components/calendar/MonthGrid';
+import { MonthGrid, type CalendarDayType } from '@/components/calendar/MonthGrid';
 import { CalendarLegend } from '@/components/calendar/CalendarLegend';
 
 interface CycleSummary {
@@ -18,6 +19,9 @@ interface CycleSummary {
 
 interface PredictionSummary {
   expectedPeriodStart: string;
+  fertileWindowStart: string | null;
+  fertileWindowEnd: string | null;
+  ovulationEstimate: string | null;
 }
 
 const MONTH_LABELS = [
@@ -37,6 +41,7 @@ const MONTH_LABELS = [
 
 export default function CalendarPage(): React.JSX.Element | null {
   const user = useUser();
+  const router = useRouter();
   const [cycles, setCycles] = useState<CycleSummary[] | null>(null);
   const [prediction, setPrediction] = useState<PredictionSummary | null>(null);
   const [error, setError] = useState(false);
@@ -77,6 +82,10 @@ export default function CalendarPage(): React.JSX.Element | null {
     setView((v) =>
       v.month === 11 ? { year: v.year + 1, month: 0 } : { year: v.year, month: v.month + 1 },
     );
+  };
+
+  const handleDayClick = (iso: string, type: CalendarDayType | undefined): void => {
+    if (type === 'today') router.push('/app/log');
   };
 
   if (!user) return null;
@@ -129,11 +138,17 @@ export default function CalendarPage(): React.JSX.Element | null {
           </button>
         </div>
 
-        <MonthGrid year={view.year} month={view.month} dayTypes={dayTypes} size="full" />
-
-        <div className="mt-6 border-t border-border pt-5">
+        <div className="mb-6 border-b border-border pb-5">
           <CalendarLegend />
         </div>
+
+        <MonthGrid
+          year={view.year}
+          month={view.month}
+          dayTypes={dayTypes}
+          size="full"
+          onDayClick={handleDayClick}
+        />
       </div>
 
       <div className="mt-5 flex gap-3 rounded-xl bg-primary-soft p-4">
@@ -141,7 +156,8 @@ export default function CalendarPage(): React.JSX.Element | null {
         <div>
           <p className="text-sm text-body">
             Les prédictions s&rsquo;affinent au fil de tes cycles enregistrés. Plus tu suis tes
-            règles régulièrement, plus les estimations deviennent fiables.
+            règles régulièrement, plus les estimations deviennent fiables. Touche la date
+            d&rsquo;aujourd&rsquo;hui pour ouvrir ton journal du jour.
           </p>
           <Link href="/app/cycles" className="mt-2 inline-block text-sm font-medium text-primary">
             Voir l&rsquo;historique de mes cycles →
