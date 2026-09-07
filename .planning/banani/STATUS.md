@@ -19,6 +19,7 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] `Logout` (modal, not a route) — `frontend/src/components/app/LogoutModal.tsx` + `LogoutButton.tsx`, wired into `AppSidebar` and `/app/profile`'s mobile account block — plan: `.planning/banani/logout-modal.md` — 2026-09-07
 - [x] `HelpCenter` — `frontend/src/app/app/help/page.tsx` — plan: `.planning/banani/help-center.md` — 2026-09-07
 - [x] `CycleDetailFull` — **replaced** by `frontend/src/app/app/cycles/page.tsx` ("Historique des cycles") — plan: `.planning/banani/cycles-history.md` — 2026-09-07
+- [x] `AddData` — **built without a Banani source** (see delta below) — `frontend/src/app/app/log/page.tsx` — plan: `.planning/banani/add-data.md` — 2026-09-07
 
 New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Field.tsx`, `frontend/src/components/auth/AuthCard.tsx`. Design tokens added to `frontend/src/app/globals.css` (`@theme` block — primary/navy confirmed exact match with PRD §0; rose/green/amber/purple are Banani's actual accent hexes, renamed to avoid colliding with Tailwind's built-in default palette names of the same words).
 
@@ -77,6 +78,56 @@ New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/co
 - Rendered check via a real logged-in session at 375px / 768px / 1280px on all 4 new screens plus the already-shipped `/app/today` and `/app/calendar`: no horizontal overflow at any of the 18 checks, no overlapping elements.
 - Logout modal specifically verified by clicking through it in a real browser at both 1280px (sidebar trigger) and 375px (Profile page's mobile trigger) — overlay, centered card, and both buttons render correctly at both sizes.
 
+### Delta vs Banani source — `AddData` (`/app/log`, 2026-09-07)
+
+- **No Banani source available.** The flow's selection stayed on `DashboardAujourdhui`
+  (already shipped) across two fetch attempts; the user confirmed building
+  this screen directly from the already-approved design spec
+  (`docs/superpowers/specs/2026-09-07-phase4-daily-journal-design.md`
+  §4) instead of waiting further — same precedent as Signup/Login/
+  Verify-email, which also shipped without a Banani source.
+- **Flow selector always defaults to "Aucun" on load.** There is no
+  endpoint exposing today's actual `PeriodEvent.flow` value (the spec's
+  own Flow Integration section is explicit: "no new endpoint" for this
+  purpose) — only `GET /api/cycles`'s `todayLogged` boolean, reused
+  as-is. When `todayLogged` is true, an inline note tells the user a
+  flow is already logged and re-selecting a value corrects it. This is
+  a direct, spec-mandated limitation, not an implementation shortcut.
+- New shared primitive: `frontend/src/components/ui/ChipGroup.tsx` —
+  generic single/multi toggle chip row, reused across 6 sections (flow,
+  mood, energy, sleep quality, symptoms) — single- vs. multi-select is
+  decided entirely by the caller's state-update logic, not a prop.
+- `frontend/src/components/log/DailyLogForm.tsx` holds all 6 form
+  sections + submit; `frontend/src/app/app/log/page.tsx` only handles
+  fetch/loading/error/toast orchestration — same split as
+  `/app/today`'s page + component composition.
+- Submit fires two independent calls exactly as the spec specifies:
+  always `PUT /api/daily-logs/today`, plus `POST /api/period-events`
+  only when a flow other than "Aucun" is selected — the already-
+  reviewed `period-events` transaction stays completely untouched.
+- Mood/energy French chip labels (Très bien/Bien/Fatiguée/Stressée/
+  Humeur basse) reuse the wording verified correct in the earlier
+  `DashboardAujourdhui` Banani fetch's (unused) `MoodSelector.jsx` —
+  copy only, no structure or component reused from that screen.
+
+### Verified — `AddData` (2026-09-07)
+
+- `pnpm format`, `pnpm lint`, `pnpm typecheck`, `pnpm test` (665/665),
+  and `pnpm build` all green. `/app/log` resolves correctly in the
+  build's route list.
+- Real browser check (system Chrome via Playwright, real logged-in
+  session against the live dev server) at 375px / 768px / 1280px: no
+  horizontal overflow at any width (`scrollWidth === clientWidth`),
+  desktop sidebar / mobile bottom nav both render correctly, all 7
+  sections and the submit button lay out cleanly single-column at every
+  size.
+- Full save round-trip driven for real: selected a mood chip + a
+  symptom chip + wrote a note, clicked "Enregistrer" — `PUT
+  /api/daily-logs/today` returned 200, the success toast appeared, and
+  reloading the page correctly pre-filled the same mood/symptom/note
+  from `GET /api/daily-logs/today`, confirming the edit-not-recreate
+  today-only contract works end-to-end.
+
 ## In progress
 
 _(none)_
@@ -87,7 +138,6 @@ _(none)_
 |---|---|---|---|
 | `LandingPage` | `/` | ✅ none needed (static) | Replaces the starter's placeholder `frontend/src/app/page.tsx`. Composes `LandingNav`, `LandingHero`, `LandingFeatures`, `LandingLifecycle`, `LandingSocialProof`, `LandingCTA`, `LandingFooter`. |
 | `Subscription` | `/app/billing` | ⚠️ partial — Bictorys/webhooks/circuit-breaker exist, but Prisma has `Order`/`Withdrawal`, not a `Subscription` model (PRD §14) | `CurrentPlanCard`, `PremiumPlansGrid`, `PaymentMethods`, `BillingHistory`. Needs Phase 1 data model + entitlements wiring (roadmap Phase 7). |
-| `AddData` | `/app/log` | ❌ needs Phase 1 (daily_logs/symptom_logs models) | Generic `DataEntryForm` — matches PRD LOG01's single consolidated quick-entry screen. (`AddFatigue`, a single-symptom variant, was dropped as redundant — see below.) |
 | `Analytics` | `/app/insights` | ❌ needs Phase 1 + 3 + 6 (insights/Cycle Score) | Composes `AnalyticsRecommendations`, `TrendsChart`, `MoodDistributionChart`, `CycleComparisonCard`, `SymptomStatistics`. |
 | `FertilityCalendar` | part of `/app/calendar` (Projet Bébé view) or `/app/baby` | ❌ needs Phase 1 + 5 (fertility engine) | Composes `FertilityCalendarInfo`, `FertilityCalendarLegend`. |
 | `ProjetBebe` | `/app/baby` | ❌ needs Phase 1 + 5 | Composes `FertilityWindowCard`, `ConceptionTipsCard`, `LHTestTracker`, `ConceptionStatistics`. (`ProjetBebeDiscovery`, a near-identical duplicate, was dropped as redundant — see below.) |
