@@ -1,6 +1,6 @@
 # Banani implementation status
 
-Last updated: 2026-09-07 (Projet Bébé pass)
+Last updated: 2026-09-07 (real-Banani-source reconciliation pass — user flagged that /app/today, /app/baby, /app/calendar, /app/assistant, /app/insights, /app/log all diverged from Banani/PRD; AddDataPage rebuilt against its now-real source, remaining 5 screens pending user multi-select in Banani)
 
 Source flow: **"Design System NAWIRA"** — Banani flow id `acguXQuGeGbU` (https://app.banani.co/flow/acguXQuGeGbU)
 Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope.
@@ -19,7 +19,7 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] `Logout` (modal, not a route) — `frontend/src/components/app/LogoutModal.tsx` + `LogoutButton.tsx`, wired into `AppSidebar` and `/app/profile`'s mobile account block — plan: `.planning/banani/logout-modal.md` — 2026-09-07
 - [x] `HelpCenter` — `frontend/src/app/app/help/page.tsx` — plan: `.planning/banani/help-center.md` — 2026-09-07
 - [x] `CycleDetailFull` — **replaced** by `frontend/src/app/app/cycles/page.tsx` ("Historique des cycles") — plan: `.planning/banani/cycles-history.md` — 2026-09-07
-- [x] `AddData` — **built without a Banani source** (see delta below) — `frontend/src/app/app/log/page.tsx` — plan: `.planning/banani/add-data.md` — 2026-09-07
+- [x] `AddData` — **rebuilt against its real Banani source** `AddDataPage.jsx` (superseding the earlier no-source version) — `frontend/src/app/app/log/page.tsx` + `frontend/src/components/log/*` — plan: `.planning/banani/add-data.md` — 2026-09-07
 - [x] `ProjetBebe` — **built without a Banani source** (3 fetch attempts this session all returned stale `DashboardAujourdhui`) — `frontend/src/app/app/baby/page.tsx` + `frontend/src/components/baby/*` — plan: `.planning/banani/projet-bebe.md` — 2026-09-07
 - [x] `/app/insights`, `/app/billing`, `/app/assistant` — honest "Bientôt disponible" placeholders (no Banani source; unbuilt future epics E6/E7/E8) — `frontend/src/components/app/ComingSoonPage.tsx` + 3 thin page wrappers — 2026-09-07
 
@@ -136,14 +136,14 @@ _(none)_
 
 ## Pending — screens (ordered by recommended implementation phase)
 
+**Stale rows pruned 2026-09-07**: `LandingPage`, `ProjetBebe` removed from this table — both already in Done above (this table wasn't kept in sync when they shipped; `AddData`/`DashboardAujourdhui`/`Calendar` were never added here either, same gap).
+
 | Screen (Banani `screenName`) | Target route (PRD §28.2) | Backend readiness | Notes |
 |---|---|---|---|
-| `LandingPage` | `/` | ✅ none needed (static) | Replaces the starter's placeholder `frontend/src/app/page.tsx`. Composes `LandingNav`, `LandingHero`, `LandingFeatures`, `LandingLifecycle`, `LandingSocialProof`, `LandingCTA`, `LandingFooter`. |
-| `Subscription` | `/app/billing` | ⚠️ partial — Bictorys/webhooks/circuit-breaker exist, but Prisma has `Order`/`Withdrawal`, not a `Subscription` model (PRD §14) | `CurrentPlanCard`, `PremiumPlansGrid`, `PaymentMethods`, `BillingHistory`. Needs Phase 1 data model + entitlements wiring (roadmap Phase 7). |
-| `Analytics` | `/app/insights` | ❌ needs Phase 1 + 3 + 6 (insights/Cycle Score) | Composes `AnalyticsRecommendations`, `TrendsChart`, `MoodDistributionChart`, `CycleComparisonCard`, `SymptomStatistics`. |
-| `FertilityCalendar` | part of `/app/calendar` (Projet Bébé view) or `/app/baby` | ❌ needs Phase 1 + 5 (fertility engine) | Composes `FertilityCalendarInfo`, `FertilityCalendarLegend`. |
-| `ProjetBebe` | `/app/baby` | ❌ needs Phase 1 + 5 | Composes `FertilityWindowCard`, `ConceptionTipsCard`, `LHTestTracker`, `ConceptionStatistics`. (`ProjetBebeDiscovery`, a near-identical duplicate, was dropped as redundant — see below.) |
-| `Assistant` | `/app/assistant` | ❌ needs Phase 8 (AI Gateway + medical guardrails) | Composes `AssistantChatMessages`, `AssistantSidebarTopics`. Highest complexity — build last. |
+| `Subscription` | `/app/billing` | ⚠️ partial — Bictorys/webhooks/circuit-breaker exist, but Prisma has `Order`/`Withdrawal`, not a `Subscription` model (PRD §14) | `CurrentPlanCard`, `PremiumPlansGrid`, `PaymentMethods`, `BillingHistory`. Needs Phase 1 data model + entitlements wiring (roadmap Phase 7). Currently an honest "Bientôt disponible" placeholder, not this real screen. |
+| `Analytics` | `/app/insights` | ❌ needs Phase 1 + 3 + 6 (insights/Cycle Score) | Composes `AnalyticsRecommendations`, `TrendsChart`, `MoodDistributionChart`, `CycleComparisonCard`, `SymptomStatistics`. Currently an honest "Bientôt disponible" placeholder — building the real screen means building the whole Insights/Cycle Score epic first (PRD §6.4/§9), not a UI reskin. |
+| `FertilityCalendar` | part of `/app/calendar` (Projet Bébé view) | ⚠️ backend ready (Phase 5 fertile-window data exists), UI not built | Composes `FertilityCalendarInfo`, `FertilityCalendarLegend`. `/app/calendar`'s `buildDayTypes()` only knows `observed`/`predicted`/`today` — needs fertile-window day types added. |
+| `Assistant` | `/app/assistant` | ❌ needs Phase 8 (AI Gateway + medical guardrails, PRD §6.5 AI01) | Composes `AssistantChatMessages`, `AssistantSidebarTopics`. Highest complexity. Currently an honest "Bientôt disponible" placeholder — building the real screen means building the whole AI Assistant epic first, not a UI reskin. |
 
 ## Duplicate screens dropped (user decision, 2026-09-06)
 

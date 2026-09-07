@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
+import { Droplet, Heart, Smile, Zap, Moon, Thermometer, Pencil, Activity } from 'lucide-react';
 import { ChipGroup } from '@/components/ui/ChipGroup';
 import { Button } from '@/components/ui/Button';
+import { LogProgressBar, type ProgressStep } from './LogProgressBar';
 
-const FLOW_OPTIONS = [
-  { value: 'NONE', label: 'Aucun' },
+const INTENSITY_OPTIONS = [
   { value: 'SPOTTING', label: 'Spotting' },
   { value: 'LIGHT', label: 'Léger' },
   { value: 'MEDIUM', label: 'Moyen' },
@@ -50,6 +51,11 @@ const SYMPTOM_OPTIONS = [
   { value: 'LIBIDO_CHANGE', label: 'Changement de libido' },
 ];
 
+const UNIT_OPTIONS = [
+  { value: 'CELSIUS', label: '°C' },
+  { value: 'FAHRENHEIT', label: '°F' },
+];
+
 const NOTE_MAX_LENGTH = 1000;
 
 export interface DailyLogInitialValues {
@@ -61,6 +67,8 @@ export interface DailyLogInitialValues {
   sleepHours: number | null;
   note: string | null;
   symptoms: string[];
+  temperatureValue: number | null;
+  temperatureUnit: 'CELSIUS' | 'FAHRENHEIT' | null;
 }
 
 export interface DailyLogSubmitValues {
@@ -74,6 +82,8 @@ export interface DailyLogSubmitValues {
   sleepHours: number | null;
   note: string | null;
   symptoms: string[];
+  temperatureValue: number | null;
+  temperatureUnit: 'CELSIUS' | 'FAHRENHEIT' | null;
 }
 
 interface DailyLogFormProps {
@@ -81,6 +91,34 @@ interface DailyLogFormProps {
   todayFlowLogged: boolean;
   saving: boolean;
   onSubmit: (values: DailyLogSubmitValues) => void;
+}
+
+function SectionCard({
+  icon: Icon,
+  iconBg,
+  iconColor,
+  title,
+  children,
+}: {
+  icon: React.ComponentType<{ size?: number }>;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  children: React.ReactNode;
+}): React.JSX.Element {
+  return (
+    <div className="rounded-lg border border-border bg-white p-6">
+      <div className="mb-5 flex items-center gap-3">
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconBg} ${iconColor}`}
+        >
+          <Icon size={18} />
+        </div>
+        <h2 className="text-base font-bold text-navy">{title}</h2>
+      </div>
+      {children}
+    </div>
+  );
 }
 
 export function DailyLogForm({
@@ -103,6 +141,12 @@ export function DailyLogForm({
   );
   const [symptoms, setSymptoms] = useState<string[]>(initialValues.symptoms);
   const [note, setNote] = useState(initialValues.note ?? '');
+  const [temperatureValue, setTemperatureValue] = useState(
+    initialValues.temperatureValue !== null ? String(initialValues.temperatureValue) : '',
+  );
+  const [temperatureUnit, setTemperatureUnit] = useState<'CELSIUS' | 'FAHRENHEIT' | null>(
+    initialValues.temperatureUnit,
+  );
 
   const toggleSingle =
     (current: string | null, setValue: (v: string | null) => void) =>
@@ -115,9 +159,25 @@ export function DailyLogForm({
     );
   };
 
+  const progressSteps: ProgressStep[] = useMemo(
+    () => [
+      { key: 'flow', label: 'Règles', filled: flow !== 'NONE' },
+      { key: 'symptoms', label: 'Symptômes', filled: symptoms.length > 0 },
+      { key: 'mood', label: 'Humeur', filled: mood !== null },
+      { key: 'temperature', label: 'Température', filled: temperatureValue.trim() !== '' },
+      { key: 'note', label: 'Notes', filled: note.trim() !== '' },
+    ],
+    [flow, symptoms, mood, temperatureValue, note],
+  );
+
   const handleSubmit = (e: FormEvent): void => {
     e.preventDefault();
     const parsedSleepHours = sleepHours.trim() === '' ? null : Number(sleepHours);
+    const trimmedTemperature = temperatureValue.trim();
+    const parsedTemperature = trimmedTemperature === '' ? null : Number(trimmedTemperature);
+    const validTemperature =
+      parsedTemperature !== null && Number.isFinite(parsedTemperature) ? parsedTemperature : null;
+
     onSubmit({
       flow,
       painLevel,
@@ -129,106 +189,170 @@ export function DailyLogForm({
         parsedSleepHours !== null && Number.isFinite(parsedSleepHours) ? parsedSleepHours : null,
       note: note.trim() === '' ? null : note.trim(),
       symptoms,
+      temperatureValue: validTemperature,
+      temperatureUnit: validTemperature !== null ? (temperatureUnit ?? 'CELSIUS') : null,
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-navy">Saignements</h2>
-        <ChipGroup
-          options={FLOW_OPTIONS}
-          selectedValues={[flow]}
-          onToggle={(value) => setFlow(flow === value ? 'NONE' : value)}
-        />
-        {todayFlowLogged && (
-          <p className="text-xs text-muted-foreground">
-            Tu as déjà enregistré tes règles aujourd&rsquo;hui — sélectionne une valeur pour la
-            corriger.
-          </p>
-        )}
-      </section>
+      <LogProgressBar steps={progressSteps} />
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-navy">Douleur</h2>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between text-sm text-body">
-            <span>Intensité</span>
-            <span className="font-semibold text-navy">
-              {painLevel === null ? 'Non renseigné' : `${painLevel}/10`}
+      <SectionCard icon={Droplet} iconBg="bg-rose-soft" iconColor="text-rose" title="Règles">
+        <div className="flex flex-col gap-4">
+          <div>
+            <span className="mb-2 block text-sm font-medium text-navy">
+              As-tu tes règles aujourd&rsquo;hui ?
             </span>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => flow === 'NONE' && setFlow('MEDIUM')}
+                className={`flex-1 rounded-md border px-4 py-2.5 text-sm font-medium ${
+                  flow !== 'NONE'
+                    ? 'border-primary bg-primary-soft text-primary'
+                    : 'border-border bg-white text-navy hover:bg-gray-50'
+                }`}
+              >
+                Oui
+              </button>
+              <button
+                type="button"
+                onClick={() => setFlow('NONE')}
+                className={`flex-1 rounded-md border px-4 py-2.5 text-sm font-medium ${
+                  flow === 'NONE'
+                    ? 'border-gray-300 bg-gray-50 text-body'
+                    : 'border-border bg-white text-navy hover:bg-gray-50'
+                }`}
+              >
+                Non
+              </button>
+            </div>
           </div>
-          <input
-            type="range"
-            min={0}
-            max={10}
-            step={1}
-            value={painLevel ?? 0}
-            onChange={(e) => setPainLevel(Number(e.target.value))}
-            className="w-full accent-primary"
-            aria-label="Intensité de la douleur, de 0 à 10"
-          />
+          {flow !== 'NONE' && (
+            <div>
+              <span className="mb-2 block text-sm font-medium text-navy">Intensité</span>
+              <ChipGroup
+                options={INTENSITY_OPTIONS}
+                selectedValues={[flow]}
+                onToggle={(value) => setFlow(value)}
+              />
+            </div>
+          )}
+          {todayFlowLogged && (
+            <p className="text-xs text-muted-foreground">
+              Tu as déjà enregistré tes règles aujourd&rsquo;hui — sélectionne une valeur pour la
+              corriger.
+            </p>
+          )}
         </div>
-        <label className="flex flex-col gap-1.5 text-sm">
-          <span className="font-medium text-navy">Localisation (optionnel)</span>
-          <input
-            type="text"
-            value={painLocation}
-            onChange={(e) => setPainLocation(e.target.value)}
-            placeholder="Ex : bas du dos, ventre…"
-            maxLength={100}
-            className="rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          />
-        </label>
-      </section>
+      </SectionCard>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-navy">Humeur</h2>
+      <SectionCard icon={Heart} iconBg="bg-purple-soft" iconColor="text-purple" title="Symptômes">
+        <ChipGroup options={SYMPTOM_OPTIONS} selectedValues={symptoms} onToggle={toggleSymptom} />
+      </SectionCard>
+
+      <SectionCard icon={Smile} iconBg="bg-amber-soft" iconColor="text-amber" title="Humeur">
         <ChipGroup
           options={MOOD_OPTIONS}
           selectedValues={mood ? [mood] : []}
           onToggle={toggleSingle(mood, setMood)}
         />
-      </section>
+      </SectionCard>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-navy">Énergie</h2>
+      <SectionCard icon={Zap} iconBg="bg-amber-soft" iconColor="text-amber" title="Énergie">
         <ChipGroup
           options={ENERGY_OPTIONS}
           selectedValues={energy ? [energy] : []}
           onToggle={toggleSingle(energy, setEnergy)}
         />
-      </section>
+      </SectionCard>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-navy">Sommeil</h2>
-        <ChipGroup
-          options={SLEEP_QUALITY_OPTIONS}
-          selectedValues={sleepQuality ? [sleepQuality] : []}
-          onToggle={toggleSingle(sleepQuality, setSleepQuality)}
-        />
-        <label className="flex max-w-[160px] flex-col gap-1.5 text-sm">
-          <span className="font-medium text-navy">Heures de sommeil (optionnel)</span>
+      <SectionCard icon={Moon} iconBg="bg-purple-soft" iconColor="text-purple" title="Sommeil">
+        <div className="flex flex-col gap-3">
+          <ChipGroup
+            options={SLEEP_QUALITY_OPTIONS}
+            selectedValues={sleepQuality ? [sleepQuality] : []}
+            onToggle={toggleSingle(sleepQuality, setSleepQuality)}
+          />
+          <label className="flex max-w-[160px] flex-col gap-1.5 text-sm">
+            <span className="font-medium text-navy">Heures de sommeil (optionnel)</span>
+            <input
+              type="number"
+              min={0}
+              max={24}
+              step={0.5}
+              value={sleepHours}
+              onChange={(e) => setSleepHours(e.target.value)}
+              placeholder="Ex : 7.5"
+              className="rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+          </label>
+        </div>
+      </SectionCard>
+
+      <SectionCard icon={Activity} iconBg="bg-rose-soft" iconColor="text-rose" title="Douleur">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between text-sm text-body">
+              <span>Intensité</span>
+              <span className="font-semibold text-navy">
+                {painLevel === null ? 'Non renseigné' : `${painLevel}/10`}
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={10}
+              step={1}
+              value={painLevel ?? 0}
+              onChange={(e) => setPainLevel(Number(e.target.value))}
+              className="w-full accent-primary"
+              aria-label="Intensité de la douleur, de 0 à 10"
+            />
+          </div>
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="font-medium text-navy">Localisation (optionnel)</span>
+            <input
+              type="text"
+              value={painLocation}
+              onChange={(e) => setPainLocation(e.target.value)}
+              placeholder="Ex : bas du dos, ventre…"
+              maxLength={100}
+              className="rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+          </label>
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        icon={Thermometer}
+        iconBg="bg-amber-soft"
+        iconColor="text-amber"
+        title="Température basale"
+      >
+        <div className="flex gap-2">
           <input
             type="number"
-            min={0}
-            max={24}
-            step={0.5}
-            value={sleepHours}
-            onChange={(e) => setSleepHours(e.target.value)}
-            placeholder="Ex : 7.5"
-            className="rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            step="0.1"
+            value={temperatureValue}
+            onChange={(e) => setTemperatureValue(e.target.value)}
+            placeholder="Ex : 36.8"
+            className="w-28 rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
-        </label>
-      </section>
+          <ChipGroup
+            options={UNIT_OPTIONS}
+            selectedValues={temperatureUnit ? [temperatureUnit] : []}
+            onToggle={(value) =>
+              setTemperatureUnit(
+                value === temperatureUnit ? null : (value as 'CELSIUS' | 'FAHRENHEIT'),
+              )
+            }
+          />
+        </div>
+      </SectionCard>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-navy">Symptômes</h2>
-        <ChipGroup options={SYMPTOM_OPTIONS} selectedValues={symptoms} onToggle={toggleSymptom} />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <h2 className="text-base font-semibold text-navy">Note</h2>
+      <SectionCard icon={Pencil} iconBg="bg-primary-soft" iconColor="text-primary" title="Notes">
         <label className="flex flex-col gap-1.5">
           <textarea
             value={note}
@@ -241,10 +365,10 @@ export function DailyLogForm({
             {note.length}/{NOTE_MAX_LENGTH}
           </span>
         </label>
-      </section>
+      </SectionCard>
 
       <Button type="submit" disabled={saving} className="w-full sm:w-auto">
-        {saving ? 'Enregistrement…' : 'Enregistrer'}
+        {saving ? 'Enregistrement…' : 'Enregistrer mes données'}
       </Button>
     </form>
   );
