@@ -81,6 +81,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           usualPeriodLength: profile.usualPeriodLength,
           trackedConcerns: profile.trackedConcerns,
           notificationLevel: profile.notificationLevel,
+          plan: profile.plan,
           createdAt: profile.createdAt.toISOString(),
         },
         stats: {

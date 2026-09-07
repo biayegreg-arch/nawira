@@ -21,7 +21,8 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] `CycleDetailFull` — **replaced** by `frontend/src/app/app/cycles/page.tsx` ("Historique des cycles") — plan: `.planning/banani/cycles-history.md` — 2026-09-07
 - [x] `AddData` — **rebuilt against its real Banani source** `AddDataPage.jsx` (superseding the earlier no-source version) — `frontend/src/app/app/log/page.tsx` + `frontend/src/components/log/*` — plan: `.planning/banani/add-data.md` — 2026-09-07
 - [x] `ProjetBebe` — **rebuilt against its real Banani source, then expanded into 5 real routes** after the user pasted a screenshot of the real desktop screen (proving the prior no-source build had drifted) and then created 6 new Banani screens for the surrounding flow — `frontend/src/app/app/baby/{page.tsx,calendar,resources,tips,add-lh-test}` + `frontend/src/components/baby/*` — plan: `.planning/banani/projet-bebe.md` — 2026-09-07
-- [x] `/app/insights`, `/app/billing`, `/app/assistant` — honest "Bientôt disponible" placeholders (no Banani source; unbuilt future epics E6/E7/E8) — `frontend/src/components/app/ComingSoonPage.tsx` + 3 thin page wrappers — 2026-09-07
+- [x] `/app/insights`, `/app/assistant` — honest "Bientôt disponible" placeholders (no Banani source; unbuilt future epics E6/E8) — `frontend/src/components/app/ComingSoonPage.tsx` + 2 thin page wrappers — 2026-09-07
+- [x] `Subscription` — **built against its real Banani source, with real PRD pricing/plans replacing Banani's fictional Euro pricing** — `frontend/src/app/app/billing/page.tsx` (replaces the `ComingSoonPage` placeholder) + `frontend/src/components/billing/*` — plan: `.planning/banani/subscription.md` — 2026-09-08
 
 New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Field.tsx`, `frontend/src/components/auth/AuthCard.tsx`. Design tokens added to `frontend/src/app/globals.css` (`@theme` block — primary/navy confirmed exact match with PRD §0; rose/green/amber/purple are Banani's actual accent hexes, renamed to avoid colliding with Tailwind's built-in default palette names of the same words).
 
@@ -150,13 +151,11 @@ _(none)_
 
 ## Pending — screens (ordered by recommended implementation phase)
 
-**Stale rows pruned 2026-09-07**: `LandingPage`, `ProjetBebe` removed from this table — both already in Done above (this table wasn't kept in sync when they shipped; `AddData`/`DashboardAujourdhui`/`Calendar` were never added here either, same gap).
+**Stale rows pruned 2026-09-07**: `LandingPage`, `ProjetBebe` removed from this table — both already in Done above (this table wasn't kept in sync when they shipped; `AddData`/`DashboardAujourdhui`/`Calendar` were never added here either, same gap). **Pruned again 2026-09-08**: `Subscription` (shipped, see Done above) and `FertilityCalendar` (superseded by `/app/baby/calendar`, shipped as part of the ProjetBebe 5-route expansion) removed.
 
 | Screen (Banani `screenName`) | Target route (PRD §28.2) | Backend readiness | Notes |
 |---|---|---|---|
-| `Subscription` | `/app/billing` | ⚠️ partial — Bictorys/webhooks/circuit-breaker exist, but Prisma has `Order`/`Withdrawal`, not a `Subscription` model (PRD §14) | `CurrentPlanCard`, `PremiumPlansGrid`, `PaymentMethods`, `BillingHistory`. Needs Phase 1 data model + entitlements wiring (roadmap Phase 7). Currently an honest "Bientôt disponible" placeholder, not this real screen. |
 | `Analytics` | `/app/insights` | ❌ needs Phase 1 + 3 + 6 (insights/Cycle Score) | Composes `AnalyticsRecommendations`, `TrendsChart`, `MoodDistributionChart`, `CycleComparisonCard`, `SymptomStatistics`. Currently an honest "Bientôt disponible" placeholder — building the real screen means building the whole Insights/Cycle Score epic first (PRD §6.4/§9), not a UI reskin. |
-| `FertilityCalendar` | part of `/app/calendar` (Projet Bébé view) | ⚠️ backend ready (Phase 5 fertile-window data exists), UI not built | Composes `FertilityCalendarInfo`, `FertilityCalendarLegend`. `/app/calendar`'s `buildDayTypes()` only knows `observed`/`predicted`/`today` — needs fertile-window day types added. |
 | `Assistant` | `/app/assistant` | ❌ needs Phase 8 (AI Gateway + medical guardrails, PRD §6.5 AI01) | Composes `AssistantChatMessages`, `AssistantSidebarTopics`. Highest complexity. Currently an honest "Bientôt disponible" placeholder — building the real screen means building the whole AI Assistant epic first, not a UI reskin. |
 
 ## Duplicate screens dropped (user decision, 2026-09-06)
@@ -285,3 +284,46 @@ so this became 5 real routes instead of one page with in-page tabs.
   → saved → redirected to `/app/baby` → `LHTestTracker` correctly shows "Aujourd'hui / Pic positif /
   L'ovulation arrive généralement 24 à 36 heures après un pic de LH." confirming the
   fetch-merge-PUT round-trip persisted correctly without clobbering the day's other signals.
+
+### Delta vs Banani source — `Subscription` (`/app/billing`, 2026-09-08)
+
+Fetched the real Banani source. Confirmed 2 scope decisions with the user via AskUserQuestion
+before coding, since this screen is materially different from every other screen built so far — it
+touches real pricing and (eventually) real money:
+
+- **Real PRD pricing, not Banani's fictional Euro prices.** Banani shows "NAWIRA Plus 4,99€" /
+  "NAWIRA Pro 9,99€" (a plan name — "Pro" — that doesn't exist in the PRD at all). Built against
+  the PRD's actual business model (§3): Free (0), NAWIRA Plus (1 000 FCFA/mois), Projet Bébé
+  (2 500 FCFA/mois) — matching `Profile.plan`'s real `FREE | PLUS | BABY` enum and §3.1's real
+  entitlement matrix content for each plan's feature list.
+- **Real page, payment CTAs disabled.** No `Subscription` model, no recurring-billing integration,
+  no trial/webhook logic exists anywhere (Phase 7, confirmed unbuilt in two prior specs). Building
+  the real payment flow is a multi-day epic with real money at stake, not a UI wire-up — out of
+  scope for this pass. `PremiumPlansGrid`'s buttons are real but disabled, labeled "Bientôt
+  disponible" (or "Plan actuel" for the user's real current plan) instead of linking to a purchase
+  flow that doesn't exist.
+- **`PaymentMethods` / `BillingHistory` — dropped entirely, not simplified.** Banani's mockups show
+  a fake saved Visa card ("•••• 4242"), a fake billing address ("Aminata Sow, Dakar"), and fake
+  invoice rows. Unlike every prior "no fake content" case this session, there is **zero backing
+  data of any kind** here — no `PaymentMethod`/`Invoice`/`BillingAddress` model exists. Fabricating
+  a card number or address for the logged-in user is financial/PII-shaped fabrication, a materially
+  worse category than a fake tip or fake statistic — dropped outright.
+- `CurrentPlanCard` — real `plan` from `GET /api/profile` (previously didn't expose `plan` at all;
+  added it, 1-line change + updated test). Since nothing in the codebase ever sets `Profile.plan`
+  away from its `FREE` default (confirmed via grep — no route writes it), every user is `FREE`
+  today. Rather than list fake gated capabilities the user doesn't actually have, the card states
+  plainly that all shipped features are unlocked for everyone during this launch phase, matching
+  the wording the prior `ComingSoonPage` placeholder already used.
+- FAQ — kept Banani's first two questions (reworded to not claim a live trial/purchase flow exists
+  yet), replaced the third ("plan Pro") with the real second paid tier, "Projet Bébé".
+- New files: `frontend/src/components/billing/{plans-data.ts,CurrentPlanCard.tsx,PremiumPlansGrid.tsx}`,
+  `frontend/src/app/app/billing/page.tsx` (replaces the `ComingSoonPage` wrapper).
+
+### Verified — `Subscription` (2026-09-08)
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm format`, `pnpm test` (695/695, incl. 1 updated `GET
+  /api/profile` test asserting the new `plan` field), and `pnpm build` all green.
+- Real browser check (logged-in session) at 375/768/1280px: no horizontal overflow at any width.
+  Visually confirmed real pricing (Gratuit / 1 000 FCFA / 2 500 FCFA), correct "Plan actuel" badge
+  on the Free card, disabled "Bientôt disponible" buttons on both paid tiers, and the honest
+  launch-phase note rendering correctly.
