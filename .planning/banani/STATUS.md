@@ -1,6 +1,6 @@
 # Banani implementation status
 
-Last updated: 2026-09-07
+Last updated: 2026-09-07 (Profile/Settings/Logout/HelpCenter/cycles-history pass)
 
 Source flow: **"Design System NAWIRA"** — Banani flow id `acguXQuGeGbU` (https://app.banani.co/flow/acguXQuGeGbU)
 Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope.
@@ -14,6 +14,11 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] Shared `/app/*` shell — `frontend/src/app/app/layout.tsx` (auth+profile gate), `frontend/src/components/app/AppSidebar.tsx`, `frontend/src/components/app/AppTopBar.tsx` — plan: `.planning/banani/app-shell.md` — 2026-09-07
 - [x] `DashboardAujourdhui` — `frontend/src/app/app/today/page.tsx` — plan: `.planning/banani/dashboard-aujourdhui.md` — 2026-09-07
 - [x] `Calendar` — `frontend/src/app/app/calendar/page.tsx` — plan: `.planning/banani/calendar.md` — 2026-09-07
+- [x] `Profile` — `frontend/src/app/app/profile/page.tsx` — plan: `.planning/banani/profile.md` — 2026-09-07
+- [x] `Settings` — `frontend/src/app/app/settings/page.tsx` (izikit's generic `/settings` untouched) — plan: `.planning/banani/settings.md` — 2026-09-07
+- [x] `Logout` (modal, not a route) — `frontend/src/components/app/LogoutModal.tsx` + `LogoutButton.tsx`, wired into `AppSidebar` and `/app/profile`'s mobile account block — plan: `.planning/banani/logout-modal.md` — 2026-09-07
+- [x] `HelpCenter` — `frontend/src/app/app/help/page.tsx` — plan: `.planning/banani/help-center.md` — 2026-09-07
+- [x] `CycleDetailFull` — **replaced** by `frontend/src/app/app/cycles/page.tsx` ("Historique des cycles") — plan: `.planning/banani/cycles-history.md` — 2026-09-07
 
 New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Field.tsx`, `frontend/src/components/auth/AuthCard.tsx`. Design tokens added to `frontend/src/app/globals.css` (`@theme` block — primary/navy confirmed exact match with PRD §0; rose/green/amber/purple are Banani's actual accent hexes, renamed to avoid colliding with Tailwind's built-in default palette names of the same words).
 
@@ -58,6 +63,20 @@ New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/co
 - Caught and fixed a routing bug during verification: the shared layout was first built under a route **group** `(app)/`, which Next.js excludes from the URL — pages resolved to `/today`/`/calendar` instead of `/app/today`/`/app/calendar`. Renamed to a literal `frontend/src/app/app/` folder; rebuilt and confirmed the route list now shows `/app/today` and `/app/calendar`.
 - Rendered check via a real logged-in session (seeded `user@example.com`, real onboarding + period-logging API calls) at 375px / 768px / 1280px on both screens: no horizontal scroll (`scrollWidth === clientWidth` at all six checks), no overlapping elements, mobile bottom nav / desktop sidebar+topbar both render correctly, cards and calendar legend match the trimmed design.
 
+### Delta vs Banani source — `Profile` / `Settings` / `Logout` / `HelpCenter` / `CycleDetailFull` (2026-09-07)
+
+- **Profile**: read-only this pass (no edit forms/PATCH endpoints — confirmed with user). Dropped "Nom complet"/"Pays" (no such fields exist), the fictional `UserAvatar`, the in-page Informations/Paramètres tabs (now two real routes), and "Régularité du cycle" (no defined business logic for a standalone label outside the prediction-confidence tiers). "Objectifs" shows the single real `goal` chip, not Banani's multiple fictional ones. New backend: `GET /api/profile` (profile fields + 3 real header stats — `monthsActive`, `daysTracked` as a `PeriodEvent`-count proxy until `DailyLog` ships in E4, `cyclesCompleted`).
+- **Settings**: trimmed hard (confirmed with user) — kept only what has real backend: password change/set + Google link (re-skinned from the existing generic `/settings` page, not rewritten) and a new notifications section (`PATCH /api/profile`, reusing the onboarding `OptionCard` pattern). Dropped entirely: 2FA, active-sessions list, data-sharing/analytics-visibility/encrypted-storage toggles, language switcher, timezone, data export, account deletion — none have backend, and each is a real feature to design later, not a UI trim.
+- **Logout**: real gap closed — `AppSidebar`'s "Déconnexion" previously called `logout()` directly with zero confirmation. Now opens `LogoutModal` via a shared `LogoutButton` wrapper (also reused by `/app/profile`'s mobile-only account block, since mobile has no sidebar to reach Settings/Help/Logout from otherwise).
+- **HelpCenter**: dropped Banani's fabricated read-counts ("1 245 lectures"), the fake `Assistant`/chat backend, the unverified "Réseaux sociaux" account, and the dead-link "Ressources utiles" block (glossary/PDF guide/community, all `href="#"`). Real content instead: an FAQ accordion with genuine, cautious, non-diagnostic short answers (see `help-center.md` for the full copy), a real client-side search filter, a real `mailto:support@nawira.app` link, and the medical-disclaimer info box. Dropped the "Fertilité & Conception" category entirely — no such feature exists yet (E5).
+- **CycleDetailFull → "Historique des cycles" (`/app/cycles`)**: not a translation of the source. `CycleDetailView` (the screen's entire differentiating content) is built around the 4 cycle phases and the fertile window — content already out of scope (E5). Confirmed with the user: replaced with a genuinely useful in-scope screen — a real cycle history list (dates, length, outlier flag) + a "why this estimate" card built from real facts, not Banani's fabricated ones. Reuses `GET /api/cycles` + `GET /api/predictions/current` (zero new backend). Linked from `PredictionCard` (`/app/today`) and the Calendar page's info note.
+
+### Verified — `Profile` / `Settings` / `Logout` / `HelpCenter` / `CycleDetailFull` (2026-09-07)
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (652/652, incl. 2 new `GET /api/profile` tests), and `pnpm build` all green. All 4 new routes (`/app/profile`, `/app/settings`, `/app/help`, `/app/cycles`) resolve correctly; the generic `/settings` page is untouched.
+- Rendered check via a real logged-in session at 375px / 768px / 1280px on all 4 new screens plus the already-shipped `/app/today` and `/app/calendar`: no horizontal overflow at any of the 18 checks, no overlapping elements.
+- Logout modal specifically verified by clicking through it in a real browser at both 1280px (sidebar trigger) and 375px (Profile page's mobile trigger) — overlay, centered card, and both buttons render correctly at both sizes.
+
 ## In progress
 
 _(none)_
@@ -67,12 +86,7 @@ _(none)_
 | Screen (Banani `screenName`) | Target route (PRD §28.2) | Backend readiness | Notes |
 |---|---|---|---|
 | `LandingPage` | `/` | ✅ none needed (static) | Replaces the starter's placeholder `frontend/src/app/page.tsx`. Composes `LandingNav`, `LandingHero`, `LandingFeatures`, `LandingLifecycle`, `LandingSocialProof`, `LandingCTA`, `LandingFooter`. |
-| `HelpCenter` | `/app/help` (new, not in original PRD route table) | ✅ none needed (static content) | Composes `HelpArticlesList`, `HelpCenterSearch`, `HelpSupportContact`. Content needs real copy (educational, medically reviewed per PRD §33). |
-| `Settings` | `/app/settings` (izikit already ships a generic `/settings`) | ✅ mostly reuse — `/api/auth/change-password`, `/api/notifications/prefs` already exist | **Needs comparison** with existing `frontend/src/app/settings/page.tsx` (password + Google-link flows already work, just unstyled) before deciding reuse vs rebuild. `AccountSettings` component likely maps 1:1. |
-| `Profile` | `/app/profile` | ✅ mostly reuse — `GET /api/auth/me` gives base user fields | `ProfileHeaderCard`, `ProfileInformation`. Needs `Profile` domain fields (goal, usual_cycle_length, usual_period_length) from PRD §14 — depends on Phase 1 data model (Prisma). |
-| `Logout` | modal, not a route | ✅ reuse — `logout()` in `AuthContext` + `POST /api/auth/logout` already fully wired | `LogoutConfirmationModal` — just needs the confirm-dialog UI wired to the existing working logout call. Trivial. |
 | `Subscription` | `/app/billing` | ⚠️ partial — Bictorys/webhooks/circuit-breaker exist, but Prisma has `Order`/`Withdrawal`, not a `Subscription` model (PRD §14) | `CurrentPlanCard`, `PremiumPlansGrid`, `PaymentMethods`, `BillingHistory`. Needs Phase 1 data model + entitlements wiring (roadmap Phase 7). |
-| `CycleDetailFull` | sub-route/modal under `/app/calendar` or `/app/insights` | ❌ needs Phase 1 + 3 | Composes `CycleDetailView` + `MiniCalendar` + `PredictionCards`. (`CycleDetail`, the lighter variant with just `CycleDetailView`, was dropped as redundant — see below.) |
 | `AddData` | `/app/log` | ❌ needs Phase 1 (daily_logs/symptom_logs models) | Generic `DataEntryForm` — matches PRD LOG01's single consolidated quick-entry screen. (`AddFatigue`, a single-symptom variant, was dropped as redundant — see below.) |
 | `Analytics` | `/app/insights` | ❌ needs Phase 1 + 3 + 6 (insights/Cycle Score) | Composes `AnalyticsRecommendations`, `TrendsChart`, `MoodDistributionChart`, `CycleComparisonCard`, `SymptomStatistics`. |
 | `FertilityCalendar` | part of `/app/calendar` (Projet Bébé view) or `/app/baby` | ❌ needs Phase 1 + 5 (fertility engine) | Composes `FertilityCalendarInfo`, `FertilityCalendarLegend`. |

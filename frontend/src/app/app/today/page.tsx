@@ -127,7 +127,7 @@ export default function TodayPage(): React.JSX.Element | null {
               <PeriodLogCta todayLogged={todayLogged} onLog={handleLog} loading={logging} />
             </div>
           </div>
-          <PredictionCard prediction={prediction} />
+          <PredictionCard prediction={prediction} hasCycles={cycles.length > 0} />
         </div>
         <MiniCalendar dayTypes={dayTypes} />
       </div>

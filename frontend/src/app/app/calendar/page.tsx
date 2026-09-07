@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
@@ -137,10 +138,15 @@ export default function CalendarPage(): React.JSX.Element | null {
 
       <div className="mt-5 flex gap-3 rounded-xl bg-primary-soft p-4">
         <Info size={18} className="mt-0.5 shrink-0 text-primary" />
-        <p className="text-sm text-body">
-          Les prédictions s&rsquo;affinent au fil de tes cycles enregistrés. Plus tu suis tes règles
-          régulièrement, plus les estimations deviennent fiables.
-        </p>
+        <div>
+          <p className="text-sm text-body">
+            Les prédictions s&rsquo;affinent au fil de tes cycles enregistrés. Plus tu suis tes
+            règles régulièrement, plus les estimations deviennent fiables.
+          </p>
+          <Link href="/app/cycles" className="mt-2 inline-block text-sm font-medium text-primary">
+            Voir l&rsquo;historique de mes cycles →
+          </Link>
+        </div>
       </div>
     </div>
   );
