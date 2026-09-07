@@ -31,3 +31,9 @@ export function isTikTokBrowser(): boolean {
   const ua = navigator.userAgent || '';
   return /TikTok|musical_ly|BytedanceWebview/i.test(ua);
 }
+
+/** Approximate a display name from an email's local-part — `User` has no name field yet. */
+export function greetingName(email: string): string {
+  const local = email.split('@')[0] ?? '';
+  return local.charAt(0).toUpperCase() + local.slice(1);
+}
