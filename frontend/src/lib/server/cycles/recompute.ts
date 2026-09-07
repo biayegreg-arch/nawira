@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { groupIntoEpisodes } from './episodes';
 import { buildCycles } from './build-cycles';
 import { computePrediction } from './prediction';
+import { computeFertilityWindow } from './fertility-window';
 
 /**
  * Re-derives the user's `Cycle` rows and single `Prediction` row from
@@ -81,6 +82,7 @@ export async function recomputeCyclesAndPrediction(
     usualCycleLength: profile?.usualCycleLength ?? null,
     usualPeriodLength: profile?.usualPeriodLength ?? null,
   });
+  const fertilityWindow = computeFertilityWindow(prediction);
 
   if (prediction) {
     await tx.prediction.upsert({
@@ -91,6 +93,9 @@ export async function recomputeCyclesAndPrediction(
         confidence: prediction.confidence,
         expectedPeriodStart: prediction.expectedPeriodStart,
         expectedPeriodEnd: prediction.expectedPeriodEnd,
+        ovulationEstimate: fertilityWindow?.ovulationEstimate ?? null,
+        fertileWindowStart: fertilityWindow?.fertileWindowStart ?? null,
+        fertileWindowEnd: fertilityWindow?.fertileWindowEnd ?? null,
         computedAt: new Date(),
       },
       update: {
@@ -98,6 +103,9 @@ export async function recomputeCyclesAndPrediction(
         confidence: prediction.confidence,
         expectedPeriodStart: prediction.expectedPeriodStart,
         expectedPeriodEnd: prediction.expectedPeriodEnd,
+        ovulationEstimate: fertilityWindow?.ovulationEstimate ?? null,
+        fertileWindowStart: fertilityWindow?.fertileWindowStart ?? null,
+        fertileWindowEnd: fertilityWindow?.fertileWindowEnd ?? null,
         computedAt: new Date(),
       },
     });

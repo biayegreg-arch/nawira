@@ -67,6 +67,15 @@ describe('recomputeCyclesAndPrediction', () => {
     const arg = prismaMock.prediction.upsert.mock.calls[0]?.[0];
     expect(arg?.where).toEqual({ userId: 'u1' });
     expect(arg?.create).toMatchObject({ userId: 'u1', confidence: 'LOW', algorithmVersion: 'v1' });
+    // expectedPeriodStart = 2026-01-01 + 30 days = 2026-01-31; ovulation = that date - 14 days
+    const create = arg?.create as {
+      ovulationEstimate: Date;
+      fertileWindowStart: Date;
+      fertileWindowEnd: Date;
+    };
+    expect(create.ovulationEstimate.toISOString().slice(0, 10)).toBe('2026-01-17');
+    expect(create.fertileWindowStart.toISOString().slice(0, 10)).toBe('2026-01-12');
+    expect(create.fertileWindowEnd.toISOString().slice(0, 10)).toBe('2026-01-18');
     expect(prismaMock.prediction.deleteMany).not.toHaveBeenCalled();
   });
 

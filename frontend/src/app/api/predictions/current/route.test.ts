@@ -26,9 +26,9 @@ describe('GET /api/predictions/current', () => {
       confidence: 'MEDIUM',
       expectedPeriodStart: new Date('2026-03-01'),
       expectedPeriodEnd: new Date('2026-03-05'),
-      ovulationEstimate: null,
-      fertileWindowStart: null,
-      fertileWindowEnd: null,
+      ovulationEstimate: new Date('2026-02-15'),
+      fertileWindowStart: new Date('2026-02-10'),
+      fertileWindowEnd: new Date('2026-02-16'),
       computedAt: new Date('2026-02-01T10:00:00.000Z'),
     } as never);
 
@@ -42,6 +42,9 @@ describe('GET /api/predictions/current', () => {
         expectedPeriodEnd: '2026-03-05',
         algorithmVersion: 'v1',
         computedAt: '2026-02-01T10:00:00.000Z',
+        ovulationEstimate: '2026-02-15',
+        fertileWindowStart: '2026-02-10',
+        fertileWindowEnd: '2026-02-16',
       },
     });
 
@@ -55,6 +58,26 @@ describe('GET /api/predictions/current', () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toEqual({ prediction: null });
+  });
+
+  it('maps null fertility fields to null in the response', async () => {
+    prismaMock.prediction.findUnique.mockResolvedValue({
+      userId: 'u1',
+      algorithmVersion: 'v1',
+      confidence: 'LOW',
+      expectedPeriodStart: new Date('2026-03-01'),
+      expectedPeriodEnd: new Date('2026-03-05'),
+      ovulationEstimate: null,
+      fertileWindowStart: null,
+      fertileWindowEnd: null,
+      computedAt: new Date('2026-02-01T10:00:00.000Z'),
+    } as never);
+
+    const res = await GET(makeReq());
+    const body = await res.json();
+    expect(body.prediction.ovulationEstimate).toBeNull();
+    expect(body.prediction.fertileWindowStart).toBeNull();
+    expect(body.prediction.fertileWindowEnd).toBeNull();
   });
 
   it('returns 401 when unauthenticated', async () => {
