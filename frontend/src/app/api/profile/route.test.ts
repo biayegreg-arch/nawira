@@ -11,7 +11,7 @@ vi.mock('@/lib/server/auth', () => ({
 
 import { requireAuth } from '@/lib/server/middleware';
 import { verifyCsrf } from '@/lib/server/auth';
-import { PATCH } from './route';
+import { GET, PATCH } from './route';
 
 function makeReq(body: unknown): NextRequest {
   return new NextRequest('http://test/api/profile', {
@@ -19,6 +19,10 @@ function makeReq(body: unknown): NextRequest {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
+}
+
+function makeGetReq(): NextRequest {
+  return new NextRequest('http://test/api/profile', { method: 'GET' });
 }
 
 beforeEach(() => {
@@ -30,6 +34,44 @@ beforeEach(() => {
       return (cb as (tx: typeof prismaMock) => unknown)(prismaMock) as Promise<unknown>;
     }
     return Promise.resolve(cb);
+  });
+});
+
+describe('GET /api/profile', () => {
+  it('returns profile fields and derived stats', async () => {
+    prismaMock.profile.findUnique.mockResolvedValue({
+      userId: 'u1',
+      birthDate: new Date('1995-04-12'),
+      goal: 'UNDERSTAND_CYCLE',
+      usualCycleLength: 28,
+      usualPeriodLength: 5,
+      trackedConcerns: ['PAIN', 'MOOD'],
+      notificationLevel: 'NORMAL',
+      createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+    } as never);
+    prismaMock.periodEvent.count.mockResolvedValue(12 as never);
+    prismaMock.cycle.count.mockResolvedValue(3 as never);
+
+    const res = await GET(makeGetReq());
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.profile.birthDate).toBe('1995-04-12');
+    expect(body.profile.goal).toBe('UNDERSTAND_CYCLE');
+    expect(body.profile.trackedConcerns).toEqual(['PAIN', 'MOOD']);
+    expect(body.stats.daysTracked).toBe(12);
+    expect(body.stats.cyclesCompleted).toBe(3);
+    expect(body.stats.monthsActive).toBeGreaterThanOrEqual(2);
+  });
+
+  it('returns 404 PROFILE_NOT_FOUND when no Profile exists yet', async () => {
+    prismaMock.profile.findUnique.mockResolvedValue(null);
+    prismaMock.periodEvent.count.mockResolvedValue(0 as never);
+    prismaMock.cycle.count.mockResolvedValue(0 as never);
+
+    const res = await GET(makeGetReq());
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toBe('PROFILE_NOT_FOUND');
   });
 });
 

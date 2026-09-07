@@ -1,4 +1,12 @@
-// PATCH /api/profile — Phase 2 OB10 (notification level).
+// GET/PATCH /api/profile.
+//
+// GET — read-only profile view for /app/profile and /app/settings. Adds
+// 3 header stats: monthsActive (whole months since Profile.createdAt),
+// daysTracked (PeriodEvent row count — a proxy until DailyLog ships in
+// E4 and becomes the real "days tracked" source), cyclesCompleted
+// (Cycle rows with endDate set, i.e. excluding the current open cycle).
+//
+// PATCH — Phase 2 OB10 (notification level).
 //
 // Minimal profile-update endpoint: sets Profile.notificationLevel and, if
 // the chosen level isn't NONE, grants the PRD's C04 NOTIFICATIONS consent
@@ -31,6 +39,54 @@ function jsonError(
   const res = NextResponse.json({ error: code, ...(message ? { message } : {}) }, { status });
   res.headers.set('x-request-id', requestId);
   return res;
+}
+
+function monthsSince(date: Date): number {
+  const now = new Date();
+  let months = (now.getFullYear() - date.getFullYear()) * 12 + (now.getMonth() - date.getMonth());
+  if (now.getDate() < date.getDate()) months--;
+  return Math.max(0, months);
+}
+
+export async function GET(req: NextRequest): Promise<NextResponse> {
+  const ctx = makeRequestContext(req.headers);
+  return withRequestContext(ctx, async () => {
+    const auth = await requireAuth(req.headers.get('authorization'));
+    if (auth instanceof NextResponse) {
+      auth.headers.set('x-request-id', ctx.requestId);
+      return auth;
+    }
+
+    const [profile, daysTracked, cyclesCompleted] = await Promise.all([
+      prisma.profile.findUnique({ where: { userId: auth.user.sub } }),
+      prisma.periodEvent.count({ where: { userId: auth.user.sub } }),
+      prisma.cycle.count({ where: { userId: auth.user.sub, endDate: { not: null } } }),
+    ]);
+
+    if (!profile) {
+      return jsonError('PROFILE_NOT_FOUND', 404, ctx.requestId);
+    }
+
+    return NextResponse.json(
+      {
+        profile: {
+          birthDate: profile.birthDate.toISOString().slice(0, 10),
+          goal: profile.goal,
+          usualCycleLength: profile.usualCycleLength,
+          usualPeriodLength: profile.usualPeriodLength,
+          trackedConcerns: profile.trackedConcerns,
+          notificationLevel: profile.notificationLevel,
+          createdAt: profile.createdAt.toISOString(),
+        },
+        stats: {
+          monthsActive: monthsSince(profile.createdAt),
+          daysTracked,
+          cyclesCompleted,
+        },
+      },
+      { status: 200, headers: { 'x-request-id': ctx.requestId } },
+    );
+  });
 }
 
 export async function PATCH(req: NextRequest): Promise<NextResponse> {
