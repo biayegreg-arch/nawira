@@ -1,6 +1,6 @@
 # Banani implementation status
 
-Last updated: 2026-09-06
+Last updated: 2026-09-07
 
 Source flow: **"Design System NAWIRA"** — Banani flow id `acguXQuGeGbU` (https://app.banani.co/flow/acguXQuGeGbU)
 Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope.
@@ -11,6 +11,9 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] Signup (no Banani source) — `frontend/src/app/signup/page.tsx` — restyled from `examples/frontend-pages/signup.tsx` with NAWIRA branding — 2026-09-06
 - [x] Login (no Banani source) — `frontend/src/app/login/page.tsx` — restyled from `examples/frontend-pages/login.tsx` — 2026-09-06
 - [x] Verify-email (no Banani source) — `frontend/src/app/verify-email/page.tsx` — restyled from `examples/frontend-pages/verify-email.tsx` — 2026-09-06
+- [x] Shared `/app/*` shell — `frontend/src/app/app/layout.tsx` (auth+profile gate), `frontend/src/components/app/AppSidebar.tsx`, `frontend/src/components/app/AppTopBar.tsx` — plan: `.planning/banani/app-shell.md` — 2026-09-07
+- [x] `DashboardAujourdhui` — `frontend/src/app/app/today/page.tsx` — plan: `.planning/banani/dashboard-aujourdhui.md` — 2026-09-07
+- [x] `Calendar` — `frontend/src/app/app/calendar/page.tsx` — plan: `.planning/banani/calendar.md` — 2026-09-07
 
 New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Field.tsx`, `frontend/src/components/auth/AuthCard.tsx`. Design tokens added to `frontend/src/app/globals.css` (`@theme` block — primary/navy confirmed exact match with PRD §0; rose/green/amber/purple are Banani's actual accent hexes, renamed to avoid colliding with Tailwind's built-in default palette names of the same words).
 
@@ -37,6 +40,24 @@ New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/co
 - **2026-09-06 audit** (re-fetched `LandingPage.jsx` from Banani via MCP and diffed line-by-line against the shipped components): every observed deviation traces back to a decision already logged above; three minor undocumented ones backfilled into the delta list this pass (Entreprise footer column, language selector, CTA copy). No unintended drift found.
 - **API-wiring audit (2026-09-06):** signup/login/verify-email request bodies and success/error shapes checked against their route handlers — all match. Found and fixed a real gap: all three pages rendered the backend's raw `ApiError.message` (always English — e.g. "Invalid email or password.") in a French-only UI. Added `err.code` → French-string maps in each page, matching the pattern already used in `src/app/settings/page.tsx` and the convention documented in CLAUDE.md ("Frontend switches on `ApiError.code`, not translated messages"). Also confirmed the `if (res.csrfToken) storeCsrfToken(...)` calls in login/verify-email (and in `api.ts`'s own refresh handler) are inert dead code — no backend route actually echoes `csrfToken` in its JSON body; the token only ever travels via the non-httpOnly cookie `setCsrfCookie()` sets, which `api.ts`'s `getCsrfToken()` already reads directly. Harmless, left as-is (pre-existing pattern from the starter's example pages).
 
+### Delta vs Banani source — `DashboardAujourdhui` / `Calendar` (2026-09-07)
+
+- `CycleCard`'s 4-phase (menstrual/follicular/ovulation/luteal) fertility ring — **rebuilt from scratch** as `frontend/src/components/today/CycleRing.tsx`, a single neutral progress arc ("Jour N sur ~L jours"). Phase segments encode fertility-window claims, out of scope until E5.
+- `PredictionCards`' ovulation + fenêtre fertile cards — dropped; kept only "Prochaines règles" as `frontend/src/components/today/PredictionCard.tsx`.
+- `MoodSelector`, `TrendsChart`, `KeyDataCards`, `ProjetBebeCard`, `DailyTip` — all dropped (out of scope; `KeyDataCards`/`DailyTip` per explicit user decision, the rest per already-established Phase 3 scope).
+- Period-logging CTA (`PeriodLogCta.tsx`) — not in the Banani source at all; added because Phase 3's minimal-logging design requires a "mes règles ont commencé" action on Home.
+- `FullMonthCalendar`'s 2 hardcoded months — replaced with real prev/next month navigation and live day-types (`observed`/`predicted`/`today`) derived from the API via `frontend/src/lib/calendar-day-types.ts`.
+- Legend reduced from Banani's fuller set to Règles/Prédit/Aujourd'hui; kept only the first "À propos de ce calendrier" info note (dropped two implying edit/journal features).
+- `AppTopBar`'s search bar + notification bell — kept as non-functional decoration on desktop (no backend for either yet); simplified to a greeting line on mobile.
+- Greeting name — derived from the email local-part (`User` has no name field yet), capitalized.
+- Sidebar links point to real future routes (`/app/log`, `/app/insights`, `/app/baby`, `/app/assistant`, `/app/profile`, `/app/settings`, `/app/billing`, `/app/help`) even though most don't exist yet — matches this project's own pre-existing `/app/today` precedent.
+
+### Verified — `DashboardAujourdhui` / `Calendar` (2026-09-07)
+
+- `pnpm typecheck`, `pnpm lint`, and `pnpm build` all green.
+- Caught and fixed a routing bug during verification: the shared layout was first built under a route **group** `(app)/`, which Next.js excludes from the URL — pages resolved to `/today`/`/calendar` instead of `/app/today`/`/app/calendar`. Renamed to a literal `frontend/src/app/app/` folder; rebuilt and confirmed the route list now shows `/app/today` and `/app/calendar`.
+- Rendered check via a real logged-in session (seeded `user@example.com`, real onboarding + period-logging API calls) at 375px / 768px / 1280px on both screens: no horizontal scroll (`scrollWidth === clientWidth` at all six checks), no overlapping elements, mobile bottom nav / desktop sidebar+topbar both render correctly, cards and calendar legend match the trimmed design.
+
 ## In progress
 
 _(none)_
@@ -51,8 +72,6 @@ _(none)_
 | `Profile` | `/app/profile` | ✅ mostly reuse — `GET /api/auth/me` gives base user fields | `ProfileHeaderCard`, `ProfileInformation`. Needs `Profile` domain fields (goal, usual_cycle_length, usual_period_length) from PRD §14 — depends on Phase 1 data model (Prisma). |
 | `Logout` | modal, not a route | ✅ reuse — `logout()` in `AuthContext` + `POST /api/auth/logout` already fully wired | `LogoutConfirmationModal` — just needs the confirm-dialog UI wired to the existing working logout call. Trivial. |
 | `Subscription` | `/app/billing` | ⚠️ partial — Bictorys/webhooks/circuit-breaker exist, but Prisma has `Order`/`Withdrawal`, not a `Subscription` model (PRD §14) | `CurrentPlanCard`, `PremiumPlansGrid`, `PaymentMethods`, `BillingHistory`. Needs Phase 1 data model + entitlements wiring (roadmap Phase 7). |
-| `DashboardAujourdhui` | `/app/today` | ❌ needs Phase 1-3 (Cycle model + prediction engine) | Home screen (PRD HOME01). Depends on `Cycle`/`Prediction` models existing. |
-| `Calendar` | `/app/calendar` | ❌ needs Phase 1 + 3 | Composes `FullMonthCalendar`, `MiniCalendar`. |
 | `CycleDetailFull` | sub-route/modal under `/app/calendar` or `/app/insights` | ❌ needs Phase 1 + 3 | Composes `CycleDetailView` + `MiniCalendar` + `PredictionCards`. (`CycleDetail`, the lighter variant with just `CycleDetailView`, was dropped as redundant — see below.) |
 | `AddData` | `/app/log` | ❌ needs Phase 1 (daily_logs/symptom_logs models) | Generic `DataEntryForm` — matches PRD LOG01's single consolidated quick-entry screen. (`AddFatigue`, a single-symptom variant, was dropped as redundant — see below.) |
 | `Analytics` | `/app/insights` | ❌ needs Phase 1 + 3 + 6 (insights/Cycle Score) | Composes `AnalyticsRecommendations`, `TrendsChart`, `MoodDistributionChart`, `CycleComparisonCard`, `SymptomStatistics`. |
@@ -72,8 +91,8 @@ Of the 15 Banani screens, 3 were near-duplicates of another screen in the set wi
 
 ## Shared layout (prerequisite for every `/app/*` screen)
 
-- `NawiraSidebar` + `TopBar` — the desktop app shell per PRD §28.10. Should become a Next.js route-group layout (e.g. `frontend/src/app/(app)/layout.tsx`) wrapping every `/app/*` route, rather than being re-imported per screen.
-- **Mobile bottom nav — done.** `frontend/src/components/nav/MobileBottomNav.tsx`, built 2026-09-06 from a real Banani source (`DashboardMobile.jsx` — "NAWIRA — Aujourd'hui (Mobile)", the bottom-nav section only; the rest of that screen — cycle ring, predictions, mood selector, key data — is the mobile version of `DashboardAujourdhui` and stays pending on Phase 1-3 like its desktop counterpart). 5 items: Accueil (`/app/today`), Calendrier (`/app/calendar`), Saisir (`/app/log`), Analyses (`/app/insights`), Profil (`/app/profile`). **Resolved 2026-09-06** (user: "utilise la meilleure option"): kept "Profil" — Banani's `Assistant` (PRD §7 AI chat, `/app/assistant`) is a separate pending screen in its own right, so there's no actual conflict; the bottom nav's 5th item and the standalone Assistant feature are different surfaces. Active-state styling uses the existing `text-primary`/`text-muted-light` tokens, not the new hexes below. Not yet wired into a layout (no `/app/*` routes exist yet) — ready to drop into the future `(app)` layout as soon as those routes exist.
+- **Done 2026-09-07.** `NawiraSidebar` + `TopBar` rebuilt as `frontend/src/components/app/AppSidebar.tsx` + `frontend/src/components/app/AppTopBar.tsx`, wired into `frontend/src/app/app/layout.tsx` — a real literal `app/` route segment (not a route group — a `(app)/` route group was tried first and dropped because Next.js excludes group folders from the URL, which silently produced `/today`/`/calendar` instead of `/app/today`/`/app/calendar`). The layout gates on `useUser()` (redirect to `/login`) and `hasProfile` (redirect to `/onboarding/welcome`), matching `onboarding/layout.tsx`'s existing auth-gate pattern. Desktop shows `AppSidebar` + `AppTopBar`; mobile hides the sidebar and uses `MobileBottomNav` instead.
+- **Mobile bottom nav — done.** `frontend/src/components/nav/MobileBottomNav.tsx`, built 2026-09-06 from a real Banani source (`DashboardMobile.jsx` — "NAWIRA — Aujourd'hui (Mobile)", the bottom-nav section only). 5 items: Accueil (`/app/today`), Calendrier (`/app/calendar`), Saisir (`/app/log`), Analyses (`/app/insights`), Profil (`/app/profile`). **Resolved 2026-09-06** (user: "utilise la meilleure option"): kept "Profil" — Banani's `Assistant` (PRD §7 AI chat, `/app/assistant`) is a separate pending screen in its own right, so there's no actual conflict; the bottom nav's 5th item and the standalone Assistant feature are different surfaces. **Wired into the layout as of 2026-09-07.**
 - This same Banani fetch also delivered the **authoritative theme file** (`/style.css` — a `@theme` block with the full NAWIRA palette: `primary` scale 50/100/300/500/700/800, `pink`/`pink-300/100/50`, `fertility`/`fertility-100`, `gold`/`gold-light`, semantic `success/warning/error/info`, `sidebar` colors, radius scale, and **font `DM Sans`** for both body and headings). **Resolved 2026-09-06** (user: "utilise la meilleure option"): adopted Banani's authoritative values on both already-shipped pages — (1) `--color-background` changed from `#FFF7F3` (PRD crème) to Banani's `#FDFBFD`, now identical to `--color-surface` (Banani's real design uses one flat page background, not two); (2) swapped `Inter` → `DM Sans` in `layout.tsx` + `globals.css` `--font-body`/`--font-headings`. Rationale: Banani is the concrete, current source of truth per the design-implementation skill, and this was still early enough (4 pages) to reconcile cheaply. Re-verified: typecheck/lint clean, re-screenshotted 375/768/1280px — no regression, uniform background renders correctly, DM Sans loads via `next/font/google`.
 
 ## Gap vs PRD
