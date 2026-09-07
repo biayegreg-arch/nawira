@@ -2,8 +2,8 @@
 //
 // GET — read-only profile view for /app/profile and /app/settings. Adds
 // 3 header stats: monthsActive (whole months since Profile.createdAt),
-// daysTracked (PeriodEvent row count — a proxy until DailyLog ships in
-// E4 and becomes the real "days tracked" source), cyclesCompleted
+// daysTracked (distinct calendar days with either a PeriodEvent or a
+// DailyLog row — a day logged in both counts once), cyclesCompleted
 // (Cycle rows with endDate set, i.e. excluding the current open cycle).
 //
 // PATCH — Phase 2 OB10 (notification level).
@@ -57,15 +57,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       return auth;
     }
 
-    const [profile, daysTracked, cyclesCompleted] = await Promise.all([
+    const [profile, periodDates, dailyLogDates, cyclesCompleted] = await Promise.all([
       prisma.profile.findUnique({ where: { userId: auth.user.sub } }),
-      prisma.periodEvent.count({ where: { userId: auth.user.sub } }),
+      prisma.periodEvent.findMany({ where: { userId: auth.user.sub }, select: { date: true } }),
+      prisma.dailyLog.findMany({ where: { userId: auth.user.sub }, select: { date: true } }),
       prisma.cycle.count({ where: { userId: auth.user.sub, endDate: { not: null } } }),
     ]);
 
     if (!profile) {
       return jsonError('PROFILE_NOT_FOUND', 404, ctx.requestId);
     }
+
+    const trackedDates = new Set(
+      [...periodDates, ...dailyLogDates].map((row) => row.date.toISOString().slice(0, 10)),
+    );
 
     return NextResponse.json(
       {
@@ -80,7 +85,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         },
         stats: {
           monthsActive: monthsSince(profile.createdAt),
-          daysTracked,
+          daysTracked: trackedDates.size,
           cyclesCompleted,
         },
       },

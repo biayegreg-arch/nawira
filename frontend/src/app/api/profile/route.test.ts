@@ -38,7 +38,7 @@ beforeEach(() => {
 });
 
 describe('GET /api/profile', () => {
-  it('returns profile fields and derived stats', async () => {
+  it('returns profile fields and derived stats, counting distinct tracked days across PeriodEvent and DailyLog', async () => {
     prismaMock.profile.findUnique.mockResolvedValue({
       userId: 'u1',
       birthDate: new Date('1995-04-12'),
@@ -49,7 +49,20 @@ describe('GET /api/profile', () => {
       notificationLevel: 'NORMAL',
       createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
     } as never);
-    prismaMock.periodEvent.count.mockResolvedValue(12 as never);
+    // 12 period-event days, 5 daily-log days, one of which (2026-01-01)
+    // overlaps a period-event day — union must be 16, not 17.
+    prismaMock.periodEvent.findMany.mockResolvedValue(
+      Array.from({ length: 11 }, (_, i) => ({ date: new Date(`2026-02-${i + 1}`) })).concat([
+        { date: new Date('2026-01-01') },
+      ]) as never,
+    );
+    prismaMock.dailyLog.findMany.mockResolvedValue([
+      { date: new Date('2026-01-01') },
+      { date: new Date('2026-03-01') },
+      { date: new Date('2026-03-02') },
+      { date: new Date('2026-03-03') },
+      { date: new Date('2026-03-04') },
+    ] as never);
     prismaMock.cycle.count.mockResolvedValue(3 as never);
 
     const res = await GET(makeGetReq());
@@ -58,14 +71,15 @@ describe('GET /api/profile', () => {
     expect(body.profile.birthDate).toBe('1995-04-12');
     expect(body.profile.goal).toBe('UNDERSTAND_CYCLE');
     expect(body.profile.trackedConcerns).toEqual(['PAIN', 'MOOD']);
-    expect(body.stats.daysTracked).toBe(12);
+    expect(body.stats.daysTracked).toBe(16);
     expect(body.stats.cyclesCompleted).toBe(3);
     expect(body.stats.monthsActive).toBeGreaterThanOrEqual(2);
   });
 
   it('returns 404 PROFILE_NOT_FOUND when no Profile exists yet', async () => {
     prismaMock.profile.findUnique.mockResolvedValue(null);
-    prismaMock.periodEvent.count.mockResolvedValue(0 as never);
+    prismaMock.periodEvent.findMany.mockResolvedValue([] as never);
+    prismaMock.dailyLog.findMany.mockResolvedValue([] as never);
     prismaMock.cycle.count.mockResolvedValue(0 as never);
 
     const res = await GET(makeGetReq());
