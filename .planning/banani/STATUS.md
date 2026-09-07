@@ -1,6 +1,6 @@
 # Banani implementation status
 
-Last updated: 2026-09-07 (Profile/Settings/Logout/HelpCenter/cycles-history pass)
+Last updated: 2026-09-07 (Projet Bébé pass)
 
 Source flow: **"Design System NAWIRA"** — Banani flow id `acguXQuGeGbU` (https://app.banani.co/flow/acguXQuGeGbU)
 Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope.
@@ -20,6 +20,8 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] `HelpCenter` — `frontend/src/app/app/help/page.tsx` — plan: `.planning/banani/help-center.md` — 2026-09-07
 - [x] `CycleDetailFull` — **replaced** by `frontend/src/app/app/cycles/page.tsx` ("Historique des cycles") — plan: `.planning/banani/cycles-history.md` — 2026-09-07
 - [x] `AddData` — **built without a Banani source** (see delta below) — `frontend/src/app/app/log/page.tsx` — plan: `.planning/banani/add-data.md` — 2026-09-07
+- [x] `ProjetBebe` — **built without a Banani source** (3 fetch attempts this session all returned stale `DashboardAujourdhui`) — `frontend/src/app/app/baby/page.tsx` + `frontend/src/components/baby/*` — plan: `.planning/banani/projet-bebe.md` — 2026-09-07
+- [x] `/app/insights`, `/app/billing`, `/app/assistant` — honest "Bientôt disponible" placeholders (no Banani source; unbuilt future epics E6/E7/E8) — `frontend/src/components/app/ComingSoonPage.tsx` + 3 thin page wrappers — 2026-09-07
 
 New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Field.tsx`, `frontend/src/components/auth/AuthCard.tsx`. Design tokens added to `frontend/src/app/globals.css` (`@theme` block — primary/navy confirmed exact match with PRD §0; rose/green/amber/purple are Banani's actual accent hexes, renamed to avoid colliding with Tailwind's built-in default palette names of the same words).
 
@@ -176,3 +178,19 @@ Of the 15 Banani screens, 3 were near-duplicates of another screen in the set wi
 
 - ~~Exact hex values for Banani's tokens~~ — **resolved 2026-09-06**: the mobile-nav fetch included the authoritative `/style.css` theme file. Full values now in `frontend/src/app/globals.css`; two reconciliation items remain, see "Shared layout" section above (`background` hex, and Inter vs `DM Sans` font).
 - ~~Mobile nav has no Banani source~~ — **resolved 2026-09-06**: real source fetched (`DashboardMobile.jsx`), built as `frontend/src/components/nav/MobileBottomNav.tsx`. One label discrepancy vs PRD §6 flagged above ("Profil" vs "Assistant").
+
+### Delta vs Banani source — `ProjetBebe` (2026-09-07)
+
+- No Banani source available (3 fetch attempts this session all returned the stale `DashboardAujourdhui` selection). Built from the approved Phase 5 spec (`docs/superpowers/specs/2026-09-07-phase5-fertility-window-design.md` §6) + shipped backend + existing screen conventions — see `.planning/banani/projet-bebe.md`.
+- `FertilityWindowCard` renders the fertile window as a **range**, ovulation framed as an estimate inside it — never a single certain date (PRD §8.1).
+- `TodaySignalsCard` (the `LHTestTracker` composition, broadened to all 3 signal types) is the one entry point for basal-temperature/cervical-mucus/LH-test signals right now — it fills a real gap, since the shipped `GET`/`PUT /api/fertility-signals/today` backend had zero UI. The Phase 5 spec's "extend `/app/log`" decision is about the eventual long-term placement of this UI and is still deferred/unbuilt; this doesn't change that decision, it just avoids shipping a backend with no way to use it.
+- `ConceptionTipsCard` content is fresh, cautious, non-diagnostic copy (no Banani copy used at all this pass) — same discipline as `HelpCenter`'s FAQ content, with the same medical disclaimer framing.
+- `ConceptionStatistics` → `ConceptionStatsCard`: derived read-only stats (cycle day, fertile-window countdown) computed client-side from already-fetched `/api/cycles` + `/api/predictions/current` data — no new backend.
+- No subscription/tier gate (nothing is gated anywhere yet, matches spec §1).
+
+### Verified — `ProjetBebe`
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm format`, `pnpm test` (683/683) all green.
+- Real browser check at 375/768/1280px — no horizontal scroll, no overlap, empty-state (no prediction yet) renders correctly.
+- Real save round-trip against the live dev server: filled temperature + cervical mucus + LH test → saved → reloaded → all 3 values persisted correctly, then cleared back out.
+- Caught and fixed a real bug during verification: the running dev server's Prisma Client predated this session's `fertility_signal_unique_type` migration (stale generated client, missing the `userId_date_type` compound key), causing `PUT /api/fertility-signals/today` to 500. Fixed by regenerating the client (`prisma generate`) and restarting the dev server — no application code was at fault.
