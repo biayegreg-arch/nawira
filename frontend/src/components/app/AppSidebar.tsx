@@ -16,8 +16,8 @@ import {
   LogOut,
   type LucideIcon,
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { LogoutButton } from './LogoutButton';
 
 interface NavItem {
   href: string;
@@ -43,7 +43,6 @@ const accountItems: NavItem[] = [
 
 export function AppSidebar(): React.JSX.Element {
   const pathname = usePathname();
-  const { logout } = useAuth();
 
   const isActive = (href: string): boolean => pathname === href || pathname.startsWith(`${href}/`);
 
@@ -125,14 +124,10 @@ export function AppSidebar(): React.JSX.Element {
             </Link>
           );
         })}
-        <button
-          type="button"
-          onClick={() => void logout()}
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white/65"
-        >
+        <LogoutButton className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white/65">
           <LogOut size={16} />
           <span>Déconnexion</span>
-        </button>
+        </LogoutButton>
       </nav>
 
       <div className="relative m-3 overflow-hidden rounded-xl bg-white/10 p-4">
