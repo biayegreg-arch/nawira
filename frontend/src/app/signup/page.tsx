@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
 import { AuthCard } from '@/components/auth/AuthCard';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { Field } from '@/components/ui/Field';
 import { Button } from '@/components/ui/Button';
 
@@ -49,6 +50,14 @@ export default function SignupPage(): React.JSX.Element {
 
   return (
     <AuthCard title="Créer ton compte" subtitle="Gratuit, sans carte bancaire.">
+      <GoogleAuthButton />
+
+      <div className="my-6 flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs text-muted-foreground">ou</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <Field
           label="Email"
