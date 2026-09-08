@@ -50,6 +50,7 @@ model User {
   withdrawals       Withdrawal[]
   oauthAccounts     OAuthAccount[]
   adminActions      AdminAction[]
+  assistantConversations AssistantConversation[]
 
   // Multi-tenancy is opt-in per project: by default no resource is org-scoped.
   // Apps that need it (marketplace, B2B SaaS, classifieds) wire owner relations
@@ -374,6 +375,34 @@ model Consent {
   revokedAt DateTime?
 
   @@index([userId, type])
+}
+
+model AssistantConversation {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String? // derived from the first user message, truncated
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages AssistantMessage[]
+
+  @@index([userId, updatedAt])
+}
+
+model AssistantMessage {
+  id             String                @id @default(cuid())
+  conversationId String
+  conversation   AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // USER | ASSISTANT
+  content        String                @db.Text
+  // Set only on USER messages, and only when the conversation is persisted
+  // (ASSISTANT_HISTORY consent granted) — stored for a future E12 analytics
+  // pass (spec §9); no event pipeline exists yet.
+  intentCategory String?
+  createdAt      DateTime              @default(now())
+
+  @@index([conversationId, createdAt])
 }
 
 model PeriodEvent {
