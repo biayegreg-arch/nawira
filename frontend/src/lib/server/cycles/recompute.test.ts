@@ -153,4 +153,47 @@ describe('recomputeCyclesAndPrediction', () => {
     const arg = prismaMock.cycle.upsert.mock.calls[0]?.[0];
     expect(arg?.where).toEqual({ userId_startDate: { userId: 'u1', startDate: d('2026-01-29') } });
   });
+
+  it('prunes a Cycle row whose startDate no longer matches any episode after a backfill merges two episodes', async () => {
+    // Previously two separate episodes: Jan 1 and Jan 29 (gap of 27 days).
+    // A backfilled range now fills every day in between, merging them into
+    // one long episode starting Jan 1 — the Jan 29 Cycle row is now stale.
+    const allDates: Date[] = [];
+    for (let day = 1; day <= 29; day++) {
+      allDates.push(d(`2026-01-${String(day).padStart(2, '0')}`));
+    }
+    prismaMock.periodEvent.findMany.mockResolvedValue(allDates.map((date) => ({ date })) as never);
+    prismaMock.profile.findUnique.mockResolvedValue({
+      usualCycleLength: null,
+      usualPeriodLength: null,
+    } as never);
+    prismaMock.cycle.findMany.mockResolvedValue([
+      { startDate: d('2026-01-01'), endDate: d('2026-01-01'), length: 1, isOutlier: false },
+      { startDate: d('2026-01-29'), endDate: null, length: null, isOutlier: false },
+    ] as never);
+
+    await recomputeCyclesAndPrediction(prismaMock, 'u1');
+
+    expect(prismaMock.cycle.deleteMany).toHaveBeenCalledWith({
+      where: { userId: 'u1', startDate: { in: [d('2026-01-29')] } },
+    });
+  });
+
+  it('does not prune any Cycle when every existing startDate still matches a current episode', async () => {
+    prismaMock.periodEvent.findMany.mockResolvedValue([
+      { date: d('2026-01-01') },
+      { date: d('2026-01-29') },
+    ] as never);
+    prismaMock.profile.findUnique.mockResolvedValue({
+      usualCycleLength: null,
+      usualPeriodLength: null,
+    } as never);
+    prismaMock.cycle.findMany.mockResolvedValue([
+      { startDate: d('2026-01-01'), endDate: d('2026-01-01'), length: 1, isOutlier: false },
+    ] as never);
+
+    await recomputeCyclesAndPrediction(prismaMock, 'u1');
+
+    expect(prismaMock.cycle.deleteMany).not.toHaveBeenCalled();
+  });
 });

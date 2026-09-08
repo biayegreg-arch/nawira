@@ -13,6 +13,7 @@ import {
 import { CycleContextCard, derivePhase } from '@/components/log/CycleContextCard';
 import { PhaseTipCard } from '@/components/log/PhaseTipCard';
 import { RecentEntriesCard, type RecentEntry } from '@/components/log/RecentEntriesCard';
+import { PeriodRangeForm, type PeriodRangeSubmitValues } from '@/components/log/PeriodRangeForm';
 
 interface CycleSummary {
   startDate: string;
@@ -131,6 +132,31 @@ export default function LogPage(): React.JSX.Element | null {
     [existingSignals, load, toast],
   );
 
+  const handlePeriodRangeSubmit = useCallback(
+    async (values: PeriodRangeSubmitValues) => {
+      try {
+        const res = await api<{ ok: true; daysLogged: number }>('/api/period-events', {
+          method: 'POST',
+          body: values,
+        });
+        toast(
+          `${res.daysLogged} jour${res.daysLogged > 1 ? 's' : ''} de règles ajouté${res.daysLogged > 1 ? 's' : ''}.`,
+          'success',
+        );
+        await load();
+      } catch (err) {
+        toast(
+          err instanceof ApiError
+            ? err.message
+            : 'Impossible d’enregistrer cette période. Réessaie.',
+          'error',
+        );
+        throw err;
+      }
+    },
+    [load, toast],
+  );
+
   if (!user) return null;
 
   if (error) {
@@ -172,13 +198,14 @@ export default function LogPage(): React.JSX.Element | null {
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        <div className="min-w-0 flex-1 lg:max-w-2xl">
+        <div className="flex min-w-0 flex-1 flex-col gap-6 lg:max-w-2xl">
           <DailyLogForm
             initialValues={initialValues}
             todayFlowLogged={todayFlowLogged}
             saving={saving}
             onSubmit={handleSubmit}
           />
+          <PeriodRangeForm onSubmit={handlePeriodRangeSubmit} />
         </div>
 
         <div className="flex flex-col gap-5 lg:w-72 lg:shrink-0">

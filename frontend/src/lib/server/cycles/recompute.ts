@@ -20,12 +20,12 @@ import { computeFertilityWindow } from './fertility-window';
  * matters because this all runs inside a single transaction, against
  * Neon's ~2s transaction ceiling.
  *
- * Orphan pruning (deleting a `Cycle` whose `startDate` no longer matches
- * any current episode) is deliberately NOT implemented: in this phase all
- * `PeriodEvent` writes are append-only and always dated today, so
- * episodes can never merge, split, or move, and an orphan cannot occur.
- * This assumption MUST be revisited if a future phase adds free-date
- * logging or edit/delete of `PeriodEvent` rows.
+ * Orphan pruning: free-date logging (a backfilled period range) can merge
+ * two previously separate episodes into one, which shifts or removes a
+ * previous episode's startDate. Any existing `Cycle` row whose `startDate`
+ * no longer matches a current episode is deleted in one `deleteMany` — this
+ * runs on every call, not only ones triggered by range logging, since a
+ * cheap `Set` diff against rows already fetched above costs nothing extra.
  */
 export async function recomputeCyclesAndPrediction(
   tx: Prisma.TransactionClient,
@@ -51,6 +51,14 @@ export async function recomputeCyclesAndPrediction(
   const cycles = buildCycles(episodes);
 
   const existingByStart = new Map(existingCycles.map((c) => [c.startDate.getTime(), c]));
+
+  const currentStarts = new Set(cycles.map((c) => c.startDate.getTime()));
+  const orphanStarts = existingCycles
+    .filter((c) => !currentStarts.has(c.startDate.getTime()))
+    .map((c) => c.startDate);
+  if (orphanStarts.length > 0) {
+    await tx.cycle.deleteMany({ where: { userId, startDate: { in: orphanStarts } } });
+  }
 
   for (const cycle of cycles) {
     const prev = existingByStart.get(cycle.startDate.getTime());

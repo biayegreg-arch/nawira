@@ -53,7 +53,7 @@ describe('POST /api/period-events', () => {
     const res = await POST(makeReq({}));
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body).toEqual({ ok: true });
+    expect(body).toEqual({ ok: true, daysLogged: 1 });
 
     expect(prismaMock.periodEvent.upsert).toHaveBeenCalledTimes(1);
     const arg = prismaMock.periodEvent.upsert.mock.calls[0]?.[0];
@@ -120,5 +120,71 @@ describe('POST /api/period-events', () => {
     );
     const res = await POST(makeReq({}));
     expect(res.status).toBe(403);
+  });
+
+  describe('date-range backfill (startDate + endDate)', () => {
+    it('upserts one PeriodEvent per day in the inclusive range and recomputes once', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-01-10T12:00:00Z'));
+
+      const res = await POST(
+        makeReq({ startDate: '2026-01-01', endDate: '2026-01-03', flow: 'LIGHT' }),
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body).toEqual({ ok: true, daysLogged: 3 });
+      expect(prismaMock.periodEvent.upsert).toHaveBeenCalledTimes(3);
+      const dates = prismaMock.periodEvent.upsert.mock.calls.map((call) =>
+        (call[0].create as { date: Date }).date.toISOString().slice(0, 10),
+      );
+      expect(dates).toEqual(['2026-01-01', '2026-01-02', '2026-01-03']);
+      expect(
+        prismaMock.periodEvent.upsert.mock.calls.every((call) => call[0].create?.flow === 'LIGHT'),
+      ).toBe(true);
+      expect(recomputeCyclesAndPrediction).toHaveBeenCalledTimes(1);
+
+      vi.useRealTimers();
+    });
+
+    it('rejects a startDate after endDate', async () => {
+      const res = await POST(makeReq({ startDate: '2026-01-05', endDate: '2026-01-01' }));
+      expect(res.status).toBe(400);
+      expect(prismaMock.periodEvent.upsert).not.toHaveBeenCalled();
+    });
+
+    it('rejects an endDate in the future', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-01-10T12:00:00Z'));
+
+      const res = await POST(makeReq({ startDate: '2026-01-05', endDate: '2026-01-20' }));
+      expect(res.status).toBe(400);
+      expect(prismaMock.periodEvent.upsert).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+
+    it('rejects a range longer than 14 days', async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-02-01T12:00:00Z'));
+
+      const res = await POST(makeReq({ startDate: '2026-01-01', endDate: '2026-01-16' }));
+      expect(res.status).toBe(400);
+      expect(prismaMock.periodEvent.upsert).not.toHaveBeenCalled();
+
+      vi.useRealTimers();
+    });
+
+    it('rejects startDate without endDate', async () => {
+      const res = await POST(makeReq({ startDate: '2026-01-01' }));
+      expect(res.status).toBe(400);
+      expect(prismaMock.periodEvent.upsert).not.toHaveBeenCalled();
+    });
+
+    it('rejects an unparseable date string', async () => {
+      const res = await POST(makeReq({ startDate: 'not-a-date', endDate: '2026-01-01' }));
+      expect(res.status).toBe(400);
+      expect(prismaMock.periodEvent.upsert).not.toHaveBeenCalled();
+    });
   });
 });
