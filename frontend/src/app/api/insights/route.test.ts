@@ -44,7 +44,7 @@ describe('GET /api/insights', () => {
     expect(prismaMock.cycle.findMany).toHaveBeenCalledWith({
       where: { userId: 'u1' },
       orderBy: { startDate: 'asc' },
-      select: { startDate: true, endDate: true, length: true },
+      select: { startDate: true, endDate: true, length: true, isOutlier: true },
     });
     expect(prismaMock.dailyLog.findMany).toHaveBeenCalledWith({
       where: { userId: 'u1' },

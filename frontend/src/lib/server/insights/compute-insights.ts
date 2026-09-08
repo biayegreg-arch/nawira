@@ -8,6 +8,7 @@ export interface CycleInput {
   startDate: Date;
   endDate: Date | null;
   length: number | null;
+  isOutlier: boolean;
 }
 
 export interface DailyLogInput {
@@ -33,11 +34,65 @@ export type InsightType =
   | 'CYCLE_COMPARISON'
   | 'CYCLE_SCORE_TREND';
 
-export interface Insight {
-  type: InsightType;
+export interface AvgCycleLengthInsight {
+  type: 'AVG_CYCLE_LENGTH';
   evidenceCount: number;
-  data: Record<string, unknown>;
+  data: { average: number; min: number; max: number; outliersExcluded: number };
 }
+
+export interface AvgPeriodLengthInsight {
+  type: 'AVG_PERIOD_LENGTH';
+  evidenceCount: number;
+  data: { average: number; min: number; max: number };
+}
+
+export interface CycleVariabilityInsight {
+  type: 'CYCLE_VARIABILITY';
+  evidenceCount: number;
+  data: { stddev: number; label: 'REGULAR' | 'SOMEWHAT_VARIABLE' | 'IRREGULAR' };
+}
+
+export interface TopSymptomsInsight {
+  type: 'TOP_SYMPTOMS';
+  evidenceCount: number;
+  data: {
+    byPhase: Record<CyclePhase, Array<{ symptom: string; count: number; frequency: number }>>;
+    daysLogged: Record<CyclePhase, number>;
+  };
+}
+
+export interface CycleComparisonInsight {
+  type: 'CYCLE_COMPARISON';
+  evidenceCount: number;
+  data: {
+    current: {
+      daysElapsed: number;
+      periodLengthSoFar: number | null;
+      symptomCount: number;
+      avgCycleScore: number | null;
+    } | null;
+    previous: {
+      length: number;
+      periodLength: number | null;
+      symptomCount: number;
+      avgCycleScore: number | null;
+    };
+  };
+}
+
+export interface CycleScoreTrendInsight {
+  type: 'CYCLE_SCORE_TREND';
+  evidenceCount: number;
+  data: { current: number | null; previous: number | null };
+}
+
+export type Insight =
+  | AvgCycleLengthInsight
+  | AvgPeriodLengthInsight
+  | CycleVariabilityInsight
+  | TopSymptomsInsight
+  | CycleComparisonInsight
+  | CycleScoreTrendInsight;
 
 export interface InsightsResult {
   eligible: boolean;
@@ -53,6 +108,7 @@ interface CompleteCycle {
   startDate: Date;
   endDate: Date;
   length: number;
+  isOutlier: boolean;
 }
 
 const MIN_COMPLETE_CYCLES = 2;
@@ -97,6 +153,14 @@ function logsInRange(dailyLogs: DailyLogInput[], start: Date, end: Date): DailyL
   );
 }
 
+// Mirrors the private `nonOutlierLengths` in cycles/prediction.ts (line 53-56):
+// exclude isOutlier-flagged cycles from length-based math, but fall back to the
+// full unfiltered list if excluding outliers would leave nothing to work with.
+function nonOutlierLengths(cycles: CompleteCycle[]): number[] {
+  const nonOutlier = cycles.filter((c) => !c.isOutlier).map((c) => c.length);
+  return nonOutlier.length > 0 ? nonOutlier : cycles.map((c) => c.length);
+}
+
 /**
  * Pure orchestrator — see
  * docs/superpowers/specs/2026-09-08-phase6-insights-cycle-score-design.md
@@ -110,7 +174,12 @@ export function deriveInsights(input: InsightsInput): InsightsResult {
 
   const completeCycles: CompleteCycle[] = cycles
     .filter((c) => c.endDate !== null && c.length !== null)
-    .map((c) => ({ startDate: c.startDate, endDate: c.endDate!, length: c.length! }));
+    .map((c) => ({
+      startDate: c.startDate,
+      endDate: c.endDate!,
+      length: c.length!,
+      isOutlier: c.isOutlier,
+    }));
   const openCycle = cycles.find((c) => c.endDate === null) ?? null;
   const episodes = groupIntoEpisodes(periodEventDates);
 
@@ -129,14 +198,15 @@ export function deriveInsights(input: InsightsInput): InsightsResult {
   const insights: Insight[] = [];
 
   if (completeCycles.length >= MIN_COMPLETE_CYCLES) {
-    const lengths = completeCycles.map((c) => c.length);
+    const filteredLengths = nonOutlierLengths(completeCycles);
     insights.push({
       type: 'AVG_CYCLE_LENGTH',
       evidenceCount: completeCycles.length,
       data: {
-        average: round1(average(lengths)!),
-        min: Math.min(...lengths),
-        max: Math.max(...lengths),
+        average: round1(average(filteredLengths)!),
+        min: Math.min(...filteredLengths),
+        max: Math.max(...filteredLengths),
+        outliersExcluded: completeCycles.length - filteredLengths.length,
       },
     });
 
@@ -156,7 +226,7 @@ export function deriveInsights(input: InsightsInput): InsightsResult {
       });
     }
 
-    const sd = stddev(lengths);
+    const sd = stddev(filteredLengths);
     const label = sd <= 2 ? 'REGULAR' : sd <= 5 ? 'SOMEWHAT_VARIABLE' : 'IRREGULAR';
     insights.push({
       type: 'CYCLE_VARIABILITY',
@@ -171,17 +241,12 @@ export function deriveInsights(input: InsightsInput): InsightsResult {
     const previousScoreAvg = average(scoresFor(previousLogs));
     const previousData = {
       length: previousCycle.length,
-      periodLength: previousEpisode?.length ?? 0,
+      periodLength: previousEpisode?.length ?? null,
       symptomCount: symptomCountFor(previousLogs),
       avgCycleScore: previousScoreAvg !== null ? Math.round(previousScoreAvg) : null,
     };
 
-    let currentData: {
-      daysElapsed: number;
-      periodLengthSoFar: number;
-      symptomCount: number;
-      avgCycleScore: number | null;
-    };
+    let currentData: CycleComparisonInsight['data']['current'] = null;
     if (openCycle) {
       const currentEpisode =
         episodes.find((e) => e.start.getTime() === openCycle.startDate.getTime()) ?? null;
@@ -191,12 +256,10 @@ export function deriveInsights(input: InsightsInput): InsightsResult {
       const currentScoreAvg = average(scoresFor(currentLogs));
       currentData = {
         daysElapsed: daysBetween(openCycle.startDate, today) + 1,
-        periodLengthSoFar: currentEpisode?.length ?? 0,
+        periodLengthSoFar: currentEpisode?.length ?? null,
         symptomCount: symptomCountFor(currentLogs),
         avgCycleScore: currentScoreAvg !== null ? Math.round(currentScoreAvg) : null,
       };
-    } else {
-      currentData = { daysElapsed: 0, periodLengthSoFar: 0, symptomCount: 0, avgCycleScore: null };
     }
 
     insights.push({
@@ -208,7 +271,7 @@ export function deriveInsights(input: InsightsInput): InsightsResult {
     insights.push({
       type: 'CYCLE_SCORE_TREND',
       evidenceCount: completeCycles.length,
-      data: { current: currentData.avgCycleScore, previous: previousData.avgCycleScore },
+      data: { current: currentData?.avgCycleScore ?? null, previous: previousData.avgCycleScore },
     });
   }
 
@@ -258,11 +321,18 @@ export function deriveInsights(input: InsightsInput): InsightsResult {
         .slice(0, 3);
     });
 
-    insights.push({
-      type: 'TOP_SYMPTOMS',
-      evidenceCount: dailyLogs.length,
-      data: { byPhase },
-    });
+    const classifiedLogCount = (Object.values(daysLogged) as number[]).reduce(
+      (sum, n) => sum + n,
+      0,
+    );
+
+    if (classifiedLogCount > 0) {
+      insights.push({
+        type: 'TOP_SYMPTOMS',
+        evidenceCount: classifiedLogCount,
+        data: { byPhase, daysLogged },
+      });
+    }
   }
 
   return {

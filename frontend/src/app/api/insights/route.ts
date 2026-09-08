@@ -5,6 +5,11 @@
 // materialization (spec §1). An authenticated user with no Profile/data
 // yet gets a normal 200 with eligible:false, never a 404 — "not enough
 // data" is not an error.
+//
+// `eligible` and `cycleScoreToday` are independent: a brand-new user can
+// have `eligible: false` (not enough cycle/log history for trend
+// insights) while still getting a real `cycleScoreToday` from today's own
+// data. Do not hide cycleScoreToday just because eligible is false.
 export const runtime = 'nodejs';
 
 import 'server-only';
@@ -28,7 +33,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       prisma.cycle.findMany({
         where: { userId },
         orderBy: { startDate: 'asc' },
-        select: { startDate: true, endDate: true, length: true },
+        select: { startDate: true, endDate: true, length: true, isOutlier: true },
       }),
       prisma.dailyLog.findMany({
         where: { userId },

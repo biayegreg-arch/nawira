@@ -49,10 +49,17 @@ const MIN_DIMENSIONS_FOR_SCORE = 2;
 export function computeDailyCycleScore(log: DailyLogForScore): number | null {
   const dims: number[] = [];
 
-  if (log.mood !== null && log.mood in MOOD_SCORE) dims.push(MOOD_SCORE[log.mood]!);
-  if (log.energy !== null && log.energy in ENERGY_SCORE) dims.push(ENERGY_SCORE[log.energy]!);
-  if (log.sleepQuality !== null && log.sleepQuality in SLEEP_SCORE) {
-    dims.push(SLEEP_SCORE[log.sleepQuality]!);
+  if (log.mood !== null) {
+    const s = MOOD_SCORE[log.mood];
+    if (s !== undefined) dims.push(s);
+  }
+  if (log.energy !== null) {
+    const s = ENERGY_SCORE[log.energy];
+    if (s !== undefined) dims.push(s);
+  }
+  if (log.sleepQuality !== null) {
+    const s = SLEEP_SCORE[log.sleepQuality];
+    if (s !== undefined) dims.push(s);
   }
   if (log.painLevel !== null || log.symptomCount > 0) {
     const burden = Math.min(100, (log.painLevel ?? 0) * 10 + log.symptomCount * 10);

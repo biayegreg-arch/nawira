@@ -2,7 +2,13 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { deriveInsights, type CycleInput, type DailyLogInput } from './compute-insights';
 
 function cycle(overrides: Partial<CycleInput>): CycleInput {
-  return { startDate: new Date('2026-01-01'), endDate: null, length: null, ...overrides };
+  return {
+    startDate: new Date('2026-01-01'),
+    endDate: null,
+    length: null,
+    isOutlier: false,
+    ...overrides,
+  };
 }
 
 function log(overrides: Partial<DailyLogInput>): DailyLogInput {
@@ -88,7 +94,7 @@ describe('deriveInsights', () => {
 
     expect(byType.get('AVG_CYCLE_LENGTH')).toMatchObject({
       evidenceCount: 2,
-      data: { average: 29, min: 28, max: 30 },
+      data: { average: 29, min: 28, max: 30, outliersExcluded: 0 },
     });
     expect(byType.get('AVG_PERIOD_LENGTH')).toMatchObject({
       evidenceCount: 2,
@@ -148,6 +154,7 @@ describe('deriveInsights', () => {
         OVULATORY: [{ symptom: 'ACNE', count: 1, frequency: 1 }],
         LUTEAL: [{ symptom: 'FATIGUE', count: 2, frequency: 1 }],
       },
+      daysLogged: { MENSTRUAL: 2, FOLLICULAR: 0, OVULATORY: 1, LUTEAL: 2 },
     });
   });
 
@@ -197,5 +204,93 @@ describe('deriveInsights', () => {
       const variability = result.insights.find((i) => i.type === 'CYCLE_VARIABILITY')!;
       expect(variability.data).toEqual({ stddev, label });
     }
+  });
+
+  it('stays not eligible (no empty-payload TOP_SYMPTOMS) with 5+ daily logs but 0 complete cycles', () => {
+    const dailyLogs = [
+      log({ date: new Date('2026-01-01'), symptoms: ['CRAMPS'] }),
+      log({ date: new Date('2026-01-02'), symptoms: ['CRAMPS'] }),
+      log({ date: new Date('2026-01-03'), symptoms: ['ACNE'] }),
+      log({ date: new Date('2026-01-04'), symptoms: ['FATIGUE'] }),
+      log({ date: new Date('2026-01-05'), symptoms: ['FATIGUE'] }),
+    ];
+
+    const result = deriveInsights({ cycles: [], dailyLogs, periodEventDates: [] });
+
+    expect(result.eligible).toBe(false);
+    expect(result.insights).toEqual([]);
+    expect(result.meta).toEqual({ completeCyclesAnalyzed: 0, dailyLogsAnalyzed: 5 });
+  });
+
+  it('sets CYCLE_COMPARISON.current to null (not fabricated zeros) when there is no open cycle, and periodLength to null when there is no matching episode', () => {
+    const result = deriveInsights({
+      cycles: [
+        cycle({ startDate: new Date('2026-01-01'), endDate: new Date('2026-01-28'), length: 28 }),
+        cycle({ startDate: new Date('2026-01-29'), endDate: new Date('2026-02-27'), length: 30 }),
+      ],
+      dailyLogs: [],
+      periodEventDates: [], // no period events -> previousEpisode is null -> periodLength: null
+    });
+
+    expect(result.eligible).toBe(true);
+
+    const comparison = result.insights.find((i) => i.type === 'CYCLE_COMPARISON')!;
+    expect(comparison.data).toEqual({
+      current: null,
+      previous: { length: 30, periodLength: null, symptomCount: 0, avgCycleScore: null },
+    });
+
+    // CYCLE_SCORE_TREND behavior is unchanged: still null-not-zero when there's no open cycle.
+    const trend = result.insights.find((i) => i.type === 'CYCLE_SCORE_TREND')!;
+    expect(trend.data).toEqual({ current: null, previous: null });
+  });
+
+  it('excludes isOutlier-flagged cycles from AVG_CYCLE_LENGTH/CYCLE_VARIABILITY and reports outliersExcluded', () => {
+    const result = deriveInsights({
+      cycles: [
+        cycle({ startDate: new Date('2026-01-01'), endDate: new Date('2026-01-28'), length: 28 }),
+        cycle({
+          startDate: new Date('2026-01-29'),
+          endDate: new Date('2026-04-01'),
+          length: 62,
+          isOutlier: true,
+        }),
+        cycle({ startDate: new Date('2026-04-02'), endDate: new Date('2026-04-30'), length: 29 }),
+      ],
+      dailyLogs: [],
+      periodEventDates: [],
+    });
+
+    const avgLen = result.insights.find((i) => i.type === 'AVG_CYCLE_LENGTH')!;
+    expect(avgLen.evidenceCount).toBe(3); // raw complete-cycle count, unaffected by filtering
+    expect(avgLen.data).toEqual({ average: 28.5, min: 28, max: 29, outliersExcluded: 1 });
+
+    const variability = result.insights.find((i) => i.type === 'CYCLE_VARIABILITY')!;
+    expect(variability.evidenceCount).toBe(3);
+    expect(variability.data).toEqual({ stddev: 0.5, label: 'REGULAR' });
+  });
+
+  it('falls back to using all complete cycles when every one is flagged isOutlier', () => {
+    const result = deriveInsights({
+      cycles: [
+        cycle({
+          startDate: new Date('2026-01-01'),
+          endDate: new Date('2026-01-28'),
+          length: 28,
+          isOutlier: true,
+        }),
+        cycle({
+          startDate: new Date('2026-01-29'),
+          endDate: new Date('2026-02-27'),
+          length: 30,
+          isOutlier: true,
+        }),
+      ],
+      dailyLogs: [],
+      periodEventDates: [],
+    });
+
+    const avgLen = result.insights.find((i) => i.type === 'AVG_CYCLE_LENGTH')!;
+    expect(avgLen.data).toEqual({ average: 29, min: 28, max: 30, outliersExcluded: 0 });
   });
 });
