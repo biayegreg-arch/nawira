@@ -14,6 +14,8 @@ export interface User {
   updatedAt: string;
   /** false when the account was created via OAuth and never set a password. */
   hasPassword: boolean;
+  /** Cloudinary URL (self-uploaded) or Google's profile picture URL, or null. */
+  avatarUrl: string | null;
   /** Provider names already linked, e.g. ['google']. Empty for pure email/password accounts. */
   linkedProviders: string[];
   /** false until the user has completed onboarding (Phase 2) and has a Profile row. */

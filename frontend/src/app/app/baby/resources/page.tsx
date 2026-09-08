@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Search, Clock, ArrowRight, HelpCircle, Info } from 'lucide-react';
 import { ProjetBebeTabs } from '@/components/baby/ProjetBebeTabs';
 import { CONCEPTION_ARTICLES, CONCEPTION_FAQS } from '@/components/baby/conception-articles';
@@ -9,7 +10,8 @@ import { CONCEPTION_ARTICLES, CONCEPTION_FAQS } from '@/components/baby/concepti
 const FILTERS = ['Tous', 'Conception', 'Santé', 'Alimentation', 'Bien-être', 'Tests', 'Cycle'];
 
 export default function ProjetBebeResourcesPage(): React.JSX.Element {
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const [filter, setFilter] = useState('Tous');
 
   const articles = useMemo(() => {

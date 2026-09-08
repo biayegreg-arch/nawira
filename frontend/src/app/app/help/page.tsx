@@ -1,12 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, Mail, Info } from 'lucide-react';
 import { HELP_CATEGORIES } from '@/lib/help-content';
 import { HelpAccordion } from '@/components/help/HelpAccordion';
 
 export default function HelpCenterPage(): React.JSX.Element {
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
 
   const filteredCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
