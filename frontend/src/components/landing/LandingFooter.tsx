@@ -1,8 +1,12 @@
 import { Activity } from 'lucide-react';
 
-const linkGroups: Record<string, string[]> = {
-  Produit: ['Fonctionnalités', 'Pourquoi NAWIRA ?', 'Avis'],
-  Ressources: ["Centre d'aide", 'Confidentialité', "Conditions d'utilisation"],
+const linkGroups: Record<string, Array<{ label: string; href: string }>> = {
+  Produit: [
+    { label: 'Fonctionnalités', href: '#fonctionnalites' },
+    { label: 'Pourquoi NAWIRA ?', href: '#pourquoi' },
+    { label: 'Avis', href: '#avis' },
+  ],
+  Ressources: [{ label: "Centre d'aide", href: '/app/help' }],
 };
 
 export function LandingFooter(): React.JSX.Element {
@@ -29,9 +33,9 @@ export function LandingFooter(): React.JSX.Element {
               <h4 className="mb-4 text-sm font-semibold text-navy">{category}</h4>
               <ul className="space-y-2">
                 {items.map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm text-muted-foreground">
-                      {item}
+                  <li key={item.label}>
+                    <a href={item.href} className="text-sm text-muted-foreground">
+                      {item.label}
                     </a>
                   </li>
                 ))}

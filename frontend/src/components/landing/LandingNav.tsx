@@ -5,7 +5,7 @@ import { Activity, Menu, X } from 'lucide-react';
 import { LinkButton } from '@/components/ui/Button';
 
 const navLinks = [
-  { label: 'Accueil', href: '#' },
+  { label: 'Accueil', href: '/' },
   { label: 'Fonctionnalités', href: '#fonctionnalites' },
   { label: 'Pourquoi NAWIRA ?', href: '#pourquoi' },
   { label: 'Avis', href: '#avis' },
@@ -18,7 +18,7 @@ export function LandingNav(): React.JSX.Element {
     <nav className="w-full border-b border-border bg-white">
       <div className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-4 sm:px-6 lg:px-12">
         {/* Logo */}
-        <a href="#" className="flex items-center gap-2">
+        <a href="/" className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
             <Activity className="h-4 w-4 text-white" />
           </span>

@@ -1,6 +1,6 @@
 # Banani implementation status
 
-Last updated: 2026-09-07 (ProjetBebe expanded into 5 real routes — Aperçu/Calendrier/Ressources/Conseils/Ajouter-un-test — against newly-fetched Banani sources; Analytics/Assistant still deferred, see delta below)
+Last updated: 2026-09-08 (full-app audit — 2 dead links fixed on the landing page, notification bell built to close a fully-built-but-unused backend gap; see delta below)
 
 Source flow: **"Design System NAWIRA"** — Banani flow id `acguXQuGeGbU` (https://app.banani.co/flow/acguXQuGeGbU)
 Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope. A later, separate fetch (2026-09-07) added 7 more screens the user created directly for the Projet Bébé flow: `ProjetBebe` (re-fetch), `ProjetBebeRessources`, `ProjetBebeCalendarV2`, `AddLHTest`, `ConceptionAdvice`, plus 2 duplicates (`ProjetBebe_next1`, `ProjetBebeDiscovery`) dropped per the same duplicate-screen policy.
@@ -327,3 +327,35 @@ touches real pricing and (eventually) real money:
   Visually confirmed real pricing (Gratuit / 1 000 FCFA / 2 500 FCFA), correct "Plan actuel" badge
   on the Free card, disabled "Bientôt disponible" buttons on both paid tiers, and the honest
   launch-phase note rendering correctly.
+
+### Full-app audit (2026-09-08) — dead links + notification bell gap
+
+Full audit of responsive integration, data wiring, and backend connectivity across every shipped
+page. Cross-referenced every `api()` call against the 52 real API route files and every `href`/
+button pattern via grep before any live browser testing.
+
+**Bugs found + fixed:**
+- `frontend/src/components/landing/LandingNav.tsx` — logo and "Accueil" nav link both pointed to
+  `href="#"` (dead link) instead of `/`. Fixed.
+- `frontend/src/components/landing/LandingFooter.tsx` — footer links were plain strings with no
+  real `href`s at all. Wired real anchors (`#fonctionnalites`, `#pourquoi`, `#avis`, `/app/help`);
+  dropped "Confidentialité"/"Conditions d'utilisation" entirely since no such pages exist (no fake
+  links to nowhere).
+- **Notification bell — backend fully built (`GET/PATCH /api/notifications`, `GET
+  /api/notifications/count`, `createNotification` dispatcher, `WELCOME` template), zero UI ever
+  consumed it.** `AppTopBar.tsx` rendered a static, non-interactive bell icon. Built
+  `frontend/src/components/app/NotificationBell.tsx` (dropdown, unread badge, mark-one/mark-all,
+  outside-click + Escape to close) and `frontend/src/lib/time-ago.ts` (relative timestamps);
+  wired into `AppTopBar.tsx`, now visible on mobile too (previously desktop-only decoration).
+  Also localized `welcomeNotification()` in
+  `frontend/src/lib/server/notifications/templates.ts` — it was the only English-language string
+  left in the app.
+
+**Verified:** `pnpm typecheck && pnpm lint && pnpm format && pnpm test` (695/695) `&& pnpm build`
+all green. Real browser check confirmed: badge count accurate, dropdown lists real seeded
+notifications, clicking an unread item marks it read and decrements the badge, "Tout marquer
+comme lu" zeroes it, read state persists across reload, dropdown closes on outside click, no
+horizontal overflow at 375px. (Two initial verification passes were muddied by dev-server/
+Turbopack first-hit compile lag on the PATCH route — up to ~7s on the very first mutating call in
+a fresh dev-server session — not an application bug; confirmed by tracing request/response timing
+directly.)

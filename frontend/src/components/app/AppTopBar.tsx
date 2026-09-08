@@ -1,8 +1,9 @@
 'use client';
 
-import { Search, Bell } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { greetingName } from '@/lib/utils';
+import { NotificationBell } from '@/components/app/NotificationBell';
 
 export function AppTopBar(): React.JSX.Element {
   const { user } = useAuth();
@@ -20,13 +21,7 @@ export function AppTopBar(): React.JSX.Element {
         <span className="text-sm font-semibold text-navy">Bonjour {name} 👋</span>
       </div>
       <div className="hidden flex-1 lg:block" />
-      <button
-        type="button"
-        className="relative hidden p-2 text-navy lg:block"
-        aria-label="Notifications"
-      >
-        <Bell size={20} />
-      </button>
+      {user && <NotificationBell />}
       {user && (
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">
           {name.charAt(0)}

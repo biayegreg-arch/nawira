@@ -25,8 +25,8 @@ export function welcomeNotification(userId: string, email: string): CreateNotifi
   return {
     userId,
     type: 'WELCOME',
-    title: 'Welcome!',
-    body: `Glad to have you on board, ${email}.`,
+    title: 'Bienvenue sur NAWIRA 👋',
+    body: `Heureux de t'accompagner, ${email}.`,
     dedupeKey: `welcome:${userId}`,
   };
 }
