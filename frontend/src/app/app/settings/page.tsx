@@ -64,8 +64,9 @@ export default function AppSettingsPage(): React.JSX.Element | null {
       setNotificationLevel(res.profile.notificationLevel);
     } catch {
       // Non-fatal — the picker just starts unselected; the user can still choose and save.
+      toast('Impossible de charger tes préférences actuelles.', 'error');
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     if (user) void loadProfile();

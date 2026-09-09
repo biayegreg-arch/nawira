@@ -20,6 +20,8 @@ function VerifyEmailForm(): React.JSX.Element {
   const [code, setCode] = useState(params.get('code') ?? '');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
   useEffect(() => {
     const qEmail = params.get('email');
@@ -68,6 +70,33 @@ function VerifyEmailForm(): React.JSX.Element {
     void verify(email, code);
   }
 
+  async function onResend(): Promise<void> {
+    if (!email) {
+      setError('Entre ton email pour recevoir un nouveau code.');
+      return;
+    }
+    setResending(true);
+    setError(null);
+    setResent(false);
+    try {
+      await api('/api/auth/resend-verification', { method: 'POST', body: { email } });
+      setResent(true);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const map: Record<string, string> = {
+          VALIDATION_FAILED: 'Champs invalides.',
+          TOO_MANY_RESEND_ATTEMPTS: 'Trop de demandes. Réessaie plus tard.',
+          RATE_LIMIT_UNAVAILABLE: 'Service indisponible. Réessaie dans un instant.',
+        };
+        setError(map[err.code] ?? 'Une erreur est survenue.');
+      } else {
+        setError('Une erreur est survenue.');
+      }
+    } finally {
+      setResending(false);
+    }
+  }
+
   return (
     <AuthCard
       title="Vérifie ton email"
@@ -101,6 +130,11 @@ function VerifyEmailForm(): React.JSX.Element {
             {error}
           </p>
         )}
+        {resent && (
+          <p className="text-sm text-green">
+            Un nouveau code a été envoyé si ce compte existe et n&rsquo;est pas déjà vérifié.
+          </p>
+        )}
         <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? 'Vérification…' : 'Vérifier mon email'}
         </Button>
@@ -108,8 +142,19 @@ function VerifyEmailForm(): React.JSX.Element {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Pas reçu de code ?{' '}
+        <button
+          type="button"
+          onClick={() => void onResend()}
+          disabled={resending}
+          className="font-medium text-primary disabled:opacity-50"
+        >
+          {resending ? 'Envoi…' : 'Renvoyer le code'}
+        </button>
+      </p>
+      <p className="mt-2 text-center text-xs text-muted-foreground">
+        Email incorrect ?{' '}
         <Link href="/signup" className="font-medium text-primary">
-          Réessayer l&rsquo;inscription
+          Recommencer l&rsquo;inscription
         </Link>
       </p>
     </AuthCard>

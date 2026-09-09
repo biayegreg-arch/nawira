@@ -86,7 +86,7 @@ Integration tests are deferred (no formal harness in v1) — `pnpm smoke:auth` p
 - [frontend/src/lib/server/middleware/index.ts](frontend/src/lib/server/middleware/index.ts), [require-admin.ts](frontend/src/lib/server/middleware/require-admin.ts), [require-org-role.ts](frontend/src/lib/server/middleware/require-org-role.ts) — role precedence + Context shape consumed by every route
 - [frontend/src/lib/server/observability/request-context.ts](frontend/src/lib/server/observability/request-context.ts) — `requestId` propagation; breaking it silently strips correlation IDs from logs
 - [frontend/instrumentation.ts](frontend/instrumentation.ts) — Sentry register hook; must run before any other server code
-- [frontend/src/lib/api.ts](frontend/src/lib/api.ts) — auto-refresh + CSRF + retry-only-GET; do not extend retry to mutating verbs
+- [frontend/src/lib/api.ts](frontend/src/lib/api.ts) — auto-refresh + CSRF + retry-only-GET; do not extend retry to mutating verbs. `api()` is JSON-only (always `JSON.stringify()`s the body and expects a JSON response) — the two legitimate exceptions that bypass it with a raw `fetch()` are [frontend/src/lib/assistant-chat.ts](frontend/src/lib/assistant-chat.ts) (SSE streaming) and the avatar upload in [frontend/src/components/app/UserMenu.tsx](frontend/src/components/app/UserMenu.tsx) (multipart `FormData`); both duplicate `api.ts`'s CSRF-cookie-read logic locally rather than exporting it, since `api.ts` itself is protected
 
 If a change is genuinely required in any of these, surface a brief "I am about to modify X because Y — confirm?" before editing.
 

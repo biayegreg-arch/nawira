@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { Suspense, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api, ApiError, storeCsrfToken } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthCard } from '@/components/auth/AuthCard';
@@ -10,13 +10,15 @@ import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 import { Field } from '@/components/ui/Field';
 import { Button } from '@/components/ui/Button';
 
-export default function LoginPage(): React.JSX.Element {
+function LoginForm(): React.JSX.Element {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { refresh } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const justReset = searchParams.get('reset') === 'ok';
 
   async function onSubmit(e: FormEvent): Promise<void> {
     e.preventDefault();
@@ -65,6 +67,12 @@ export default function LoginPage(): React.JSX.Element {
         <div className="h-px flex-1 bg-border" />
       </div>
 
+      {justReset && (
+        <p className="mb-4 rounded-lg bg-green-soft px-3.5 py-3 text-sm text-green">
+          Mot de passe réinitialisé. Tu peux te connecter avec ton nouveau mot de passe.
+        </p>
+      )}
+
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         <Field
           label="Email"
@@ -75,15 +83,20 @@ export default function LoginPage(): React.JSX.Element {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <Field
-          label="Mot de passe"
-          type="password"
-          name="password"
-          required
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="flex flex-col gap-1.5">
+          <Field
+            label="Mot de passe"
+            type="password"
+            name="password"
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Link href="/forgot-password" className="self-end text-xs font-medium text-primary">
+            Mot de passe oublié ?
+          </Link>
+        </div>
         {error && (
           <p role="alert" className="text-sm text-red-600">
             {error}
@@ -101,5 +114,13 @@ export default function LoginPage(): React.JSX.Element {
         </Link>
       </p>
     </AuthCard>
+  );
+}
+
+export default function LoginPage(): React.JSX.Element {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }

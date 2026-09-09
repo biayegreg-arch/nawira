@@ -10,6 +10,11 @@ import { API_URL, COOKIE_PREFIX } from '@/lib/constants';
 import { greetingName } from '@/lib/utils';
 import { LogoutButton } from '@/components/app/LogoutButton';
 
+// `api()` from `@/lib/api` always JSON.stringify()s its body and can't send
+// FormData/multipart — avatar upload needs a raw fetch() to /api/upload, so
+// CSRF has to be read manually here too (mirrors the private logic in
+// lib/api.ts). This is the second deliberate raw-fetch exception alongside
+// lib/assistant-chat.ts (SSE streaming) — see CLAUDE.md's api.ts note.
 function readCsrfToken(): string | null {
   if (typeof window === 'undefined') return null;
   const name = `${COOKIE_PREFIX}-csrf`;
