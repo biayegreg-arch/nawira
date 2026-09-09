@@ -28,6 +28,7 @@ import { requireAuth } from '@/lib/server/middleware';
 import { verifyCsrf } from '@/lib/server/auth';
 import { checkAndConsumeQuota } from '@/lib/server/assistant/quota';
 import { sendAssistantMessage, AssistantNotConfiguredError } from '@/lib/server/assistant/client';
+import { SAFE_FALLBACK_MESSAGE } from '@/lib/server/assistant/output-filter';
 import { POST } from './route';
 
 function makeReq(body: Record<string, unknown>): NextRequest {
@@ -182,5 +183,41 @@ describe('POST /api/assistant/messages', () => {
     const body = await res.text();
     expect(body).toContain('data: {"type":"chunk"');
     expect(body).toContain('event: done');
+  });
+
+  it('replaces a red-line response with the safe fallback on the wire when unfiltered text would be flagged', async () => {
+    vi.mocked(sendAssistantMessage).mockResolvedValueOnce('Tu es enceinte, félicitations !');
+    const res = await POST(makeReq({ message: 'Salut', history: [] }));
+    const body = await res.text();
+    expect(body).toContain(JSON.stringify(SAFE_FALLBACK_MESSAGE).slice(0, 30));
+    expect(body).not.toContain('félicitations');
+  });
+
+  it('persists the safe fallback, not the raw red-line text, when consent is granted', async () => {
+    vi.mocked(sendAssistantMessage).mockResolvedValueOnce('Tu es enceinte, félicitations !');
+    prismaMock.consent.findFirst.mockResolvedValue({
+      id: 'c1',
+      userId: 'u1',
+      type: 'ASSISTANT_HISTORY',
+      version: 1,
+      grantedAt: new Date(),
+      revokedAt: null,
+    } as never);
+    prismaMock.assistantConversation.create.mockResolvedValue({
+      id: 'conv-1',
+      userId: 'u1',
+      title: 'Bonjour',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as never);
+    prismaMock.assistantMessage.create
+      .mockResolvedValueOnce({ id: 'msg-user-1' } as never)
+      .mockResolvedValueOnce({ id: 'msg-assistant-1' } as never);
+
+    await POST(makeReq({ message: 'Bonjour' }));
+
+    expect(prismaMock.assistantMessage.create).toHaveBeenNthCalledWith(2, {
+      data: { conversationId: 'conv-1', role: 'ASSISTANT', content: SAFE_FALLBACK_MESSAGE },
+    });
   });
 });

@@ -7,10 +7,19 @@ import {
 } from '../rate-limit-store';
 import { log } from '../observability/log';
 
-const WINDOW_MS = 24 * 60 * 60 * 1000; // 24h rolling window (spec §5)
+const WINDOW_MS = 24 * 60 * 60 * 1000; // 24h fixed window (spec §5) -- resets 24h after the
+// first message in the window, not a true rolling window (RedisRateLimitStore sets the TTL
+// only on the first increment; see rate-limit-store.ts)
 
 function getDailyLimit(): number {
-  return Number(process.env.ASSISTANT_DAILY_MESSAGE_LIMIT ?? '10');
+  const raw = Number(process.env.ASSISTANT_DAILY_MESSAGE_LIMIT ?? '10');
+  if (!Number.isFinite(raw) || raw <= 0) {
+    log.warn('ASSISTANT_DAILY_MESSAGE_LIMIT is not a valid positive number, falling back to 10', {
+      value: process.env.ASSISTANT_DAILY_MESSAGE_LIMIT,
+    });
+    return 10;
+  }
+  return raw;
 }
 
 let _store: RateLimitStore | null = null;

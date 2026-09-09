@@ -36,7 +36,8 @@ const Body = z.object({
   conversationId: z.string().optional(),
   message: z.string().min(1).max(2000),
   history: z
-    .array(z.object({ role: z.enum(['USER', 'ASSISTANT']), content: z.string() }))
+    .array(z.object({ role: z.enum(['USER', 'ASSISTANT']), content: z.string().max(4000) }))
+    .max(50)
     .optional(),
 });
 

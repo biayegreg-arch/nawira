@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { checkAndConsumeQuota, __resetAssistantQuotaStore } from './quota';
 
 describe('checkAndConsumeQuota', () => {
@@ -24,5 +24,16 @@ describe('checkAndConsumeQuota', () => {
 
     const allowedB = await checkAndConsumeQuota('user-b');
     expect(allowedB.allowed).toBe(true);
+  });
+
+  it('falls back to the default limit and warns when ASSISTANT_DAILY_MESSAGE_LIMIT is malformed', async () => {
+    vi.stubEnv('ASSISTANT_DAILY_MESSAGE_LIMIT', 'not-a-number');
+    for (let i = 0; i < 10; i++) {
+      const result = await checkAndConsumeQuota('user-malformed-env');
+      expect(result.allowed).toBe(true);
+    }
+    const eleventh = await checkAndConsumeQuota('user-malformed-env');
+    expect(eleventh.allowed).toBe(false);
+    vi.unstubAllEnvs();
   });
 });
