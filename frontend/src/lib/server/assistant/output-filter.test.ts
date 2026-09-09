@@ -36,6 +36,12 @@ describe('filterAssistantOutput', () => {
     );
   });
 
+  it('flags an assertive diagnosis phrasing using "souffrir de"', () => {
+    expect(filterAssistantOutput("Tu souffres d'endométriose, c'est certain.")).toBe(
+      SAFE_FALLBACK_MESSAGE,
+    );
+  });
+
   it('does NOT flag a hedged, non-diagnostic mention of possible causes', () => {
     const text =
       "Des douleurs pelviennes peuvent avoir plusieurs causes possibles, comme des kystes ou de l'endométriose — seul un médecin peut poser un diagnostic après examen.";

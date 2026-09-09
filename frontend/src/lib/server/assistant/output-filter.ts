@@ -29,6 +29,14 @@ const SAFE_DAY_SINGULAR = /\bjour\s+sûr\b/i;
 const DIAGNOSIS_ASSERTION = /\btu\s+as\s+(de\s+l'|du\s+|un\s+|une\s+)?(endométriose|sopk|kyste)\b/i;
 const DIAGNOSIS_CONFIRMATION = /\bcela\s+confirme\s+que\s+tu\s+(as|souffres)\b/i;
 
+// Bare diagnosis assertion via "souffrir de" — a second common French
+// phrasing for the same over-assertion DIAGNOSIS_ASSERTION already
+// catches via "tu as X". Deliberately permissive (any non-sentence-ending
+// text between "souffres" and the disease name) rather than hand-parsing
+// French article elision (de/d'/de l'/du/d'un) — over-flagging is the
+// safe failure mode for this filter (spec §3.2).
+const DIAGNOSIS_ASSERTION_SOUFFRES = /\btu\s+souffres\b[^.!?]{0,20}\b(endométriose|sopk|kyste)\b/i;
+
 const RED_LINE_PATTERNS: RegExp[] = [
   PREGNANCY_ASSERTION,
   DOSAGE_INSTRUCTION,
@@ -36,6 +44,7 @@ const RED_LINE_PATTERNS: RegExp[] = [
   SAFE_DAY_SINGULAR,
   DIAGNOSIS_ASSERTION,
   DIAGNOSIS_CONFIRMATION,
+  DIAGNOSIS_ASSERTION_SOUFFRES,
 ];
 
 /**
