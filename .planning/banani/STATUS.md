@@ -24,6 +24,7 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] `/app/insights`, `/app/assistant` — honest "Bientôt disponible" placeholders (no Banani source; unbuilt future epics E6/E8) — `frontend/src/components/app/ComingSoonPage.tsx` + 2 thin page wrappers — 2026-09-07
 - [x] `Subscription` — **built against its real Banani source, with real PRD pricing/plans replacing Banani's fictional Euro pricing** — `frontend/src/app/app/billing/page.tsx` (replaces the `ComingSoonPage` placeholder) + `frontend/src/components/billing/*` — plan: `.planning/banani/subscription.md` — 2026-09-08
 - [x] `Assistant` — **built against the real Phase 7 chat API**, replacing the `ComingSoonPage` placeholder — `frontend/src/app/app/assistant/page.tsx` + `frontend/src/components/assistant/{MessageBubble,ChatPanel,TopicsPanel}.tsx` + `frontend/src/lib/assistant-chat.ts` — plan: `.planning/banani/assistant.md` — commit `6d9d432` — 2026-09-09
+- [x] `Analytics` — **built against the real Phase 6 insights API, with real data throughout** (no fabricated numbers) — replaced the `ComingSoonPage` placeholder, extended the backend with a new `MOOD_DISTRIBUTION` insight type — `frontend/src/app/app/insights/page.tsx` + `frontend/src/components/insights/{CycleScoreCard,SymptomStatistics,MoodDistributionChart,CycleComparisonCard,AnalyticsRecommendations}.tsx` + `frontend/src/lib/server/insights/compute-insights.ts` — plan: `.planning/banani/insights.md` — commit `fbeaed8` — 2026-09-09
 
 New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Field.tsx`, `frontend/src/components/auth/AuthCard.tsx`. Design tokens added to `frontend/src/app/globals.css` (`@theme` block — primary/navy confirmed exact match with PRD §0; rose/green/amber/purple are Banani's actual accent hexes, renamed to avoid colliding with Tailwind's built-in default palette names of the same words).
 
@@ -154,9 +155,7 @@ _(none)_
 
 **Stale rows pruned 2026-09-07**: `LandingPage`, `ProjetBebe` removed from this table — both already in Done above (this table wasn't kept in sync when they shipped; `AddData`/`DashboardAujourdhui`/`Calendar` were never added here either, same gap). **Pruned again 2026-09-08**: `Subscription` (shipped, see Done above) and `FertilityCalendar` (superseded by `/app/baby/calendar`, shipped as part of the ProjetBebe 5-route expansion) removed.
 
-| Screen (Banani `screenName`) | Target route (PRD §28.2) | Backend readiness | Notes |
-|---|---|---|---|
-| `Analytics` | `/app/insights` | ✅ Backend ready, UI pending | Phase 6 (E6 Insights & Cycle Score) shipped 2026-09-08: `GET /api/insights` computes 6 insight types (AVG_CYCLE_LENGTH, AVG_PERIOD_LENGTH, CYCLE_VARIABILITY, TOP_SYMPTOMS, CYCLE_COMPARISON, CYCLE_SCORE_TREND) + `cycleScoreToday`, live from existing Cycle/DailyLog/SymptomLog/PeriodEvent rows — no new table. See `docs/superpowers/specs/2026-09-08-phase6-insights-cycle-score-design.md` + `docs/superpowers/plans/2026-09-08-phase6-insights-cycle-score.md`. Banani screen already fetched and structurally extracted (composes `AnalyticsRecommendations`, `MoodDistributionChart`, `CycleComparisonCard`, `SymptomStatistics`, `CycleScoreCard` — see extraction notes from the same fetch batch as `Assistant`, now shipped in Done above). Remaining work is a `banani-design-implementation` pass consuming the now-real endpoint — not a backend blocker anymore. Known real-data gaps to surface during its own Step 0: no insight type backs `MoodDistributionChart`; `CycleScoreCard`'s 3-dimension breakdown doesn't match the real single `cycleScoreToday` value; `AnalyticsRecommendations`'s AI-sounding text has no backing endpoint. |
+_(none — every Banani-sourced screen has shipped; see Done above)_
 
 ## Duplicate screens dropped (user decision, 2026-09-06)
 
@@ -377,6 +376,62 @@ touches real pricing and (eventually) real money:
   (`prisma.assistantConversation` undefined), causing a raw 500 instead of the intended clean 503.
   Diagnosed via `frontend/.next/dev/logs/next-development.log`; fixed by restarting the dev server
   process.
+
+### Delta vs Banani source — `Analytics` (`/app/insights`, 2026-09-09)
+
+Confirmed 4 real-data-mapping decisions with the user via AskUserQuestion before coding — this
+screen had the largest mock/real-data gap of anything built so far. Full rationale and exact
+formulas: `.planning/banani/insights.md`.
+
+- **CycleScoreCard**: real headline score (`CYCLE_SCORE_TREND.current`, falling back to
+  `cycleScoreToday`, falling back to an honest "pas encore assez de données" placeholder — never
+  a fabricated number). 3 dimension bars remapped to real signals: Régularité ←
+  `CYCLE_VARIABILITY`, Prévisibilité ← `prediction.confidence` (existing `/api/predictions/
+  current` endpoint), Complétude des données ← a `dailyLogsAnalyzed`-count heuristic, explicitly
+  labeled as a proxy. Each dimension gates independently (partial data still renders). "Points
+  clés" bullets are now conditionally generated from real `CYCLE_VARIABILITY`/`meta` state
+  instead of Banani's 3 hardcoded ones. "Voir le rapport détaillé" button dropped — no detail
+  page exists.
+- **MoodDistributionChart**: backend extended — new `MOOD_DISTRIBUTION` insight type added to
+  `compute-insights.ts` (gated on ≥5 daily logs with a mood set). The real `DailyLog.mood` enum
+  matches Banani's 5 mock rows exactly (same labels, same order), so this shipped as a genuine
+  1:1 real-data mapping, not an approximation.
+- **SymptomStatistics**: redesigned as phase chips (Règles/Phase folliculaire/Ovulation/Phase
+  lutéale, reusing this project's existing phase-label convention from `CycleContextCard.tsx`)
+  since the real `TOP_SYMPTOMS` insight is phase-bucketed, not a flat list like Banani's mock.
+  Defaults to the most-logged phase. Trend arrows (up/down/stable) dropped — no real trend metric
+  exists anywhere in this insight.
+- **CycleComparisonCard**: Banani's 3 hardcoded calendar-month rows → 2 real cards ("Cycle
+  actuel"/"Cycle précédent"), forced by the real `CYCLE_COMPARISON` shape (current/previous, no
+  calendar-month concept, no fertile-day-count field). "Voir tous les cycles" wired to the real,
+  already-shipped `/app/cycles` screen.
+- **AnalyticsRecommendations**: rule-based tips derived from real insight data (cycle
+  regularity, top symptom + phase, mood distribution), capped at 3, falling back to 2 generic
+  non-personalized tips when not eligible. Dead "→" links dropped (none of Banani's 3 targets —
+  "Voir les détails"/"Conseils santé"/"Guide de bien-être" — existed as real pages).
+- **Filter tabs** ("6 derniers mois"/"Dernière année"/"Tout le temps") — dropped entirely, no
+  fake affordance; `/api/insights` has no date-range parameter.
+- Premium CTA → real `<Link href="/app/billing">`, same pattern as every prior screen.
+- Grid breakpoint uses `lg:grid-cols-2` (1024px), matching this project's existing convention
+  (`/app/baby`, not the `md:` breakpoint originally drafted in the plan file).
+- **This was the last screen in the original 15-screen Banani fetch — the full UI pass is now
+  complete.**
+
+### Verified — `Analytics` (2026-09-09)
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (771/772, incl. 2 new `MOOD_DISTRIBUTION` tests —
+  the 1 failure is the same pre-existing unrelated flaky timing test in `signup/route.test.ts`
+  seen during the Assistant pass, passed clean in isolation), and `pnpm build` all green.
+  `/app/insights` resolves correctly in the build's route list.
+- Real browser check (system Chrome via Playwright) against seeded real data (36 `DailyLog` +
+  `SymptomLog` rows across 3 completed + 1 open cycle for `user@example.com`) at 375/768/1280px:
+  no horizontal overflow at any width, no overlap.
+- Both eligibility states verified live: the fully-eligible state (all 6 real insight types
+  populated, real Cycle Score/symptom/mood/comparison/recommendation data) and the
+  not-yet-eligible empty state (fresh seeded user, real CTA link to `/app/log`).
+- Phase-chip interaction driven end-to-end: clicking "Règles" vs "Phase folliculaire" correctly
+  swaps to that phase's real top symptoms (verified exact percentage/count changes, e.g. Crampes
+  100%/5 jours in Règles vs 20%/2 jours in Phase folliculaire).
 
 ### Full-app audit (2026-09-08) — dead links + notification bell gap
 
