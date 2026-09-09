@@ -177,6 +177,45 @@ describe('deriveInsights', () => {
     expect(result.insights).toEqual([]);
   });
 
+  it('includes MOOD_DISTRIBUTION with fixed display order and correct percentages once >=5 daily logs have a mood set', () => {
+    const dailyLogs = [
+      log({ date: new Date('2026-01-01'), mood: 'GOOD' }),
+      log({ date: new Date('2026-01-02'), mood: 'GOOD' }),
+      log({ date: new Date('2026-01-03'), mood: 'VERY_GOOD' }),
+      log({ date: new Date('2026-01-04'), mood: 'TIRED' }),
+      log({ date: new Date('2026-01-05'), mood: 'GOOD' }),
+      log({ date: new Date('2026-01-06'), mood: null }), // no mood logged that day
+    ];
+
+    const result = deriveInsights({ cycles: [], dailyLogs, periodEventDates: [] });
+
+    const moodDistribution = result.insights.find((i) => i.type === 'MOOD_DISTRIBUTION')!;
+    expect(moodDistribution.evidenceCount).toBe(5); // 5 logs had a mood set, not 6
+    expect(moodDistribution.data).toEqual({
+      distribution: [
+        { mood: 'VERY_GOOD', count: 1, percentage: 20 },
+        { mood: 'GOOD', count: 3, percentage: 60 },
+        { mood: 'TIRED', count: 1, percentage: 20 },
+        { mood: 'STRESSED', count: 0, percentage: 0 },
+        { mood: 'LOW', count: 0, percentage: 0 },
+      ],
+    });
+  });
+
+  it('excludes MOOD_DISTRIBUTION when fewer than 5 daily logs have a mood set', () => {
+    const dailyLogs = [
+      log({ date: new Date('2026-01-01'), mood: 'GOOD' }),
+      log({ date: new Date('2026-01-02'), mood: 'GOOD' }),
+      log({ date: new Date('2026-01-03'), mood: null }),
+      log({ date: new Date('2026-01-04'), mood: null }),
+      log({ date: new Date('2026-01-05'), mood: null }),
+    ]; // only 2 with a real mood value
+
+    const result = deriveInsights({ cycles: [], dailyLogs, periodEventDates: [] });
+
+    expect(result.insights.some((i) => i.type === 'MOOD_DISTRIBUTION')).toBe(false);
+  });
+
   it('labels CYCLE_VARIABILITY at the REGULAR/SOMEWHAT_VARIABLE/IRREGULAR stddev boundaries', () => {
     const cases: Array<{ lengths: [number, number]; label: string; stddev: number }> = [
       { lengths: [26, 30], label: 'REGULAR', stddev: 2 }, // boundary: sd <= 2

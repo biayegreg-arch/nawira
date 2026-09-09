@@ -32,7 +32,14 @@ export type InsightType =
   | 'CYCLE_VARIABILITY'
   | 'TOP_SYMPTOMS'
   | 'CYCLE_COMPARISON'
-  | 'CYCLE_SCORE_TREND';
+  | 'CYCLE_SCORE_TREND'
+  | 'MOOD_DISTRIBUTION';
+
+export type MoodValue = 'VERY_GOOD' | 'GOOD' | 'TIRED' | 'STRESSED' | 'LOW';
+
+// Fixed display order (not sorted by count) — matches the mood picker's own
+// best-to-worst ordering in DailyLogForm.tsx's MOOD_OPTIONS.
+const MOOD_DISPLAY_ORDER: MoodValue[] = ['VERY_GOOD', 'GOOD', 'TIRED', 'STRESSED', 'LOW'];
 
 export interface AvgCycleLengthInsight {
   type: 'AVG_CYCLE_LENGTH';
@@ -86,13 +93,20 @@ export interface CycleScoreTrendInsight {
   data: { current: number | null; previous: number | null };
 }
 
+export interface MoodDistributionInsight {
+  type: 'MOOD_DISTRIBUTION';
+  evidenceCount: number;
+  data: { distribution: Array<{ mood: MoodValue; count: number; percentage: number }> };
+}
+
 export type Insight =
   | AvgCycleLengthInsight
   | AvgPeriodLengthInsight
   | CycleVariabilityInsight
   | TopSymptomsInsight
   | CycleComparisonInsight
-  | CycleScoreTrendInsight;
+  | CycleScoreTrendInsight
+  | MoodDistributionInsight;
 
 export interface InsightsResult {
   eligible: boolean;
@@ -331,6 +345,35 @@ export function deriveInsights(input: InsightsInput): InsightsResult {
         type: 'TOP_SYMPTOMS',
         evidenceCount: classifiedLogCount,
         data: { byPhase, daysLogged },
+      });
+    }
+
+    const moodCounts: Record<MoodValue, number> = {
+      VERY_GOOD: 0,
+      GOOD: 0,
+      TIRED: 0,
+      STRESSED: 0,
+      LOW: 0,
+    };
+    let moodLoggedCount = 0;
+    for (const l of dailyLogs) {
+      if (l.mood !== null && l.mood in moodCounts) {
+        moodCounts[l.mood as MoodValue] += 1;
+        moodLoggedCount += 1;
+      }
+    }
+
+    if (moodLoggedCount >= MIN_DAILY_LOGS_FOR_SYMPTOMS) {
+      insights.push({
+        type: 'MOOD_DISTRIBUTION',
+        evidenceCount: moodLoggedCount,
+        data: {
+          distribution: MOOD_DISPLAY_ORDER.map((mood) => ({
+            mood,
+            count: moodCounts[mood],
+            percentage: round1((moodCounts[mood] / moodLoggedCount) * 100),
+          })),
+        },
       });
     }
   }
