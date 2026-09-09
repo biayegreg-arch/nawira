@@ -23,6 +23,7 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] `ProjetBebe` — **rebuilt against its real Banani source, then expanded into 5 real routes** after the user pasted a screenshot of the real desktop screen (proving the prior no-source build had drifted) and then created 6 new Banani screens for the surrounding flow — `frontend/src/app/app/baby/{page.tsx,calendar,resources,tips,add-lh-test}` + `frontend/src/components/baby/*` — plan: `.planning/banani/projet-bebe.md` — 2026-09-07
 - [x] `/app/insights`, `/app/assistant` — honest "Bientôt disponible" placeholders (no Banani source; unbuilt future epics E6/E8) — `frontend/src/components/app/ComingSoonPage.tsx` + 2 thin page wrappers — 2026-09-07
 - [x] `Subscription` — **built against its real Banani source, with real PRD pricing/plans replacing Banani's fictional Euro pricing** — `frontend/src/app/app/billing/page.tsx` (replaces the `ComingSoonPage` placeholder) + `frontend/src/components/billing/*` — plan: `.planning/banani/subscription.md` — 2026-09-08
+- [x] `Assistant` — **built against the real Phase 7 chat API**, replacing the `ComingSoonPage` placeholder — `frontend/src/app/app/assistant/page.tsx` + `frontend/src/components/assistant/{MessageBubble,ChatPanel,TopicsPanel}.tsx` + `frontend/src/lib/assistant-chat.ts` — plan: `.planning/banani/assistant.md` — commit `6d9d432` — 2026-09-09
 
 New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Field.tsx`, `frontend/src/components/auth/AuthCard.tsx`. Design tokens added to `frontend/src/app/globals.css` (`@theme` block — primary/navy confirmed exact match with PRD §0; rose/green/amber/purple are Banani's actual accent hexes, renamed to avoid colliding with Tailwind's built-in default palette names of the same words).
 
@@ -155,8 +156,7 @@ _(none)_
 
 | Screen (Banani `screenName`) | Target route (PRD §28.2) | Backend readiness | Notes |
 |---|---|---|---|
-| `Analytics` | `/app/insights` | ✅ Backend ready, UI pending | Phase 6 (E6 Insights & Cycle Score) shipped 2026-09-08: `GET /api/insights` computes 6 insight types (AVG_CYCLE_LENGTH, AVG_PERIOD_LENGTH, CYCLE_VARIABILITY, TOP_SYMPTOMS, CYCLE_COMPARISON, CYCLE_SCORE_TREND) + `cycleScoreToday`, live from existing Cycle/DailyLog/SymptomLog/PeriodEvent rows — no new table. See `docs/superpowers/specs/2026-09-08-phase6-insights-cycle-score-design.md` + `docs/superpowers/plans/2026-09-08-phase6-insights-cycle-score.md`. Banani screen already fetched and structurally extracted (composes `AnalyticsRecommendations`, `MoodDistributionChart`, `CycleComparisonCard`, `SymptomStatistics`, `CycleScoreCard` — see extraction notes from the same fetch batch as `Assistant` below). Remaining work is a `banani-design-implementation` pass consuming the now-real endpoint — not a backend blocker anymore. |
-| `Assistant` | `/app/assistant` | ✅ Backend ready, UI pending | Phase 7 (E10 AI Assistant, PRD §6.5 AI01) shipped 2026-09-09: `POST /api/assistant/messages` — streaming SSE chat backed by Claude Sonnet 5, two-layer guardrails (fixed system prompt + rule-based output filter), consent-gated conversation persistence (`AssistantConversation`/`AssistantMessage`, gated on the existing `ASSISTANT_HISTORY` consent type), real-data context injection (reuses Phase 5/6's `Prediction` + `deriveInsights()`), 10 messages/user/24h quota. See `docs/superpowers/specs/2026-09-08-phase7-ai-assistant-design.md` + `docs/superpowers/plans/2026-09-08-phase7-ai-assistant.md`. Composes `AssistantChatMessages`, `AssistantSidebarTopics` — Banani screen already fetched and structurally extracted (same fetch batch as `Analytics` above). Requires `ANTHROPIC_API_KEY` set in the deployment environment (returns a clean 503 until then, matching every other optional-provider pattern in this codebase). Remaining work is a `banani-design-implementation` pass consuming the now-real endpoint — not a backend blocker anymore. |
+| `Analytics` | `/app/insights` | ✅ Backend ready, UI pending | Phase 6 (E6 Insights & Cycle Score) shipped 2026-09-08: `GET /api/insights` computes 6 insight types (AVG_CYCLE_LENGTH, AVG_PERIOD_LENGTH, CYCLE_VARIABILITY, TOP_SYMPTOMS, CYCLE_COMPARISON, CYCLE_SCORE_TREND) + `cycleScoreToday`, live from existing Cycle/DailyLog/SymptomLog/PeriodEvent rows — no new table. See `docs/superpowers/specs/2026-09-08-phase6-insights-cycle-score-design.md` + `docs/superpowers/plans/2026-09-08-phase6-insights-cycle-score.md`. Banani screen already fetched and structurally extracted (composes `AnalyticsRecommendations`, `MoodDistributionChart`, `CycleComparisonCard`, `SymptomStatistics`, `CycleScoreCard` — see extraction notes from the same fetch batch as `Assistant`, now shipped in Done above). Remaining work is a `banani-design-implementation` pass consuming the now-real endpoint — not a backend blocker anymore. Known real-data gaps to surface during its own Step 0: no insight type backs `MoodDistributionChart`; `CycleScoreCard`'s 3-dimension breakdown doesn't match the real single `cycleScoreToday` value; `AnalyticsRecommendations`'s AI-sounding text has no backing endpoint. |
 
 ## Duplicate screens dropped (user decision, 2026-09-06)
 
@@ -327,6 +327,56 @@ touches real pricing and (eventually) real money:
   Visually confirmed real pricing (Gratuit / 1 000 FCFA / 2 500 FCFA), correct "Plan actuel" badge
   on the Free card, disabled "Bientôt disponible" buttons on both paid tiers, and the honest
   launch-phase note rendering correctly.
+
+### Delta vs Banani source — `Assistant` (`/app/assistant`, 2026-09-09)
+
+- **No bounded-height chat pane.** Banani's mockup uses `height: calc(100vh - 280px)` with an
+  internal `overflow-y-auto` message list. The `/app/*` shell (`frontend/src/app/app/layout.tsx`)
+  has no bounded-height content area anywhere in this codebase — every existing page just lets the
+  whole page scroll, and no sticky-footer precedent exists (the mobile bottom nav is `fixed`).
+  Rebuilt as normal page-flow scrolling with a `scrollIntoView` sentinel instead of forcing a
+  page-specific height hack that would conflict with `MobileBottomNav`.
+- **SSE streaming, not a JSON fetch.** `POST /api/assistant/messages` returns `text/event-stream`;
+  the shared `api<T>()` wrapper (`frontend/src/lib/api.ts`, PROTECTED) is JSON-only, so a dedicated
+  `frontend/src/lib/assistant-chat.ts` reads the stream directly via `ReadableStream`, duplicating
+  minimal CSRF-cookie-read logic rather than exporting a new symbol from `api.ts`.
+- **Conversation history**: client-side `localStorage`, keyed per user id, capped at 50 messages —
+  confirmed with user via AskUserQuestion (alternative was server-side-only, rejected since history
+  persistence is already consent-gated server-side per `ASSISTANT_HISTORY`; localStorage gives a
+  responsive reload even when consent is off, since the route is otherwise fully stateless).
+- **`TopicsPanel`** split into two purpose-built exports (`TopicsChipRow` for the mobile horizontal
+  scroll row, `TopicsSidebar` for the desktop vertical list) sharing one `TOPICS` data array with 8
+  entries and original French example-question copy (not sourced from Banani, which had no example
+  questions per topic).
+- **Empty/loading/error states** (not in the Banani source): welcome message + 3 example questions
+  on load, per-message streaming cursor, a persistent amber quota-exceeded banner that replaces the
+  input entirely, an inline "assistant pas encore configuré" message (no toast) when
+  `ANTHROPIC_API_KEY` is absent — matching this project's existing optional-provider pattern.
+- Tested without `ANTHROPIC_API_KEY` set (confirmed with user via AskUserQuestion: build now, test
+  the real key later) — the route's honest `503 AI_NOT_CONFIGURED` path is what's verified below;
+  real model output is not yet verified in this environment.
+
+### Verified — `Assistant` (2026-09-09)
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (770/770 — one pre-existing, unrelated flaky timing
+  test in `signup/route.test.ts` failed once under full-suite load and passed clean in isolation),
+  and `pnpm build` all green. `/app/assistant` resolves correctly in the build's route list.
+- Real browser check (system Chrome via Playwright, real logged-in seeded session against the live
+  dev server) at 375px / 768px / 1280px: no horizontal scroll, no overlapping elements, correct
+  layout transition between the mobile topic-chip row and the desktop sidebar.
+- Golden-path send flow driven end-to-end: message submitted, correct honest `503
+  AI_NOT_CONFIGURED` French inline message rendered (no toast, as designed).
+- Topic-chip click confirmed to pre-fill the chat input with the matching question.
+- `localStorage` persistence confirmed across a full page reload (prior conversation, including the
+  error bubble, reappeared after navigating away and back).
+- Quota-exceeded state driven for real (repeated sends against the seeded test user): amber banner
+  ("Tu as atteint ta limite de 10 messages aujourd'hui. Reviens demain !") cleanly replaces the
+  input area with no layout break.
+- Caught and fixed one real environmental bug during verification, not an application defect: the
+  long-running dev server had a stale pre-migration Prisma Client cached in its module cache
+  (`prisma.assistantConversation` undefined), causing a raw 500 instead of the intended clean 503.
+  Diagnosed via `frontend/.next/dev/logs/next-development.log`; fixed by restarting the dev server
+  process.
 
 ### Full-app audit (2026-09-08) — dead links + notification bell gap
 
