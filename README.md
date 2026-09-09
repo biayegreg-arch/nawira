@@ -174,6 +174,7 @@ Le smoke script demande `DATABASE_URL` et `JWT_SECRET` set (il lit le code de v�
 4. L'upload des source-maps Sentry tourne dans `next build` si `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` sont définis comme build-time env vars.
 5. Le standalone output est auto-détecté (`next.config.ts` l'active) ; aucune config supplémentaire.
 6. Détails init Sentry / OTel dans [`frontend/instrumentation.ts`](frontend/instrumentation.ts) et les fichiers `sentry.*.config.ts` — lis-les pour les détails d'ordre des hooks.
+7. Si cette base Neon a déjà appliqué la migration `20260907181303_fertility_signal_unique_type` (dossier renommé en `8_nawira_fertility_signal_unique_type` pour corriger un bug d'ordre alphabétique — timestamp vs. schéma numérique — qui cassait `prisma migrate dev`), lance `pnpm exec prisma migrate resolve --applied 8_nawira_fertility_signal_unique_type` sur **cette base** avant le prochain `db:migrate:deploy`, sous peine que Prisma la considère comme non appliquée.
 
 ## Design system — entièrement swappable
 
