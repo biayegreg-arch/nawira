@@ -34,7 +34,7 @@ New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/co
 - Hero/Social-proof photos — Banani used AI-generated `<Image prompt="...">` placeholders (no such component exists in Next.js). Replaced with a real, verified, freely-usable Unsplash photo (`photo-1531123897727-8f129e1688ce`) matching the PRD's imagery brief (confident, contemporary African woman). Needs replacing with real brand photography before public launch.
 - "Voir la démonstration" button — removed (no demo exists yet).
 - Hero's absolutely-positioned italic handwritten callout ("Une femme informée...") — dropped for this pass (desktop-only positioning, not mobile-first compatible as authored; can be re-added with a responsive treatment later).
-- Features section's fake app-mockup preview (mobile+desktop dashboard screenshot mockup) — dropped for this pass (large chunk, `/app/today` doesn't exist yet to screenshot for real). Candidate to re-add once the real dashboard ships.
+- Features section's fake app-mockup preview (mobile+desktop dashboard screenshot mockup) — dropped for this pass (large chunk, `/app/today` doesn't exist yet to screenshot for real). **Re-added 2026-09-10** now that the real dashboard exists — see delta note below.
 - Footer social icons (Facebook/Instagram/YouTube/LinkedIn) — removed; `lucide-react` v1 no longer ships brand icons, and no real social accounts are configured yet. Nav/footer links pointing to non-existent pages (Tarifs, FAQ, Blog, Carrières, À propos, Confidentialité, Conditions d'utilisation) trimmed to only anchors/pages that actually exist.
 - Google OAuth button — omitted from Signup/Login (not configured in this environment; would 404).
 - Login/Verify-email redirect to `/app/today` (PRD §28.2 target) — **this route doesn't exist yet** (Phase 3 — moteur de cycle). Expected temporary 404 until that phase ships; kept as the correct target rather than a throwaway route name.
@@ -432,6 +432,36 @@ formulas: `.planning/banani/insights.md`.
 - Phase-chip interaction driven end-to-end: clicking "Règles" vs "Phase folliculaire" correctly
   swaps to that phase's real top symptoms (verified exact percentage/count changes, e.g. Crampes
   100%/5 jours in Règles vs 20%/2 jours in Phase folliculaire).
+
+### Delta vs Banani source — `LandingFeatures` app-mockup re-added (2026-09-10)
+
+Re-fetched `LandingPage` on user request to check for drift — confirmed the Banani source is
+byte-identical to the 2026-09-06 fetch, and the shipped implementation still faithfully reflects
+every already-documented delta (fake stats/testimonial removed, footer trimmed, real Unsplash
+photo, etc. — no drift found). User then asked to reopen the one candidate item explicitly left
+for later: the Features section's app-mockup preview, dropped originally because `/app/today`
+didn't exist yet to reference.
+
+- New `frontend/src/components/landing/LandingAppMockup.tsx` — an **illustrative** preview (not a
+  live screenshot, to avoid staleness and real-user-data exposure), but every label/color/nav
+  item is now drawn verbatim from the real shipped components instead of Banani's originally
+  fabricated copy: sidebar items from `AppSidebar.tsx`'s real `navItems`, the 3 prediction card
+  labels/colors from `PredictionCards.tsx` (Fenêtre fertile/green, Prochaines règles/rose,
+  Ovulation estimée/amber), the mood question + exact 5 emoji from `MoodSelector.tsx`, and the
+  "Jour N / sur ~L jours" ring copy from `CycleRing.tsx`.
+- Rebuilt mobile-first (Banani's original mockup was a non-wrapping desktop-only `flex` row that
+  would have overflowed badly at 375px): single mobile-phone card at base, sidebar hidden below
+  `sm`, both mockups shown side-by-side only at `lg`+.
+- Wired into `LandingFeatures.tsx` right after the feature grid, matching Banani's original
+  composition order.
+
+### Verified (2026-09-10)
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm test` (782/782 — the previously-flaky
+  `signup/route.test.ts` timing test held up clean this run), and `pnpm build` all green.
+- Real browser check at 375/768/1280px: no horizontal overflow at any width: the desktop-style
+  mockup's 3-column prediction grid and sidebar collapse correctly on mobile, both cards stack
+  cleanly below the feature grid.
 
 ### Full-app audit (2026-09-08) — dead links + notification bell gap
 

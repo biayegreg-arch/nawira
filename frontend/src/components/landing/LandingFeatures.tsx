@@ -7,6 +7,7 @@ import {
   Smartphone,
   type LucideIcon,
 } from 'lucide-react';
+import { LandingAppMockup } from './LandingAppMockup';
 
 interface Feature {
   icon: LucideIcon;
@@ -93,6 +94,8 @@ export function LandingFeatures(): React.JSX.Element {
             ))}
           </div>
         </div>
+
+        <LandingAppMockup />
       </div>
     </section>
   );
