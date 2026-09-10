@@ -1,17 +1,10 @@
 'use client';
 
 import { useMemo, useState, type FormEvent } from 'react';
-import { Droplet, Heart, Smile, Zap, Moon, Thermometer, Pencil, Activity } from 'lucide-react';
+import { Heart, Smile, Zap, Moon, Thermometer, Pencil, Activity } from 'lucide-react';
 import { ChipGroup } from '@/components/ui/ChipGroup';
 import { Button } from '@/components/ui/Button';
 import { LogProgressBar, type ProgressStep } from './LogProgressBar';
-
-const INTENSITY_OPTIONS = [
-  { value: 'SPOTTING', label: 'Spotting' },
-  { value: 'LIGHT', label: 'Léger' },
-  { value: 'MEDIUM', label: 'Moyen' },
-  { value: 'HEAVY', label: 'Abondant' },
-];
 
 const MOOD_OPTIONS = [
   { value: 'VERY_GOOD', label: 'Très bien' },
@@ -88,7 +81,8 @@ export interface DailyLogSubmitValues {
 
 interface DailyLogFormProps {
   initialValues: DailyLogInitialValues;
-  todayFlowLogged: boolean;
+  /** Controlled by the parent — PeriodTodayCard is the sibling card that edits it. */
+  flow: string;
   saving: boolean;
   onSubmit: (values: DailyLogSubmitValues) => void;
 }
@@ -123,14 +117,10 @@ function SectionCard({
 
 export function DailyLogForm({
   initialValues,
-  todayFlowLogged,
+  flow,
   saving,
   onSubmit,
 }: DailyLogFormProps): React.JSX.Element {
-  // Flow always starts unselected — there is no endpoint exposing today's
-  // actual PeriodEvent.flow value (see docs/superpowers/specs/2026-09-07-
-  // phase4-daily-journal-design.md §"Flow integration — no new endpoint").
-  const [flow, setFlow] = useState('NONE');
   const [painLevel, setPainLevel] = useState<number | null>(initialValues.painLevel);
   const [painLocation, setPainLocation] = useState(initialValues.painLocation ?? '');
   const [mood, setMood] = useState<string | null>(initialValues.mood);
@@ -197,56 +187,6 @@ export function DailyLogForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <LogProgressBar steps={progressSteps} />
-
-      <SectionCard icon={Droplet} iconBg="bg-rose-soft" iconColor="text-rose" title="Règles">
-        <div className="flex flex-col gap-4">
-          <div>
-            <span className="mb-2 block text-sm font-medium text-navy">
-              As-tu tes règles aujourd&rsquo;hui ?
-            </span>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => flow === 'NONE' && setFlow('MEDIUM')}
-                className={`flex-1 rounded-md border px-4 py-2.5 text-sm font-medium ${
-                  flow !== 'NONE'
-                    ? 'border-primary bg-primary-soft text-primary'
-                    : 'border-border bg-white text-navy hover:bg-gray-50'
-                }`}
-              >
-                Oui
-              </button>
-              <button
-                type="button"
-                onClick={() => setFlow('NONE')}
-                className={`flex-1 rounded-md border px-4 py-2.5 text-sm font-medium ${
-                  flow === 'NONE'
-                    ? 'border-gray-300 bg-gray-50 text-body'
-                    : 'border-border bg-white text-navy hover:bg-gray-50'
-                }`}
-              >
-                Non
-              </button>
-            </div>
-          </div>
-          {flow !== 'NONE' && (
-            <div>
-              <span className="mb-2 block text-sm font-medium text-navy">Intensité</span>
-              <ChipGroup
-                options={INTENSITY_OPTIONS}
-                selectedValues={[flow]}
-                onToggle={(value) => setFlow(value)}
-              />
-            </div>
-          )}
-          {todayFlowLogged && (
-            <p className="text-xs text-muted-foreground">
-              Tu as déjà enregistré tes règles aujourd&rsquo;hui — sélectionne une valeur pour la
-              corriger.
-            </p>
-          )}
-        </div>
-      </SectionCard>
 
       <SectionCard icon={Heart} iconBg="bg-purple-soft" iconColor="text-purple" title="Symptômes">
         <ChipGroup options={SYMPTOM_OPTIONS} selectedValues={symptoms} onToggle={toggleSymptom} />

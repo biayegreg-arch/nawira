@@ -14,6 +14,7 @@ import { CycleContextCard, derivePhase } from '@/components/log/CycleContextCard
 import { PhaseTipCard } from '@/components/log/PhaseTipCard';
 import { RecentEntriesCard, type RecentEntry } from '@/components/log/RecentEntriesCard';
 import { PeriodRangeForm, type PeriodRangeSubmitValues } from '@/components/log/PeriodRangeForm';
+import { PeriodTodayCard } from '@/components/log/PeriodTodayCard';
 
 interface CycleSummary {
   startDate: string;
@@ -42,6 +43,10 @@ export default function LogPage(): React.JSX.Element | null {
   const user = useUser();
   const { toast } = useToast();
   const [initialValues, setInitialValues] = useState<DailyLogInitialValues | null>(null);
+  // Always starts unselected — there is no endpoint exposing today's actual
+  // PeriodEvent.flow value (see docs/superpowers/specs/2026-09-07-phase4-
+  // daily-journal-design.md §"Flow integration — no new endpoint").
+  const [flow, setFlow] = useState('NONE');
   const [todayFlowLogged, setTodayFlowLogged] = useState(false);
   const [cycles, setCycles] = useState<CycleSummary[]>([]);
   const [prediction, setPrediction] = useState<PredictionSummary | null>(null);
@@ -199,13 +204,14 @@ export default function LogPage(): React.JSX.Element | null {
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-6 lg:max-w-2xl">
+          <PeriodTodayCard flow={flow} onFlowChange={setFlow} todayFlowLogged={todayFlowLogged} />
+          <PeriodRangeForm onSubmit={handlePeriodRangeSubmit} />
           <DailyLogForm
             initialValues={initialValues}
-            todayFlowLogged={todayFlowLogged}
+            flow={flow}
             saving={saving}
             onSubmit={handleSubmit}
           />
-          <PeriodRangeForm onSubmit={handlePeriodRangeSubmit} />
         </div>
 
         <div className="flex flex-col gap-5 lg:w-72 lg:shrink-0">
