@@ -114,7 +114,7 @@ export function GlobalSearch({ compact = false }: { compact?: boolean }): React.
           <Search size={20} />
         </button>
         {open && (
-          <div className="fixed inset-x-3 top-16 z-30 rounded-xl border border-border bg-white shadow-lg">
+          <div className="animate-scale-in fixed inset-x-3 top-16 z-30 rounded-xl border border-border bg-white shadow-lg">
             <div className="flex items-center gap-3 border-b border-border px-4 py-3">
               <Search size={16} className="text-muted-light" />
               <input
@@ -156,7 +156,7 @@ export function GlobalSearch({ compact = false }: { compact?: boolean }): React.
         />
       </div>
       {open && (
-        <div className="absolute top-full left-0 z-30 mt-2 w-full rounded-xl border border-border bg-white shadow-lg">
+        <div className="animate-scale-in absolute top-full left-0 z-30 mt-2 w-full rounded-xl border border-border bg-white shadow-lg">
           <ResultsList results={results} query={query} onSelect={select} />
         </div>
       )}

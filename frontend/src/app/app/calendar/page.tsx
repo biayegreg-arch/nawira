@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { staggerDelay } from '@/lib/utils';
 import { buildDayTypes, todayIso } from '@/lib/calendar-day-types';
 import { MonthGrid, type CalendarDayType } from '@/components/calendar/MonthGrid';
 import { CalendarLegend } from '@/components/calendar/CalendarLegend';
@@ -115,24 +116,27 @@ export default function CalendarPage(): React.JSX.Element | null {
         Visualise tes règles passées et tes prochaines prédictions.
       </p>
 
-      <div className="rounded-xl border border-border bg-white p-5 lg:p-6">
+      <div className="animate-fade-in-up rounded-xl border border-border bg-white p-5 lg:p-6">
         <div className="mb-5 flex items-center justify-between">
           <button
             type="button"
             onClick={goToPreviousMonth}
             aria-label="Mois précédent"
-            className="flex h-12 w-12 items-center justify-center rounded-full text-navy hover:bg-gray-50"
+            className="flex h-12 w-12 items-center justify-center rounded-full text-navy transition-all duration-150 hover:bg-gray-50 active:scale-90"
           >
             <ChevronLeft size={20} />
           </button>
-          <div className="text-base font-semibold text-navy capitalize">
+          <div
+            key={`${view.year}-${view.month}`}
+            className="animate-fade-in text-base font-semibold text-navy capitalize"
+          >
             {MONTH_LABELS[view.month]} {view.year}
           </div>
           <button
             type="button"
             onClick={goToNextMonth}
             aria-label="Mois suivant"
-            className="flex h-12 w-12 items-center justify-center rounded-full text-navy hover:bg-gray-50"
+            className="flex h-12 w-12 items-center justify-center rounded-full text-navy transition-all duration-150 hover:bg-gray-50 active:scale-90"
           >
             <ChevronRight size={20} />
           </button>
@@ -142,16 +146,21 @@ export default function CalendarPage(): React.JSX.Element | null {
           <CalendarLegend />
         </div>
 
-        <MonthGrid
-          year={view.year}
-          month={view.month}
-          dayTypes={dayTypes}
-          size="full"
-          onDayClick={handleDayClick}
-        />
+        <div key={`grid-${view.year}-${view.month}`} className="animate-fade-in">
+          <MonthGrid
+            year={view.year}
+            month={view.month}
+            dayTypes={dayTypes}
+            size="full"
+            onDayClick={handleDayClick}
+          />
+        </div>
       </div>
 
-      <div className="mt-5 flex gap-3 rounded-xl bg-primary-soft p-4">
+      <div
+        className="animate-fade-in-up mt-5 flex gap-3 rounded-xl bg-primary-soft p-4"
+        style={staggerDelay(1)}
+      >
         <Info size={18} className="mt-0.5 shrink-0 text-primary" />
         <div>
           <p className="text-sm text-body">

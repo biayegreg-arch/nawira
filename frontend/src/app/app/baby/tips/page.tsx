@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Check } from 'lucide-react';
 import { ProjetBebeBreadcrumb } from '@/components/baby/ProjetBebeBreadcrumb';
 import { CONCEPTION_FULL_TIPS } from '@/components/baby/conception-tips-full';
+import { staggerDelay } from '@/lib/utils';
 
 export default function ConceptionTipsPage(): React.JSX.Element {
   return (
@@ -28,10 +29,11 @@ export default function ConceptionTipsPage(): React.JSX.Element {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {CONCEPTION_FULL_TIPS.map((tip) => (
+        {CONCEPTION_FULL_TIPS.map((tip, i) => (
           <div
             key={tip.title}
-            className="flex flex-col gap-4 rounded-xl border border-border bg-white p-6"
+            className="animate-fade-in-up flex flex-col gap-4 rounded-xl border border-border bg-white p-6 transition-shadow duration-200 hover:shadow-sm"
+            style={staggerDelay(i)}
           >
             <div className="flex items-start gap-3">
               <span className="shrink-0 text-3xl">{tip.icon}</span>

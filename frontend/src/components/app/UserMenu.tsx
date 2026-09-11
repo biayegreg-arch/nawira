@@ -118,7 +118,7 @@ export function UserMenu(): React.JSX.Element | null {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-xl border border-border bg-white shadow-lg">
+        <div className="animate-scale-in absolute right-0 top-full z-30 mt-2 w-64 rounded-xl border border-border bg-white shadow-lg">
           <div className="flex items-center gap-3 border-b border-border p-4">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-soft text-base font-semibold text-primary">
               {user.avatarUrl ? (

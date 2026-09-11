@@ -74,10 +74,12 @@ export function MonthGrid({
                 disabled={!clickable}
                 onClick={() => onDayClick?.(iso, type)}
                 className={cn(
-                  'flex items-center justify-center rounded-full text-xs',
+                  'flex items-center justify-center rounded-full text-xs transition-all duration-150',
                   cellSize,
                   type ? TYPE_STYLES[type] : 'text-navy',
-                  clickable ? 'cursor-pointer ring-primary hover:ring-2' : 'cursor-default',
+                  clickable
+                    ? 'cursor-pointer ring-primary hover:ring-2 active:scale-90'
+                    : 'cursor-default',
                 )}
               >
                 {day}

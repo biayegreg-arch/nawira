@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { staggerDelay } from '@/lib/utils';
 import { CurrentPlanCard } from '@/components/billing/CurrentPlanCard';
 import { PremiumPlansGrid } from '@/components/billing/PremiumPlansGrid';
 import type { BillingPlan } from '@/components/billing/plans-data';
@@ -77,15 +78,18 @@ export default function BillingPage(): React.JSX.Element | null {
         </p>
       </div>
 
-      <div className="mb-8 max-w-3xl">
+      <div className="animate-fade-in-up mb-8 max-w-3xl">
         <CurrentPlanCard plan={plan} />
       </div>
 
-      <div className="mb-8">
+      <div className="animate-fade-in-up mb-8" style={staggerDelay(1)}>
         <PremiumPlansGrid currentPlan={plan} />
       </div>
 
-      <div className="rounded-lg border border-border bg-primary-soft p-6">
+      <div
+        className="animate-fade-in-up rounded-lg border border-border bg-primary-soft p-6"
+        style={staggerDelay(2)}
+      >
         <h3 className="mb-4 text-base font-bold text-navy">Questions fréquentes</h3>
         <div className="flex flex-col gap-4">
           {FAQS.map((faq) => (

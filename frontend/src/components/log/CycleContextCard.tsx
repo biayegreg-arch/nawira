@@ -1,4 +1,5 @@
 import { Activity } from 'lucide-react';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 interface CycleContextPrediction {
   expectedPeriodStart: string;
@@ -94,15 +95,24 @@ export function CycleContextCard({
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Jour du cycle</span>
           <span className="font-semibold text-navy">
-            {currentDay !== null
-              ? `Jour ${currentDay}${cycleLength ? ` / ${cycleLength}` : ''}`
-              : '—'}
+            {currentDay !== null ? (
+              <>
+                Jour <AnimatedNumber value={currentDay} />
+                {cycleLength ? ` / ${cycleLength}` : ''}
+              </>
+            ) : (
+              '—'
+            )}
           </span>
         </div>
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Prochaines règles</span>
           <span className="font-semibold text-navy">
-            {daysToPeriod !== null && daysToPeriod >= 0 ? `dans ${daysToPeriod} jours` : '—'}
+            {daysToPeriod !== null && daysToPeriod >= 0 ? (
+              <AnimatedNumber value={daysToPeriod} prefix="dans " suffix=" jours" />
+            ) : (
+              '—'
+            )}
           </span>
         </div>
         <div className="flex items-center justify-between text-xs">

@@ -6,6 +6,7 @@ import { useAuth, useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { api, ApiError } from '@/lib/api';
 import { OptionCard } from '@/components/onboarding/OptionCard';
+import { staggerDelay } from '@/lib/utils';
 
 type NotificationLevel = 'NORMAL' | 'DISCREET' | 'NONE';
 
@@ -141,7 +142,10 @@ export default function AppSettingsPage(): React.JSX.Element | null {
       </div>
 
       <div className="flex flex-col gap-6">
-        <section className="rounded-xl border border-border bg-white p-6">
+        <section
+          className="animate-fade-in-up rounded-xl border border-border bg-white p-6"
+          style={staggerDelay(0)}
+        >
           <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-navy">
             <Lock size={18} className="text-primary" />
             {hasPassword ? 'Changer le mot de passe' : 'Définir un mot de passe'}
@@ -195,7 +199,7 @@ export default function AppSettingsPage(): React.JSX.Element | null {
             <button
               type="submit"
               disabled={submittingPassword}
-              className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-transform duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
             >
               {submittingPassword
                 ? 'Enregistrement…'
@@ -206,7 +210,10 @@ export default function AppSettingsPage(): React.JSX.Element | null {
           </form>
         </section>
 
-        <section className="rounded-xl border border-border bg-white p-6">
+        <section
+          className="animate-fade-in-up rounded-xl border border-border bg-white p-6"
+          style={staggerDelay(1)}
+        >
           <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-navy">
             <Link2 size={18} className="text-green" />
             Comptes liés
@@ -221,13 +228,13 @@ export default function AppSettingsPage(): React.JSX.Element | null {
               </div>
             </div>
             {googleLinked ? (
-              <span className="rounded-full bg-green-soft px-3 py-1 text-xs font-medium text-green">
+              <span className="animate-scale-in rounded-full bg-green-soft px-3 py-1 text-xs font-medium text-green">
                 Lié
               </span>
             ) : (
               <a
                 href="/api/auth/oauth/google/start?next=/app/settings"
-                className="rounded-md border border-border px-4 py-2 text-sm font-medium text-navy"
+                className="rounded-md border border-border px-4 py-2 text-sm font-medium text-navy transition-all duration-150 hover:bg-gray-50 active:scale-95"
               >
                 Lier Google
               </a>
@@ -235,7 +242,10 @@ export default function AppSettingsPage(): React.JSX.Element | null {
           </div>
         </section>
 
-        <section className="rounded-xl border border-border bg-white p-6">
+        <section
+          className="animate-fade-in-up rounded-xl border border-border bg-white p-6"
+          style={staggerDelay(2)}
+        >
           <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-navy">
             <Bell size={18} className="text-amber" />
             Notifications

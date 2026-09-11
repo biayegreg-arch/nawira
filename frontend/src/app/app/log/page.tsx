@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { api, ApiError } from '@/lib/api';
+import { staggerDelay } from '@/lib/utils';
 import { todayIso } from '@/lib/calendar-day-types';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 import {
   DailyLogForm,
   type DailyLogInitialValues,
@@ -197,13 +199,22 @@ export default function LogPage(): React.JSX.Element | null {
         <div>
           <h1 className="mb-1 text-2xl font-bold text-navy">Ajouter des données</h1>
           <p className="text-sm text-muted-foreground">
-            Aujourd&rsquo;hui{currentDay !== null ? ` — Jour ${currentDay} de ton cycle` : ''}
+            Aujourd&rsquo;hui
+            {currentDay !== null && (
+              <>
+                {' '}
+                — Jour <AnimatedNumber value={currentDay} /> de ton cycle
+              </>
+            )}
           </p>
         </div>
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        <div className="flex min-w-0 flex-1 flex-col gap-6 lg:max-w-2xl">
+        <div
+          className="animate-fade-in-up flex min-w-0 flex-1 flex-col gap-6 lg:max-w-2xl"
+          style={staggerDelay(1)}
+        >
           <PeriodTodayCard flow={flow} onFlowChange={setFlow} todayFlowLogged={todayFlowLogged} />
           <PeriodRangeForm onSubmit={handlePeriodRangeSubmit} />
           <DailyLogForm
@@ -214,7 +225,10 @@ export default function LogPage(): React.JSX.Element | null {
           />
         </div>
 
-        <div className="flex flex-col gap-5 lg:w-72 lg:shrink-0">
+        <div
+          className="animate-fade-in-up flex flex-col gap-5 lg:w-72 lg:shrink-0"
+          style={staggerDelay(2)}
+        >
           <CycleContextCard
             currentDay={currentDay}
             cycleLength={mostRecent?.length ?? null}

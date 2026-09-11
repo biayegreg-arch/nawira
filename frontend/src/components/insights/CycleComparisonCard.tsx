@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Calendar, Info } from 'lucide-react';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 export interface CycleComparisonData {
   current: {
@@ -56,7 +57,7 @@ export function CycleComparisonCard({
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-sm font-semibold text-navy">Cycle actuel</span>
                 <span className="rounded-full bg-amber-soft px-2 py-1 text-xs font-medium text-amber">
-                  En cours (Jour {cycleComparison.current.daysElapsed})
+                  En cours (Jour <AnimatedNumber value={cycleComparison.current.daysElapsed} />)
                 </span>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">

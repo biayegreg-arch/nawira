@@ -17,6 +17,8 @@ import {
   Info,
   type LucideIcon,
 } from 'lucide-react';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { staggerDelay } from '@/lib/utils';
 
 export type CyclePhase = 'MENSTRUAL' | 'FOLLICULAR' | 'OVULATORY' | 'LUTEAL';
 
@@ -100,7 +102,7 @@ export function SymptomStatistics({ topSymptoms }: SymptomStatisticsProps): Reac
                   type="button"
                   onClick={() => setSelectedPhase(phase)}
                   aria-pressed={active}
-                  className={`min-h-12 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`min-h-12 rounded-full border px-4 py-2 text-sm font-medium transition-all duration-150 active:scale-95 ${
                     active
                       ? 'border-primary bg-primary-soft text-primary'
                       : 'border-border bg-white text-navy hover:bg-gray-50'
@@ -118,11 +120,15 @@ export function SymptomStatistics({ topSymptoms }: SymptomStatisticsProps): Reac
             </p>
           ) : (
             <div className="flex flex-col gap-3">
-              {topSymptoms.byPhase[activePhase].map((s) => {
+              {topSymptoms.byPhase[activePhase].map((s, i) => {
                 const Icon = SYMPTOM_ICONS[s.symptom] ?? Star;
                 const percentage = Math.round(s.frequency * 100);
                 return (
-                  <div key={s.symptom} className="flex items-center gap-4">
+                  <div
+                    key={s.symptom}
+                    className="animate-fade-in-up flex items-center gap-4"
+                    style={staggerDelay(i)}
+                  >
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-purple">
                       <Icon size={16} />
                     </div>
@@ -131,11 +137,13 @@ export function SymptomStatistics({ topSymptoms }: SymptomStatisticsProps): Reac
                         <span className="text-sm font-medium text-navy">
                           {SYMPTOM_LABELS[s.symptom] ?? s.symptom}
                         </span>
-                        <span className="text-xs font-semibold text-navy">{percentage}%</span>
+                        <span className="text-xs font-semibold text-navy">
+                          <AnimatedNumber value={percentage} suffix="%" />
+                        </span>
                       </div>
                       <div className="h-2 w-full rounded-full bg-gray-100">
                         <div
-                          className="h-full rounded-full bg-primary-light"
+                          className="h-full rounded-full bg-primary-light transition-[width] duration-700 ease-out"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>

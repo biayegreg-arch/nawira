@@ -6,10 +6,10 @@ type Variant = 'primary' | 'secondary';
 type Size = 'md' | 'lg';
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+  'inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all duration-150 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-primary text-white hover:bg-primary/90',
+  primary: 'bg-primary text-white hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20',
   secondary: 'bg-white text-navy border border-border hover:bg-gray-50',
 };
 

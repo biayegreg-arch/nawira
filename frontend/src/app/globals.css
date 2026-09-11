@@ -42,3 +42,62 @@
   --color-danger: #c94b5f;
   --color-danger-bg: #fce8ec;
 }
+
+/*
+ * Micro-animation primitives — kept to entrance + press feedback only
+ * (UX guideline: animate 1-2 key transitions per view, 150-300ms,
+ * ease-out on entry, transform/opacity only for GPU-friendly repaints).
+ * `prefers-reduced-motion` collapses everything to an instant, final state.
+ */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-fade-in,
+  .animate-scale-in {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+}

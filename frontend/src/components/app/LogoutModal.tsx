@@ -19,12 +19,12 @@ export function LogoutModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
       onClick={onCancel}
       role="presentation"
     >
       <div
-        className="w-full max-w-sm overflow-hidden rounded-xl border border-border bg-white shadow-lg"
+        className="animate-scale-in w-full max-w-sm overflow-hidden rounded-xl border border-border bg-white shadow-lg"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -79,7 +79,7 @@ export function LogoutModal({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-md border border-border bg-gray-50 px-4 py-2.5 text-sm font-semibold text-navy"
+            className="flex-1 rounded-md border border-border bg-gray-50 px-4 py-2.5 text-sm font-semibold text-navy transition-transform duration-150 active:scale-[0.97]"
           >
             Annuler
           </button>
@@ -87,7 +87,7 @@ export function LogoutModal({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 rounded-md bg-danger px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            className="flex-1 rounded-md bg-danger px-4 py-2.5 text-sm font-semibold text-white transition-transform duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
           >
             {loading ? 'Déconnexion…' : 'Déconnexion'}
           </button>

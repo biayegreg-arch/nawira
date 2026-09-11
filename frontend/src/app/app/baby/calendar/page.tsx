@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { staggerDelay } from '@/lib/utils';
 import { buildDayTypes, todayIso } from '@/lib/calendar-day-types';
 import { MonthGrid } from '@/components/calendar/MonthGrid';
 import { ProjetBebeTabs } from '@/components/baby/ProjetBebeTabs';
@@ -105,10 +106,11 @@ export default function FertilityCalendarPage(): React.JSX.Element | null {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
         <div className="flex flex-col gap-5">
-          {[now, next].map((monthDate) => (
+          {[now, next].map((monthDate, i) => (
             <div
               key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
-              className="rounded-lg border border-border bg-white p-5 lg:p-6"
+              className="animate-fade-in-up rounded-lg border border-border bg-white p-5 lg:p-6"
+              style={staggerDelay(i)}
             >
               <div className="mb-5 text-base font-semibold text-navy capitalize">
                 {MONTH_LABELS[monthDate.getMonth()]} {monthDate.getFullYear()}
@@ -123,7 +125,7 @@ export default function FertilityCalendarPage(): React.JSX.Element | null {
           ))}
         </div>
 
-        <div className="flex flex-col gap-5">
+        <div className="animate-fade-in-up flex flex-col gap-5" style={staggerDelay(2)}>
           <FertilityCalendarLegend />
           <FertilityCalendarInfo />
         </div>

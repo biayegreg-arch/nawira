@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { formatFrenchDate } from '@/lib/format-date';
+import { staggerDelay } from '@/lib/utils';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 interface FertilityWindowPrediction {
   confidence: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -57,15 +59,25 @@ export function FertilityWindowCard({
       ) : (
         <>
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="rounded-lg bg-green-soft p-4">
+            <div
+              className="animate-fade-in-up rounded-lg bg-green-soft p-4"
+              style={staggerDelay(0)}
+            >
               <div className="mb-1 text-xs text-muted-foreground">Fenêtre fertile</div>
               <div className="text-lg font-bold text-navy">
                 {formatFrenchDate(prediction.fertileWindowStart!)} –{' '}
                 {formatFrenchDate(prediction.fertileWindowEnd!)}
               </div>
-              <div className="mt-1 text-xs text-green">{windowLengthDays} jours</div>
+              <div className="mt-1 text-xs text-green">
+                {windowLengthDays !== null && (
+                  <AnimatedNumber value={windowLengthDays} suffix=" jours" />
+                )}
+              </div>
             </div>
-            <div className="rounded-lg bg-amber-soft p-4">
+            <div
+              className="animate-fade-in-up rounded-lg bg-amber-soft p-4"
+              style={staggerDelay(1)}
+            >
               <div className="mb-1 text-xs text-muted-foreground">Ovulation</div>
               <div className="text-lg font-bold text-navy">
                 {prediction.ovulationEstimate
@@ -74,7 +86,10 @@ export function FertilityWindowCard({
               </div>
               <div className="mt-1 text-xs text-amber">Estimation</div>
             </div>
-            <div className="rounded-lg bg-primary-soft p-4">
+            <div
+              className="animate-fade-in-up rounded-lg bg-primary-soft p-4"
+              style={staggerDelay(2)}
+            >
               <div className="mb-1 text-xs text-muted-foreground">Confiance</div>
               <div className="text-lg font-bold text-primary">
                 {CONFIDENCE_LABELS[prediction.confidence]}

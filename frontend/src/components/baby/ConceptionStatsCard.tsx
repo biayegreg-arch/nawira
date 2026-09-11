@@ -1,4 +1,5 @@
 import { Calendar, Target, Zap, Activity, CheckCircle2 } from 'lucide-react';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 interface CycleSummary {
   isOutlier: boolean;
@@ -62,9 +63,11 @@ export function ConceptionStatsCard({
           <div>
             <div className="text-xs text-muted-foreground">Taux d&rsquo;ovulation régulière</div>
             <div className="text-base font-bold text-navy">
-              {regularOvulationRate === null
-                ? 'Pas encore assez de données'
-                : `${regularOvulationRate} %`}
+              {regularOvulationRate === null ? (
+                'Pas encore assez de données'
+              ) : (
+                <AnimatedNumber value={regularOvulationRate} suffix=" %" />
+              )}
             </div>
           </div>
         </div>
@@ -76,7 +79,7 @@ export function ConceptionStatsCard({
           <div>
             <div className="text-xs text-muted-foreground">Données enregistrées</div>
             <div className="text-base font-bold text-navy">
-              {daysTracked}/{totalDaysSinceActivation} jours
+              <AnimatedNumber value={daysTracked} />/{totalDaysSinceActivation} jours
             </div>
           </div>
         </div>

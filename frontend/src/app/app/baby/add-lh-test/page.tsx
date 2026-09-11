@@ -9,6 +9,7 @@ import { api, ApiError } from '@/lib/api';
 import { todayIso } from '@/lib/calendar-day-types';
 import { ProjetBebeBreadcrumb } from '@/components/baby/ProjetBebeBreadcrumb';
 import { formatFrenchDate } from '@/lib/format-date';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 interface CycleSummary {
   startDate: string;
@@ -240,7 +241,7 @@ export default function AddLhTestPage(): React.JSX.Element | null {
                     key={option.value}
                     type="button"
                     onClick={() => setSelected(option.value)}
-                    className={`flex w-full items-center gap-4 rounded-lg border-2 p-4 text-left transition-colors ${
+                    className={`flex w-full items-center gap-4 rounded-lg border-2 p-4 text-left transition-all duration-150 active:scale-[0.98] ${
                       isSelected ? `border-primary ${option.bg}` : 'border-border bg-gray-50'
                     }`}
                   >
@@ -264,7 +265,7 @@ export default function AddLhTestPage(): React.JSX.Element | null {
             <button
               type="button"
               onClick={() => router.push('/app/baby')}
-              className="flex-1 rounded-lg border border-border bg-gray-50 px-4 py-3 text-sm font-semibold text-navy"
+              className="flex-1 rounded-lg border border-border bg-gray-50 px-4 py-3 text-sm font-semibold text-navy transition-transform duration-150 active:scale-[0.97]"
             >
               Annuler
             </button>
@@ -272,7 +273,7 @@ export default function AddLhTestPage(): React.JSX.Element | null {
               type="button"
               onClick={handleSave}
               disabled={!selected || saving}
-              className="flex-1 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+              className="flex-1 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white transition-transform duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
             >
               {saving ? 'Enregistrement…' : 'Enregistrer le test'}
             </button>
@@ -288,7 +289,9 @@ export default function AddLhTestPage(): React.JSX.Element | null {
             <div className="flex flex-col gap-2 text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Jour du cycle</span>
-                <span className="font-semibold text-navy">{currentDay ?? '—'}</span>
+                <span className="font-semibold text-navy">
+                  {currentDay !== null ? <AnimatedNumber value={currentDay} /> : '—'}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Fenêtre fertile</span>
@@ -306,7 +309,7 @@ export default function AddLhTestPage(): React.JSX.Element | null {
           </div>
 
           {selected && (
-            <div className="rounded-xl border border-border bg-amber-soft p-5">
+            <div className="animate-fade-in-up rounded-xl border border-border bg-amber-soft p-5">
               <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-navy">
                 <Lightbulb size={14} className="text-amber" />
                 Interprétation

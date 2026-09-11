@@ -1,4 +1,5 @@
 import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 export interface CycleVariabilityData {
   stddev: number;
@@ -72,7 +73,7 @@ function DimensionRow({ label, value, emptyText }: DimensionRowProps): React.JSX
       {value ? (
         <div className="h-2 w-full rounded-full bg-gray-100">
           <div
-            className={`h-full rounded-full ${value.className}`}
+            className={`h-full rounded-full transition-[width] duration-700 ease-out ${value.className}`}
             style={{ width: `${value.width}%` }}
           />
         </div>
@@ -158,14 +159,16 @@ export function CycleScoreCard({
                 strokeLinecap="round"
                 strokeDasharray={`${dash} ${CIRCUMFERENCE}`}
                 transform="rotate(-90 64 64)"
-                className="stroke-primary"
+                className="stroke-primary transition-[stroke-dasharray] duration-700 ease-out"
               />
             )}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
             {headlineScore !== null ? (
               <>
-                <div className="text-2xl font-bold text-navy">{headlineScore}</div>
+                <div className="text-2xl font-bold text-navy">
+                  <AnimatedNumber value={headlineScore} />
+                </div>
                 <div className="text-xs text-muted-foreground">/100</div>
               </>
             ) : (

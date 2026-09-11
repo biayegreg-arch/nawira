@@ -18,7 +18,7 @@ export function MessageBubble({
 
   if (isUser) {
     return (
-      <div className="flex justify-end gap-3">
+      <div className="animate-fade-in-up flex justify-end gap-3">
         <div className="max-w-[85%] sm:max-w-sm lg:max-w-md">
           <div className="inline-block rounded-lg bg-primary p-4 text-sm text-white">
             {message.content}
@@ -30,7 +30,7 @@ export function MessageBubble({
   }
 
   return (
-    <div className="flex gap-3">
+    <div className="animate-fade-in-up flex gap-3">
       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary-soft">
         <span>🌸</span>
       </div>

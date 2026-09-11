@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { User, Droplet, Heart, Settings, HelpCircle, LogOut, ChevronRight } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { staggerDelay } from '@/lib/utils';
 import { formatFrenchDate } from '@/lib/format-date';
 import { GOAL_LABELS, CONCERN_LABELS } from '@/lib/profile-labels';
 import { ProfileHeaderCard } from '@/components/profile/ProfileHeaderCard';
@@ -86,68 +87,77 @@ export default function ProfilePage(): React.JSX.Element | null {
         </p>
       </div>
 
-      <div className="mb-6">
+      <div className="animate-fade-in-up mb-6">
         <ProfileHeaderCard email={user.email} stats={stats} />
       </div>
 
       <div className="flex flex-col gap-6">
-        <ProfileInfoSection
-          icon={User}
-          iconClassName="text-primary"
-          title="Informations personnelles"
-        >
-          <ProfileField label="Adresse e-mail" value={user.email} />
-          <ProfileField
-            label="Date de naissance"
-            value={`${formatFrenchDate(profile.birthDate)} (${ageFromBirthDate(profile.birthDate)} ans)`}
-          />
-        </ProfileInfoSection>
+        <div className="animate-fade-in-up" style={staggerDelay(1)}>
+          <ProfileInfoSection
+            icon={User}
+            iconClassName="text-primary"
+            title="Informations personnelles"
+          >
+            <ProfileField label="Adresse e-mail" value={user.email} />
+            <ProfileField
+              label="Date de naissance"
+              value={`${formatFrenchDate(profile.birthDate)} (${ageFromBirthDate(profile.birthDate)} ans)`}
+            />
+          </ProfileInfoSection>
+        </div>
 
-        <ProfileInfoSection
-          icon={Droplet}
-          iconClassName="text-rose"
-          title="Informations sur le cycle"
-        >
-          <ProfileField
-            label="Durée moyenne du cycle déclarée"
-            value={
-              profile.usualCycleLength ? `${profile.usualCycleLength} jours` : 'Non renseignée'
-            }
-          />
-          <ProfileField
-            label="Durée moyenne des règles déclarée"
-            value={
-              profile.usualPeriodLength ? `${profile.usualPeriodLength} jours` : 'Non renseignée'
-            }
-          />
-        </ProfileInfoSection>
+        <div className="animate-fade-in-up" style={staggerDelay(2)}>
+          <ProfileInfoSection
+            icon={Droplet}
+            iconClassName="text-rose"
+            title="Informations sur le cycle"
+          >
+            <ProfileField
+              label="Durée moyenne du cycle déclarée"
+              value={
+                profile.usualCycleLength ? `${profile.usualCycleLength} jours` : 'Non renseignée'
+              }
+            />
+            <ProfileField
+              label="Durée moyenne des règles déclarée"
+              value={
+                profile.usualPeriodLength ? `${profile.usualPeriodLength} jours` : 'Non renseignée'
+              }
+            />
+          </ProfileInfoSection>
+        </div>
 
-        <ProfileInfoSection icon={Heart} iconClassName="text-danger" title="Santé et bien-être">
-          <div>
-            <div className="mb-1 text-xs font-semibold text-muted-foreground">
-              Préoccupations suivies
-            </div>
-            {profile.trackedConcerns.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5">
-                {profile.trackedConcerns.map((c) => (
-                  <span key={c} className="rounded-full bg-amber-soft px-2 py-1 text-xs text-amber">
-                    {CONCERN_LABELS[c] ?? c}
-                  </span>
-                ))}
+        <div className="animate-fade-in-up" style={staggerDelay(3)}>
+          <ProfileInfoSection icon={Heart} iconClassName="text-danger" title="Santé et bien-être">
+            <div>
+              <div className="mb-1 text-xs font-semibold text-muted-foreground">
+                Préoccupations suivies
               </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Aucune préoccupation suivie pour l&rsquo;instant.
-              </p>
-            )}
-          </div>
-          <div>
-            <div className="mb-1 text-xs font-semibold text-muted-foreground">Objectif</div>
-            <span className="inline-block rounded-full bg-green-soft px-2 py-1 text-xs text-green">
-              {GOAL_LABELS[profile.goal] ?? profile.goal}
-            </span>
-          </div>
-        </ProfileInfoSection>
+              {profile.trackedConcerns.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.trackedConcerns.map((c) => (
+                    <span
+                      key={c}
+                      className="rounded-full bg-amber-soft px-2 py-1 text-xs text-amber"
+                    >
+                      {CONCERN_LABELS[c] ?? c}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Aucune préoccupation suivie pour l&rsquo;instant.
+                </p>
+              )}
+            </div>
+            <div>
+              <div className="mb-1 text-xs font-semibold text-muted-foreground">Objectif</div>
+              <span className="inline-block rounded-full bg-green-soft px-2 py-1 text-xs text-green">
+                {GOAL_LABELS[profile.goal] ?? profile.goal}
+              </span>
+            </div>
+          </ProfileInfoSection>
+        </div>
       </div>
 
       {/* Mobile-only account links — no sidebar to reach these from on mobile. */}

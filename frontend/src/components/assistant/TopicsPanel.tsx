@@ -83,7 +83,7 @@ export function TopicsChipRow({ onTopicClick }: TopicsProps): React.JSX.Element 
           type="button"
           role="listitem"
           onClick={() => onTopicClick(topic.question)}
-          className="flex min-h-12 flex-shrink-0 items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-navy hover:bg-gray-50"
+          className="flex min-h-12 flex-shrink-0 items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-navy transition-all duration-150 hover:bg-gray-50 active:scale-95"
         >
           <topic.icon size={16} style={{ color: topic.color }} />
           {topic.label}
@@ -109,7 +109,7 @@ export function TopicsSidebar({ onTopicClick }: TopicsProps): React.JSX.Element 
             type="button"
             onClick={() => onTopicClick(topic.question)}
             className={cn(
-              'flex min-h-12 w-full items-center gap-3 rounded-lg border border-border bg-gray-50 p-3 text-left transition-colors hover:bg-gray-100',
+              'flex min-h-12 w-full items-center gap-3 rounded-lg border border-border bg-gray-50 p-3 text-left transition-all duration-150 hover:bg-gray-100 active:scale-[0.98]',
             )}
           >
             <div

@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 import { BILLING_PLANS, type BillingPlan } from '@/components/billing/plans-data';
+import { staggerDelay } from '@/lib/utils';
 
 function formatFcfa(amount: number): string {
   if (amount === 0) return 'Gratuit';
@@ -16,12 +17,13 @@ export function PremiumPlansGrid({ currentPlan }: PremiumPlansGridProps): React.
       <h2 className="mb-5 text-lg font-bold text-navy">Nos plans</h2>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {BILLING_PLANS.map((plan) => (
+        {BILLING_PLANS.map((plan, i) => (
           <div
             key={plan.key}
-            className={`relative flex flex-col rounded-lg border p-6 ${
+            className={`animate-fade-in-up relative flex flex-col rounded-lg border p-6 transition-shadow duration-200 hover:shadow-md ${
               plan.highlighted ? 'border-primary bg-primary-soft' : 'border-border bg-gray-50'
             }`}
+            style={staggerDelay(i)}
           >
             {plan.highlighted && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-primary">

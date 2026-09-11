@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { api, ApiError } from '@/lib/api';
-import { greetingName } from '@/lib/utils';
+import { greetingName, staggerDelay } from '@/lib/utils';
 import { buildDayTypes, todayIso } from '@/lib/calendar-day-types';
 import { CycleRing } from '@/components/today/CycleRing';
 import { PeriodLogCta } from '@/components/today/PeriodLogCta';
@@ -174,7 +174,7 @@ export default function TodayPage(): React.JSX.Element | null {
   return (
     <div className="p-4 lg:p-8">
       <div
-        className="mb-6 rounded-xl p-6"
+        className="animate-fade-in-up mb-6 rounded-xl p-6"
         style={{ background: 'linear-gradient(135deg, #F8F5FD 0%, #FDF5F9 100%)' }}
       >
         <h1 className="mb-1 text-2xl font-bold text-navy">Bonjour {greetingName(user.email)} 👋</h1>
@@ -187,7 +187,7 @@ export default function TodayPage(): React.JSX.Element | null {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_280px_280px]">
-        <div className="flex flex-col gap-5">
+        <div className="animate-fade-in-up flex flex-col gap-5" style={staggerDelay(1)}>
           <div className="flex flex-col items-center gap-4 rounded-lg border border-border bg-white p-6 sm:flex-row sm:items-start">
             <CycleRing
               currentDay={currentDay}
@@ -206,12 +206,12 @@ export default function TodayPage(): React.JSX.Element | null {
           />
         </div>
 
-        <div className="flex flex-col gap-5">
+        <div className="animate-fade-in-up flex flex-col gap-5" style={staggerDelay(2)}>
           <PredictionCards prediction={prediction} hasCycles={cycles.length > 0} today={today} />
           <DailyTip />
         </div>
 
-        <div className="flex flex-col gap-5">
+        <div className="animate-fade-in-up flex flex-col gap-5" style={staggerDelay(3)}>
           <MiniCalendar dayTypes={dayTypes} />
           <ProjetBebeCard />
         </div>

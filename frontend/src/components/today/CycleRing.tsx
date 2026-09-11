@@ -1,3 +1,5 @@
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+
 interface CycleRingProps {
   currentDay: number | null;
   estimatedLength: number | null;
@@ -60,14 +62,16 @@ export function CycleRing({
             strokeLinecap="round"
             strokeDasharray={`${dash} ${CIRCUMFERENCE}`}
             transform="rotate(-90 80 80)"
-            className="stroke-primary"
+            className="stroke-primary transition-[stroke-dasharray] duration-700 ease-out"
           />
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
         {currentDay !== null ? (
           <>
-            <div className="text-2xl font-bold text-navy lg:text-3xl">Jour {currentDay}</div>
+            <div className="text-2xl font-bold text-navy lg:text-3xl">
+              Jour <AnimatedNumber value={currentDay} />
+            </div>
             {estimatedLength !== null && (
               <div className="mt-0.5 text-xs text-muted-foreground">
                 sur ~{estimatedLength} jours

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { api, ApiError } from '@/lib/api';
+import { staggerDelay } from '@/lib/utils';
 import { todayIso } from '@/lib/calendar-day-types';
 import { FertilityWindowCard } from '@/components/baby/FertilityWindowCard';
 import { ConceptionStatsCard } from '@/components/baby/ConceptionStatsCard';
@@ -154,7 +155,7 @@ export default function BabyPage(): React.JSX.Element | null {
       <ProjetBebeTabs active="apercu" />
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="flex flex-col gap-5">
+        <div className="animate-fade-in-up flex flex-col gap-5" style={staggerDelay(1)}>
           <FertilityWindowCard prediction={prediction} today={today} />
           <OtherSignalsCard
             initialValues={{
@@ -166,7 +167,7 @@ export default function BabyPage(): React.JSX.Element | null {
             onSubmit={handleSaveOther}
           />
         </div>
-        <div className="flex flex-col gap-5">
+        <div className="animate-fade-in-up flex flex-col gap-5" style={staggerDelay(2)}>
           <LHTestTracker todayResult={signals.lhResult} recentEntries={recentLhEntries} />
           <ConceptionStatsCard
             monthsActive={profileStats.monthsActive}
@@ -178,7 +179,10 @@ export default function BabyPage(): React.JSX.Element | null {
         </div>
       </div>
 
-      <div className="mt-6 rounded-lg border border-border bg-green-soft/40 p-6">
+      <div
+        className="animate-fade-in-up mt-6 rounded-lg border border-border bg-green-soft/40 p-6"
+        style={staggerDelay(3)}
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <h3 className="mb-2 flex items-center gap-2 text-base font-bold text-navy">

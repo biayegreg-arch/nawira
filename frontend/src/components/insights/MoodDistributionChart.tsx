@@ -1,3 +1,6 @@
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { staggerDelay } from '@/lib/utils';
+
 export interface MoodDistributionData {
   distribution: Array<{ mood: string; count: number; percentage: number }>;
 }
@@ -29,23 +32,29 @@ export function MoodDistributionChart({
       ) : (
         <>
           <div className="mb-6 flex flex-col gap-3">
-            {moodDistribution.distribution.map((m) => {
+            {moodDistribution.distribution.map((m, i) => {
               const meta = MOOD_META[m.mood] ?? {
                 emoji: '🙂',
                 label: m.mood,
                 className: 'bg-primary',
               };
               return (
-                <div key={m.mood} className="flex items-center gap-3">
+                <div
+                  key={m.mood}
+                  className="animate-fade-in-up flex items-center gap-3"
+                  style={staggerDelay(i)}
+                >
                   <span className="text-lg">{meta.emoji}</span>
                   <div className="flex-1">
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">{meta.label}</span>
-                      <span className="text-sm font-semibold text-navy">{m.percentage}%</span>
+                      <span className="text-sm font-semibold text-navy">
+                        <AnimatedNumber value={m.percentage} suffix="%" />
+                      </span>
                     </div>
                     <div className="h-2 w-full rounded-full bg-gray-100">
                       <div
-                        className={`h-full rounded-full ${meta.className}`}
+                        className={`h-full rounded-full transition-[width] duration-700 ease-out ${meta.className}`}
                         style={{ width: `${m.percentage}%` }}
                       />
                     </div>

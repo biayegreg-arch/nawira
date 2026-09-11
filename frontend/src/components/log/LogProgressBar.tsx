@@ -17,11 +17,13 @@ export function LogProgressBar({ steps }: LogProgressBarProps): React.JSX.Elemen
         <div key={step.key} className="flex items-center gap-3">
           {i > 0 && <div className="h-4 w-px shrink-0 bg-border" />}
           <div
-            className={`flex shrink-0 items-center gap-2 text-xs font-medium whitespace-nowrap ${
+            className={`flex shrink-0 items-center gap-2 text-xs font-medium whitespace-nowrap transition-colors duration-200 ${
               step.filled ? 'text-green' : 'text-muted-foreground'
             }`}
           >
-            {step.filled ? <CheckCircle2 size={14} /> : <Circle size={14} />}
+            <span key={String(step.filled)} className="animate-scale-in inline-flex">
+              {step.filled ? <CheckCircle2 size={14} /> : <Circle size={14} />}
+            </span>
             {step.label}
           </div>
         </div>

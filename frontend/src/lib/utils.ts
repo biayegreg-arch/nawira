@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { CSSProperties } from 'react';
 
 /** Merge Tailwind classes with conflict resolution. */
 export function cn(...inputs: ClassValue[]): string {
@@ -36,4 +37,13 @@ export function isTikTokBrowser(): boolean {
 export function greetingName(email: string): string {
   const local = email.split('@')[0] ?? '';
   return local.charAt(0).toUpperCase() + local.slice(1);
+}
+
+/**
+ * `animation-delay` for the Nth item in a staggered `.animate-fade-in-up`
+ * list/grid reveal. Capped so a long list doesn't leave late items feeling
+ * sluggish to appear (UX guideline: keep micro-interactions under ~300ms).
+ */
+export function staggerDelay(index: number, stepMs = 45, maxMs = 240): CSSProperties {
+  return { animationDelay: `${Math.min(index * stepMs, maxMs)}ms` };
 }

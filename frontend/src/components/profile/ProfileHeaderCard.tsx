@@ -1,4 +1,5 @@
 import { greetingName } from '@/lib/utils';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 interface ProfileHeaderCardProps {
   email: string;
@@ -25,15 +26,21 @@ export function ProfileHeaderCard({ email, stats }: ProfileHeaderCardProps): Rea
 
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-lg border border-border bg-gray-50 p-3 text-center">
-          <div className="text-lg font-bold text-navy">{stats.monthsActive}</div>
+          <div className="text-lg font-bold text-navy">
+            <AnimatedNumber value={stats.monthsActive} />
+          </div>
           <div className="text-xs text-muted-foreground">Mois actifs</div>
         </div>
         <div className="rounded-lg border border-border bg-gray-50 p-3 text-center">
-          <div className="text-lg font-bold text-navy">{stats.daysTracked}</div>
+          <div className="text-lg font-bold text-navy">
+            <AnimatedNumber value={stats.daysTracked} />
+          </div>
           <div className="text-xs text-muted-foreground">Jours tracés</div>
         </div>
         <div className="rounded-lg border border-border bg-gray-50 p-3 text-center">
-          <div className="text-lg font-bold text-navy">{stats.cyclesCompleted}</div>
+          <div className="text-lg font-bold text-navy">
+            <AnimatedNumber value={stats.cyclesCompleted} />
+          </div>
           <div className="text-xs text-muted-foreground">Cycles complets</div>
         </div>
       </div>

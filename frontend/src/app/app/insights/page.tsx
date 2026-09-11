@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { BarChart2 } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { staggerDelay } from '@/lib/utils';
 import {
   CycleScoreCard,
   type CycleVariabilityData,
@@ -158,7 +159,7 @@ export default function InsightsPage(): React.JSX.Element | null {
       ) : (
         <>
           <div className="grid gap-6 lg:grid-cols-2">
-            <div className="flex flex-col gap-6">
+            <div className="animate-fade-in-up flex flex-col gap-6" style={staggerDelay(1)}>
               <CycleScoreCard
                 headlineScore={headlineScore}
                 headlineLabel={headlineLabel}
@@ -169,13 +170,13 @@ export default function InsightsPage(): React.JSX.Element | null {
               />
               <CycleComparisonCard cycleComparison={cycleComparison} />
             </div>
-            <div className="flex flex-col gap-6">
+            <div className="animate-fade-in-up flex flex-col gap-6" style={staggerDelay(2)}>
               <SymptomStatistics topSymptoms={topSymptoms} />
               <MoodDistributionChart moodDistribution={moodDistribution} />
             </div>
           </div>
 
-          <div className="mt-6">
+          <div className="animate-fade-in-up mt-6" style={staggerDelay(3)}>
             <AnalyticsRecommendations
               cycleVariability={cycleVariability}
               topSymptoms={topSymptoms}
@@ -184,7 +185,10 @@ export default function InsightsPage(): React.JSX.Element | null {
             />
           </div>
 
-          <div className="mt-6 rounded-lg border border-primary bg-primary-faint p-6">
+          <div
+            className="animate-fade-in-up mt-6 rounded-lg border border-primary bg-primary-faint p-6"
+            style={staggerDelay(4)}
+          >
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="mb-2 flex items-center gap-2 text-base font-bold text-navy">

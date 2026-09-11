@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { staggerDelay } from '@/lib/utils';
 import { CycleListItem } from '@/components/cycles/CycleListItem';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 interface CycleSummary {
   startDate: string;
@@ -94,12 +96,14 @@ export default function CyclesHistoryPage(): React.JSX.Element | null {
       ) : (
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-2">
-            {cycles.map((cycle) => (
-              <CycleListItem key={cycle.startDate} {...cycle} />
+            {cycles.map((cycle, i) => (
+              <div key={cycle.startDate} className="animate-fade-in-up" style={staggerDelay(i)}>
+                <CycleListItem {...cycle} />
+              </div>
             ))}
           </div>
 
-          <div className="rounded-xl border border-border bg-white p-6">
+          <div className="animate-fade-in-up rounded-xl border border-border bg-white p-6">
             <h2 className="mb-4 text-base font-bold text-navy">Pourquoi cette estimation ?</h2>
             <div className="flex flex-col gap-2 text-xs text-muted-foreground">
               <div className="flex items-start gap-2">
@@ -109,8 +113,9 @@ export default function CyclesHistoryPage(): React.JSX.Element | null {
               <div className="flex items-start gap-2">
                 <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-green" />
                 <span>
-                  {completedCount} cycle{completedCount !== 1 ? 's' : ''} complet
-                  {completedCount !== 1 ? 's' : ''} enregistré{completedCount !== 1 ? 's' : ''}.
+                  <AnimatedNumber value={completedCount} /> cycle{completedCount !== 1 ? 's' : ''}{' '}
+                  complet{completedCount !== 1 ? 's' : ''} enregistré
+                  {completedCount !== 1 ? 's' : ''}.
                 </span>
               </div>
               {prediction && (

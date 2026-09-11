@@ -90,7 +90,7 @@ export function ChatPanel({
                       type="button"
                       onClick={() => onSend(q)}
                       disabled={disabled}
-                      className="min-h-12 w-full rounded-md border border-border bg-white p-2 text-left text-xs font-medium text-primary disabled:opacity-50"
+                      className="min-h-12 w-full rounded-md border border-border bg-white p-2 text-left text-xs font-medium text-primary transition-all duration-150 hover:bg-gray-50 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
                     >
                       {q}
                     </button>
@@ -137,7 +137,7 @@ export function ChatPanel({
               <button
                 type="submit"
                 disabled={disabled || !input.trim()}
-                className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-primary text-white disabled:opacity-50"
+                className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-primary text-white transition-transform duration-150 active:scale-90 disabled:opacity-50 disabled:active:scale-100"
               >
                 <Send size={18} />
               </button>

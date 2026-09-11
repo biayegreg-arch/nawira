@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Search, Mail, Info } from 'lucide-react';
 import { HELP_CATEGORIES } from '@/lib/help-content';
 import { HelpAccordion } from '@/components/help/HelpAccordion';
+import { staggerDelay } from '@/lib/utils';
 
 export default function HelpCenterPage(): React.JSX.Element {
   const searchParams = useSearchParams();
@@ -50,15 +51,17 @@ export default function HelpCenterPage(): React.JSX.Element {
         <div className="flex flex-col gap-6">
           <h2 className="text-lg font-bold text-navy">Articles et guides</h2>
           {filteredCategories.length > 0 ? (
-            filteredCategories.map((category) => (
-              <HelpAccordion key={category.title} category={category} />
+            filteredCategories.map((category, i) => (
+              <div key={category.title} className="animate-fade-in-up" style={staggerDelay(i)}>
+                <HelpAccordion category={category} />
+              </div>
             ))
           ) : (
             <p className="text-sm text-muted-foreground">Aucun résultat pour cette recherche.</p>
           )}
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="animate-fade-in-up flex flex-col gap-6" style={staggerDelay(1)}>
           <div className="rounded-xl border border-border bg-white p-6">
             <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-navy">
               <Mail size={18} className="text-primary" />
@@ -69,7 +72,7 @@ export default function HelpCenterPage(): React.JSX.Element {
             </p>
             <a
               href="mailto:support@nawira.app"
-              className="flex items-center justify-between rounded-lg border border-border bg-gray-50 p-3"
+              className="flex items-center justify-between rounded-lg border border-border bg-gray-50 p-3 transition-all duration-150 hover:bg-gray-100 active:scale-[0.98]"
             >
               <span className="text-sm font-medium text-navy">support@nawira.app</span>
             </a>

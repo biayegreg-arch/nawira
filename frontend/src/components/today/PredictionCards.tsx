@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Calendar as CalendarIcon, Sun, Leaf, ChevronRight } from 'lucide-react';
 import { formatFrenchDate } from '@/lib/format-date';
+import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
 
 interface PredictionSummary {
   confidence: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -59,9 +60,11 @@ export function PredictionCards({
         <div className="flex-1">
           <div className="mb-0.5 text-xs text-muted-foreground">Prochaines règles</div>
           <div className="text-xl leading-tight font-bold text-navy">
-            {daysToPeriod >= 0
-              ? `≈ ${daysToPeriod} jours`
-              : formatFrenchDate(prediction.expectedPeriodStart)}
+            {daysToPeriod >= 0 ? (
+              <AnimatedNumber value={daysToPeriod} prefix="≈ " suffix=" jours" />
+            ) : (
+              formatFrenchDate(prediction.expectedPeriodStart)
+            )}
           </div>
           <div className="mt-0.5 text-xs text-muted-foreground">
             {formatFrenchDate(prediction.expectedPeriodStart)}

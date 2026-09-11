@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Search, Clock, ArrowRight, HelpCircle, Info } from 'lucide-react';
 import { ProjetBebeTabs } from '@/components/baby/ProjetBebeTabs';
 import { CONCEPTION_ARTICLES, CONCEPTION_FAQS } from '@/components/baby/conception-articles';
+import { staggerDelay } from '@/lib/utils';
 
 const FILTERS = ['Tous', 'Conception', 'Santé', 'Alimentation', 'Bien-être', 'Tests', 'Cycle'];
 
@@ -60,8 +61,8 @@ export default function ProjetBebeResourcesPage(): React.JSX.Element {
                   onClick={() => setFilter(f)}
                   className={
                     f === filter
-                      ? 'rounded-full border border-primary bg-primary px-3 py-1.5 text-xs font-medium text-white'
-                      : 'rounded-full border border-border bg-gray-50 px-3 py-1.5 text-xs font-medium text-muted-foreground'
+                      ? 'rounded-full border border-primary bg-primary px-3 py-1.5 text-xs font-medium text-white transition-all duration-150 active:scale-95'
+                      : 'rounded-full border border-border bg-gray-50 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all duration-150 active:scale-95'
                   }
                 >
                   {f}
@@ -76,10 +77,11 @@ export default function ProjetBebeResourcesPage(): React.JSX.Element {
             </p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
-              {articles.map((article) => (
+              {articles.map((article, i) => (
                 <div
                   key={article.title}
-                  className="flex flex-col gap-3 rounded-xl border border-border bg-white p-5"
+                  className="animate-fade-in-up flex flex-col gap-3 rounded-xl border border-border bg-white p-5 transition-shadow duration-200 hover:shadow-sm"
+                  style={staggerDelay(i)}
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{article.icon}</span>

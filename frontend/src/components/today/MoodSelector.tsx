@@ -31,9 +31,9 @@ export function MoodSelector({
             type="button"
             disabled={saving}
             onClick={() => onSelect(mood.value)}
-            className={`flex flex-1 flex-col items-center gap-2 rounded-lg border py-3 disabled:opacity-60 ${
+            className={`flex flex-1 flex-col items-center gap-2 rounded-lg border py-3 transition-all duration-150 active:scale-90 disabled:opacity-60 disabled:active:scale-100 ${
               selectedMood === mood.value
-                ? 'border-primary bg-primary-soft'
+                ? 'border-primary bg-primary-soft scale-105'
                 : 'border-border bg-gray-50 hover:bg-gray-100'
             }`}
           >

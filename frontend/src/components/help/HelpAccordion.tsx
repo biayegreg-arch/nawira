@@ -32,19 +32,19 @@ export function HelpAccordion({ category }: { category: HelpCategory }): React.J
                 type="button"
                 onClick={() => setOpenIndex(open ? null : i)}
                 aria-expanded={open}
-                className="flex w-full items-center justify-between gap-3 p-3 text-left"
+                className="flex w-full items-center justify-between gap-3 rounded-lg p-3 text-left transition-colors duration-150 hover:bg-gray-100"
               >
                 <span className="text-sm font-medium text-navy">{item.q}</span>
                 <ChevronDown
                   size={16}
                   className={cn(
-                    'shrink-0 text-muted-light transition-transform',
+                    'shrink-0 text-muted-light transition-transform duration-200',
                     open && 'rotate-180',
                   )}
                 />
               </button>
               {open && (
-                <p className="border-t border-border px-3 pt-2 pb-3 text-sm text-muted-foreground">
+                <p className="animate-fade-in-up border-t border-border px-3 pt-2 pb-3 text-sm text-muted-foreground">
                   {item.a}
                 </p>
               )}

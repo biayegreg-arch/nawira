@@ -46,7 +46,7 @@ export function PeriodTodayCard({
             <button
               type="button"
               onClick={() => flow === 'NONE' && onFlowChange('MEDIUM')}
-              className={`flex-1 rounded-md border px-4 py-2.5 text-sm font-medium ${
+              className={`flex-1 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 active:scale-[0.97] ${
                 flow !== 'NONE'
                   ? 'border-primary bg-primary-soft text-primary'
                   : 'border-border bg-white text-navy hover:bg-gray-50'
@@ -57,7 +57,7 @@ export function PeriodTodayCard({
             <button
               type="button"
               onClick={() => onFlowChange('NONE')}
-              className={`flex-1 rounded-md border px-4 py-2.5 text-sm font-medium ${
+              className={`flex-1 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 active:scale-[0.97] ${
                 flow === 'NONE'
                   ? 'border-gray-300 bg-gray-50 text-body'
                   : 'border-border bg-white text-navy hover:bg-gray-50'
