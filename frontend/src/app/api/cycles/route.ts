@@ -1,7 +1,10 @@
 // GET /api/cycles — Phase 3. Read-only: returns the caller's full Cycle
 // history (no pagination — a user's history is a few dozen rows even
 // after years of use) plus `todayLogged`, the one boolean the Home
-// screen's logging CTA needs to know whether to show itself.
+// screen's logging CTA needs to know whether to show itself, and
+// `todayFlow`, today's PeriodEvent.flow value (null when unlogged) so
+// /app/log's Oui/Non + intensity toggle can reflect the real saved state
+// instead of always starting from "Non".
 export const runtime = 'nodejs';
 
 import 'server-only';
@@ -28,7 +31,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       }),
       prisma.periodEvent.findUnique({
         where: { userId_date: { userId: auth.user.sub, date: todayUtcDate() } },
-        select: { userId: true },
+        select: { flow: true },
       }),
     ]);
 
@@ -41,6 +44,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           isOutlier: c.isOutlier,
         })),
         todayLogged: todayEvent !== null,
+        todayFlow: todayEvent?.flow ?? null,
       },
       { headers: { 'x-request-id': ctx.requestId } },
     );

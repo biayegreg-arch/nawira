@@ -24,14 +24,21 @@ export interface FertilityWindowResult {
  * back-calculation is the standard approach.
  *
  * Returns `null` when `prediction` is `null` — PRD §8.1: "uniquement si
- * le cycle attendu est calculable."
+ * le cycle attendu est calculable." Also returns `null` when the back-
+ * calculated ovulation date lands before `cycleStartDate` — a short
+ * `expectedPeriodStart - mostRecentEpisode.start` estimate (below
+ * `LUTEAL_PHASE_DAYS`, e.g. from a single abnormally short observed
+ * cycle) would otherwise place "ovulation" before the current cycle even
+ * began, which is clinically impossible and worse than showing nothing.
  */
 export function computeFertilityWindow(
   prediction: PredictionResult | null,
+  cycleStartDate?: Date | null,
 ): FertilityWindowResult | null {
   if (!prediction) return null;
 
   const ovulationEstimate = addDays(prediction.expectedPeriodStart, -LUTEAL_PHASE_DAYS);
+  if (cycleStartDate && ovulationEstimate < cycleStartDate) return null;
 
   return {
     ovulationEstimate,

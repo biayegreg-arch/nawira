@@ -45,9 +45,6 @@ export default function LogPage(): React.JSX.Element | null {
   const user = useUser();
   const { toast } = useToast();
   const [initialValues, setInitialValues] = useState<DailyLogInitialValues | null>(null);
-  // Always starts unselected — there is no endpoint exposing today's actual
-  // PeriodEvent.flow value (see docs/superpowers/specs/2026-09-07-phase4-
-  // daily-journal-design.md §"Flow integration — no new endpoint").
   const [flow, setFlow] = useState('NONE');
   const [todayFlowLogged, setTodayFlowLogged] = useState(false);
   const [cycles, setCycles] = useState<CycleSummary[]>([]);
@@ -64,7 +61,9 @@ export default function LogPage(): React.JSX.Element | null {
         api<{ log: Omit<DailyLogInitialValues, 'temperatureValue' | 'temperatureUnit'> | null }>(
           '/api/daily-logs/today',
         ),
-        api<{ cycles: CycleSummary[]; todayLogged: boolean }>('/api/cycles'),
+        api<{ cycles: CycleSummary[]; todayLogged: boolean; todayFlow: string | null }>(
+          '/api/cycles',
+        ),
         api<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
         api<{ entries: RecentEntry[] }>('/api/daily-logs/recent'),
         api<{ signal: FertilitySignals | null }>('/api/fertility-signals/today'),
@@ -85,6 +84,7 @@ export default function LogPage(): React.JSX.Element | null {
         temperatureUnit: signal?.temperatureUnit ?? null,
       });
       setTodayFlowLogged(cyclesRes.todayLogged);
+      setFlow(cyclesRes.todayFlow ?? 'NONE');
       setCycles(cyclesRes.cycles);
       setPrediction(predictionRes.prediction);
       setRecentEntries(recentRes.entries);

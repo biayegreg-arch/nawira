@@ -32,4 +32,17 @@ describe('computeFertilityWindow', () => {
       longCycle?.ovulationEstimate.getTime(),
     );
   });
+
+  it('returns null when the back-calculated ovulation date lands before the current cycle started', () => {
+    // expectedPeriodStart 7 days out (a single abnormally short observed
+    // cycle) puts ovulation 14 days before that — 7 days before the cycle
+    // even started.
+    const result = computeFertilityWindow(prediction('2026-09-21'), new Date('2026-09-14'));
+    expect(result).toBeNull();
+  });
+
+  it('still returns a window when ovulation lands on or after the cycle start', () => {
+    const result = computeFertilityWindow(prediction('2026-09-30'), new Date('2026-09-14'));
+    expect(result?.ovulationEstimate.toISOString().slice(0, 10)).toBe('2026-09-16');
+  });
 });

@@ -45,6 +45,7 @@ describe('GET /api/cycles', () => {
         { startDate: '2026-01-01', endDate: '2026-01-31', length: 31, isOutlier: true },
       ],
       todayLogged: false,
+      todayFlow: null,
     });
 
     expect(prismaMock.cycle.findMany).toHaveBeenCalledWith({
@@ -54,13 +55,14 @@ describe('GET /api/cycles', () => {
     });
   });
 
-  it('returns todayLogged=true when a PeriodEvent exists for today', async () => {
+  it('returns todayLogged=true and todayFlow when a PeriodEvent exists for today', async () => {
     prismaMock.cycle.findMany.mockResolvedValue([]);
-    prismaMock.periodEvent.findUnique.mockResolvedValue({ userId: 'u1' } as never);
+    prismaMock.periodEvent.findUnique.mockResolvedValue({ flow: 'MEDIUM' } as never);
 
     const res = await GET(makeReq());
     const body = await res.json();
     expect(body.todayLogged).toBe(true);
+    expect(body.todayFlow).toBe('MEDIUM');
   });
 
   it('returns 401 when unauthenticated', async () => {

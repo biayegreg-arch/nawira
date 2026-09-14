@@ -90,7 +90,8 @@ export async function recomputeCyclesAndPrediction(
     usualCycleLength: profile?.usualCycleLength ?? null,
     usualPeriodLength: profile?.usualPeriodLength ?? null,
   });
-  const fertilityWindow = computeFertilityWindow(prediction);
+  const mostRecentEpisode = episodes[episodes.length - 1];
+  const fertilityWindow = computeFertilityWindow(prediction, mostRecentEpisode?.start ?? null);
 
   if (prediction) {
     await tx.prediction.upsert({
