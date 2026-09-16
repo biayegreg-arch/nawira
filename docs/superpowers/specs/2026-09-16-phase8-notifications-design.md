@@ -25,14 +25,27 @@ notifications.
 
 **Out of scope (explicit deviations, decided with the user before writing
 this spec):**
-- **No per-category notification preferences.** PRD §14's ideal data
-  model (`notification_preferences: user_id, category, enabled,
-  discreet, preferred_time`) doesn't exist anywhere yet — no per-user
-  timezone is stored, no per-category Settings UI exists. This phase
-  reuses the existing global `Profile.notificationLevel`
-  (`NORMAL | DISCREET | NONE`), already wired into `/app/settings`. All
-  4 categories obey the same global level. Per-category granularity is
-  a real future feature, not built here.
+- **Per-category notification preferences (correction — see final-review
+  Finding 4).** This section originally claimed no per-category
+  preference model existed anywhere in the codebase; that claim was
+  factually wrong. A `NotificationPreferences` model (`userId @id, prefs
+  Json @default("{}"), updatedAt`) + `isChannelEnabled(prefs, eventType,
+  channel)` helper (`frontend/src/lib/server/notifications/
+  prefs-merge.ts`, default-enabled/opt-out semantics) + live `GET`/
+  `PATCH /api/notifications/prefs` routes already existed before this
+  phase — they were simply unused by any producer. Since Phase 8 is the
+  first recurring/cron-driven producer, the final review wired
+  `checkPeriodReminder`/`checkJournalReminder`/`checkWeeklySummary`/
+  `checkFertilityReminder`'s outputs through `isChannelEnabled(prefs,
+  input.type, 'inApp')` in the cron route before calling
+  `createNotification`, so a user who already opted out of a category
+  via the existing API is respected. The global `Profile.notificationLevel`
+  (`NORMAL | DISCREET | NONE`) still gates all 4 categories at once (see
+  below) — `NotificationPreferences` layers a per-category override on
+  top, it doesn't replace the global gate. What remains genuinely
+  deferred: a Settings UI to let users edit these per-category prefs
+  (currently reachable only via direct API calls), and the
+  `discreet`/`preferred_time` fields from PRD §14's fuller model.
 - **No stored per-user timezone.** PRD §11 says notifications must be
   "sensibles au fuseau horaire". The pilot market is Sénégal (PRD §1,
   "Marché pilote: Sénégal"), which is UTC+0 year-round (no DST) — so a
@@ -211,8 +224,13 @@ itself the mechanism the loop depends on.
 
 ## 8. Deferred / explicitly out of scope
 
-- Per-category notification preferences + Settings UI (PRD §14's full
-  `notification_preferences` shape).
+- Settings UI for per-category notification preferences (the underlying
+  `NotificationPreferences` model + `isChannelEnabled` check are wired
+  into this phase's cron route as of the final-review fix wave — see §1
+  correction; only the UI to edit them remains deferred, reachable today
+  via direct `PATCH /api/notifications/prefs` calls). The `discreet`/
+  `preferred_time` fields from PRD §14's fuller model are also still
+  deferred.
 - Real per-user timezone storage (needed before expanding past Sénégal).
 - Email digest for N03 (weekly résumé) or any push-notification channel.
 - Batching/pagination for the N03 per-user `deriveInsights` computation

@@ -30,6 +30,7 @@ import {
   type PredictionRow,
 } from '@/lib/server/notifications/triggers';
 import { deriveInsights, type InsightsInput } from '@/lib/server/insights/compute-insights';
+import { isChannelEnabled, type NotificationPrefs } from '@/lib/server/notifications/prefs-merge';
 
 const log = createLogger();
 const LEASE_TTL_MS = 120_000;
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const ctx = makeRequestContext(req.headers);
   return withRequestContext(ctx, async () => {
     let sent = 0;
+    let failed = 0;
 
     await withLease(redis ?? undefined, 'notification-triggers', LEASE_TTL_MS, async () => {
       const today = todayUtcDate();
@@ -59,7 +61,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
       const userIds = profiles.map((p) => p.userId);
 
-      const [predictionRows, todayLogRows] = await Promise.all([
+      const [predictionRows, todayLogRows, prefsRows] = await Promise.all([
         prisma.prediction.findMany({
           where: { userId: { in: userIds } },
           select: { userId: true, expectedPeriodStart: true, fertileWindowStart: true },
@@ -68,74 +70,98 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           where: { userId: { in: userIds }, date: today },
           select: { userId: true },
         }),
+        prisma.notificationPreferences.findMany({
+          where: { userId: { in: userIds } },
+          select: { userId: true, prefs: true },
+        }),
       ]);
 
       const predictionByUser = new Map<string, PredictionRow>(
         predictionRows.map((p) => [p.userId, p]),
       );
       const loggedTodayUsers = new Set(todayLogRows.map((l) => l.userId));
+      const prefsByUser = new Map<string, NotificationPrefs>(
+        prefsRows.map((p) => [p.userId, p.prefs as NotificationPrefs]),
+      );
       const isMonday = today.getUTCDay() === 1;
 
       for (const profile of profiles) {
-        const prediction = predictionByUser.get(profile.userId);
-        const hasTodayLog = loggedTodayUsers.has(profile.userId);
+        try {
+          const prediction = predictionByUser.get(profile.userId);
+          const hasTodayLog = loggedTodayUsers.has(profile.userId);
 
-        const toSend = [
-          checkPeriodReminder(profile, prediction, today),
-          checkJournalReminder(profile, hasTodayLog, today),
-          checkFertilityReminder(profile, prediction, today),
-        ];
+          const toSend = [
+            checkPeriodReminder(profile, prediction, today),
+            checkJournalReminder(profile, hasTodayLog, today),
+            checkFertilityReminder(profile, prediction, today),
+          ];
 
-        if (isMonday) {
-          const [cycles, dailyLogs, periodEvents] = await Promise.all([
-            prisma.cycle.findMany({
-              where: { userId: profile.userId },
-              orderBy: { startDate: 'asc' },
-              select: { startDate: true, endDate: true, length: true, isOutlier: true },
-            }),
-            prisma.dailyLog.findMany({
-              where: { userId: profile.userId },
-              orderBy: { date: 'asc' },
-              include: { symptoms: true },
-            }),
-            prisma.periodEvent.findMany({
-              where: { userId: profile.userId },
-              orderBy: { date: 'asc' },
-              select: { date: true },
-            }),
-          ]);
+          if (isMonday) {
+            const [cycles, dailyLogs, periodEvents] = await Promise.all([
+              prisma.cycle.findMany({
+                where: { userId: profile.userId },
+                orderBy: { startDate: 'asc' },
+                select: { startDate: true, endDate: true, length: true, isOutlier: true },
+              }),
+              prisma.dailyLog.findMany({
+                where: { userId: profile.userId },
+                orderBy: { date: 'asc' },
+                include: { symptoms: true },
+              }),
+              prisma.periodEvent.findMany({
+                where: { userId: profile.userId },
+                orderBy: { date: 'asc' },
+                select: { date: true },
+              }),
+            ]);
 
-          const insightsInput: InsightsInput = {
-            cycles,
-            dailyLogs: dailyLogs.map((l) => ({
-              date: l.date,
-              mood: l.mood,
-              energy: l.energy,
-              sleepQuality: l.sleepQuality,
-              painLevel: l.painLevel,
-              symptoms: l.symptoms.map((s) => s.symptom),
-            })),
-            periodEventDates: periodEvents.map((e) => e.date),
-          };
+            const insightsInput: InsightsInput = {
+              cycles,
+              dailyLogs: dailyLogs.map((l) => ({
+                date: l.date,
+                mood: l.mood,
+                energy: l.energy,
+                sleepQuality: l.sleepQuality,
+                painLevel: l.painLevel,
+                symptoms: l.symptoms.map((s) => s.symptom),
+              })),
+              periodEventDates: periodEvents.map((e) => e.date),
+            };
 
-          const { eligible } = deriveInsights(insightsInput);
-          toSend.push(checkWeeklySummary(profile, eligible, today));
-        }
+            const { eligible } = deriveInsights(insightsInput);
+            toSend.push(checkWeeklySummary(profile, eligible, today));
+          }
 
-        for (const input of toSend) {
-          if (!input) continue;
-          const created = await createNotification(prisma, input);
-          if (created) sent += 1;
+          const prefs = prefsByUser.get(profile.userId);
+
+          for (const input of toSend) {
+            if (!input) continue;
+            if (!isChannelEnabled(prefs, input.type, 'inApp')) continue;
+            const created = await createNotification(prisma, input);
+            if (created) sent += 1;
+          }
+        } catch (err) {
+          failed += 1;
+          log.error('notification-triggers: profile processing failed', {
+            userId: profile.userId,
+            requestId: ctx.requestId,
+            error: err instanceof Error ? err.message : String(err),
+          });
+          continue;
         }
       }
 
       log.info('notification-triggers tick', {
         sent,
+        failed,
         profiles: profiles.length,
         requestId: ctx.requestId,
       });
     });
 
-    return NextResponse.json({ ok: true, sent }, { headers: { 'x-request-id': ctx.requestId } });
+    return NextResponse.json(
+      { ok: true, sent, failed },
+      { headers: { 'x-request-id': ctx.requestId } },
+    );
   });
 }
