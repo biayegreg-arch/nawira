@@ -9,13 +9,16 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))),
-      ),
+    Promise.all([
+      caches
+        .keys()
+        .then((keys) =>
+          Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))),
+        ),
+      // Spec-correct form: keep the worker alive until claim() resolves.
+      self.clients.claim(),
+    ]),
   );
-  self.clients.claim();
 });
 
 self.addEventListener('message', (event) => {
@@ -41,7 +44,14 @@ self.addEventListener('fetch', (event) => {
           cached ||
           fetch(event.request).then((response) => {
             const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            if (response.ok) {
+              // Best-effort cache write — failures (quota, opaque responses) are
+              // intentionally swallowed rather than surfacing as unhandled rejections.
+              caches
+                .open(CACHE_NAME)
+                .then((cache) => cache.put(event.request, clone))
+                .catch(() => {});
+            }
             return response;
           }),
       ),
@@ -54,12 +64,30 @@ self.addEventListener('fetch', (event) => {
       fetch(event.request)
         .then((response) => {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          // Never cache navigations with a query string: magic-link routes like
+          // /verify-email?email=...&code=... and /reset-password?email=...&code=...
+          // carry live auth secrets in the query — caching them persists a secret
+          // to disk indefinitely with no eviction hook.
+          if (response.ok && url.search === '') {
+            // Best-effort cache write — failures (quota, opaque responses) are
+            // intentionally swallowed rather than surfacing as unhandled rejections.
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(event.request, clone))
+              .catch(() => {});
+          }
           return response;
         })
         .catch(() =>
           caches.match(event.request).then((cached) => cached || caches.match(OFFLINE_URL)),
         ),
     );
+    return;
   }
+
+  // Anything reaching here is a GET request that's neither a static asset nor a
+  // navigation (e.g. Next.js App Router RSC payload fetches like
+  // `GET /app/calendar?_rsc=...` issued during client-side navigation/prefetch).
+  // Intentionally falls through to default network handling — do not add a
+  // catch-all cache branch here.
 });

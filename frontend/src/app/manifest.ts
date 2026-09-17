@@ -5,6 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'NAWIRA',
     short_name: 'NAWIRA',
     description: 'Comprends ton corps. Vis ta vie sereinement.',
+    id: '/',
     start_url: '/app/today',
     display: 'standalone',
     background_color: '#fdfbfd',
