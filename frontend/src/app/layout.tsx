@@ -3,6 +3,7 @@ import { DM_Sans } from 'next/font/google';
 import './globals.css';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { PwaRegister } from '@/components/pwa/PwaRegister';
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
@@ -27,6 +28,7 @@ export default function RootLayout({
         <ToastProvider>
           <AuthProvider>{children}</AuthProvider>
         </ToastProvider>
+        <PwaRegister />
       </body>
     </html>
   );
