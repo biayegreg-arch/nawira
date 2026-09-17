@@ -116,6 +116,7 @@ export async function recomputeCyclesAndPrediction(
         fertileWindowStart: fertilityWindow?.fertileWindowStart ?? null,
         fertileWindowEnd: fertilityWindow?.fertileWindowEnd ?? null,
         computedAt: new Date(),
+        version: { increment: 1 },
       },
     });
   } else {

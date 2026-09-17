@@ -30,6 +30,7 @@ describe('GET /api/predictions/current', () => {
       fertileWindowStart: new Date('2026-02-10'),
       fertileWindowEnd: new Date('2026-02-16'),
       computedAt: new Date('2026-02-01T10:00:00.000Z'),
+      version: 3,
     } as never);
 
     const res = await GET(makeReq());
@@ -45,6 +46,7 @@ describe('GET /api/predictions/current', () => {
         ovulationEstimate: '2026-02-15',
         fertileWindowStart: '2026-02-10',
         fertileWindowEnd: '2026-02-16',
+        version: 3,
       },
     });
 

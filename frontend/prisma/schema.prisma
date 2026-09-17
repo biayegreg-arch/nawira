@@ -406,11 +406,12 @@ model AssistantMessage {
 }
 
 model PeriodEvent {
-  id     String   @id @default(cuid())
-  userId String
-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  date   DateTime @db.Date
-  flow   String // SPOTTING | LIGHT | MEDIUM | HEAVY
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  flow      String // SPOTTING | LIGHT | MEDIUM | HEAVY
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@unique([userId, date])
 }
@@ -440,6 +441,7 @@ model DailyLog {
   sleepHours   Float?
   note         String?
   symptoms     SymptomLog[]
+  updatedAt    DateTime     @default(now()) @updatedAt
 
   @@unique([userId, date])
 }
@@ -463,6 +465,7 @@ model FertilitySignal {
   temperatureUnit   String? // CELSIUS | FAHRENHEIT
   cervicalMucusType String? // DRY | STICKY | CREAMY | WATERY | EGG_WHITE
   lhResult          String? // NEGATIVE | POSITIVE | PEAK | INCONCLUSIVE
+  updatedAt         DateTime @default(now()) @updatedAt
 
   @@unique([userId, date, type])
 }
@@ -478,6 +481,7 @@ model Prediction {
   fertileWindowStart  DateTime?
   fertileWindowEnd    DateTime?
   computedAt          DateTime
+  version             Int       @default(0)
 }
 
 model Insight {

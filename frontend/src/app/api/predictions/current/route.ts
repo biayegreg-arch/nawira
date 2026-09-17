@@ -37,6 +37,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
               expectedPeriodEnd: prediction.expectedPeriodEnd.toISOString().slice(0, 10),
               algorithmVersion: prediction.algorithmVersion,
               computedAt: prediction.computedAt.toISOString(),
+              version: prediction.version,
               ovulationEstimate: isoDateOrNull(prediction.ovulationEstimate),
               fertileWindowStart: isoDateOrNull(prediction.fertileWindowStart),
               fertileWindowEnd: isoDateOrNull(prediction.fertileWindowEnd),
