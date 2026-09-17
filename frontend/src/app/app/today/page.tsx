@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { api, ApiError } from '@/lib/api';
+import { onCycleDataChanged, runOrQueue } from '@/lib/offline/queue';
 import { greetingName, staggerDelay } from '@/lib/utils';
 import { buildDayTypes, todayIso } from '@/lib/calendar-day-types';
 import { CycleRing } from '@/components/today/CycleRing';
@@ -92,11 +93,21 @@ export default function TodayPage(): React.JSX.Element | null {
     if (user) void load();
   }, [user, load]);
 
+  useEffect(() => onCycleDataChanged(() => void load()), [load]);
+
   const handleLog = useCallback(() => {
     setLogging(true);
     void (async () => {
       try {
-        await api('/api/period-events', { method: 'POST', body: {} });
+        const result = await runOrQueue(
+          `period-event:${todayIso()}`,
+          '/api/period-events',
+          'POST',
+          {},
+        );
+        if (result.queued) {
+          toast('Hors ligne — sera synchronisé automatiquement.', 'info');
+        }
         await load();
       } catch (err) {
         toast(
@@ -116,11 +127,16 @@ export default function TodayPage(): React.JSX.Element | null {
       void (async () => {
         try {
           const nextMood = todayLog.mood === mood ? null : mood;
-          await api('/api/daily-logs/today', {
-            method: 'PUT',
-            body: { ...todayLog, mood: nextMood },
-          });
+          const result = await runOrQueue(
+            `daily-log:${todayIso()}`,
+            '/api/daily-logs/today',
+            'PUT',
+            { ...todayLog, mood: nextMood },
+          );
           setTodayLog({ ...todayLog, mood: nextMood });
+          if (result.queued) {
+            toast('Hors ligne — sera synchronisé automatiquement.', 'info');
+          }
         } catch (err) {
           toast(
             err instanceof ApiError ? err.message : 'Impossible d’enregistrer. Réessaie.',

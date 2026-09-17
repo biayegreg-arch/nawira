@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { onCycleDataChanged } from '@/lib/offline/queue';
 import { staggerDelay } from '@/lib/utils';
 import { buildDayTypes, todayIso } from '@/lib/calendar-day-types';
 import { MonthGrid, type CalendarDayType } from '@/components/calendar/MonthGrid';
@@ -67,6 +68,8 @@ export default function CalendarPage(): React.JSX.Element | null {
   useEffect(() => {
     if (user) void load();
   }, [user, load]);
+
+  useEffect(() => onCycleDataChanged(() => void load()), [load]);
 
   const dayTypes = useMemo(() => {
     if (!cycles) return {};

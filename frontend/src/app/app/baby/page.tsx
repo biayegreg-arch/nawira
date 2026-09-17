@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { api, ApiError } from '@/lib/api';
+import { onCycleDataChanged, runOrQueue } from '@/lib/offline/queue';
 import { staggerDelay } from '@/lib/utils';
 import { todayIso } from '@/lib/calendar-day-types';
 import { FertilityWindowCard } from '@/components/baby/FertilityWindowCard';
@@ -92,15 +93,27 @@ export default function BabyPage(): React.JSX.Element | null {
     if (user) void load();
   }, [user, load]);
 
+  useEffect(() => onCycleDataChanged(() => void load()), [load]);
+
   const handleSaveOther = useCallback(
     (values: OtherSignalsValues) => {
       setSavingOther(true);
       void (async () => {
         try {
           const merged: TodaySignals = { ...values, lhResult: signals.lhResult };
-          await api('/api/fertility-signals/today', { method: 'PUT', body: merged });
+          const result = await runOrQueue(
+            `fertility-signal:${todayIso()}`,
+            '/api/fertility-signals/today',
+            'PUT',
+            merged,
+          );
           setSignals(merged);
-          toast('Signaux enregistrés.', 'success');
+          toast(
+            result.queued
+              ? 'Hors ligne — sera synchronisé automatiquement.'
+              : 'Signaux enregistrés.',
+            result.queued ? 'info' : 'success',
+          );
         } catch (err) {
           toast(
             err instanceof ApiError ? err.message : 'Impossible d’enregistrer. Réessaie.',

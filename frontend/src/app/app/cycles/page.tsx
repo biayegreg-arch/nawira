@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { onCycleDataChanged } from '@/lib/offline/queue';
 import { staggerDelay } from '@/lib/utils';
 import { CycleListItem } from '@/components/cycles/CycleListItem';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
@@ -49,6 +50,8 @@ export default function CyclesHistoryPage(): React.JSX.Element | null {
   useEffect(() => {
     if (user) void load();
   }, [user, load]);
+
+  useEffect(() => onCycleDataChanged(() => void load()), [load]);
 
   if (!user) return null;
 

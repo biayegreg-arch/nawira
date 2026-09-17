@@ -6,6 +6,7 @@ import { Info, ClipboardCheck, Calendar, Lightbulb, History } from 'lucide-react
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { api, ApiError } from '@/lib/api';
+import { runOrQueue } from '@/lib/offline/queue';
 import { todayIso } from '@/lib/calendar-day-types';
 import { ProjetBebeBreadcrumb } from '@/components/baby/ProjetBebeBreadcrumb';
 import { formatFrenchDate } from '@/lib/format-date';
@@ -145,8 +146,16 @@ export default function AddLhTestPage(): React.JSX.Element | null {
     void (async () => {
       try {
         const merged: TodaySignals = { ...signals, lhResult: selected };
-        await api('/api/fertility-signals/today', { method: 'PUT', body: merged });
-        toast('Test LH enregistré.', 'success');
+        const result = await runOrQueue(
+          `fertility-signal:${todayIso()}`,
+          '/api/fertility-signals/today',
+          'PUT',
+          merged,
+        );
+        toast(
+          result.queued ? 'Hors ligne — sera synchronisé automatiquement.' : 'Test LH enregistré.',
+          result.queued ? 'info' : 'success',
+        );
         router.push('/app/baby');
       } catch (err) {
         toast(

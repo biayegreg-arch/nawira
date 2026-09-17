@@ -5,6 +5,7 @@ import { greetingName } from '@/lib/utils';
 import { NotificationBell } from '@/components/app/NotificationBell';
 import { GlobalSearch } from '@/components/app/GlobalSearch';
 import { UserMenu } from '@/components/app/UserMenu';
+import { SyncStatusIndicator } from '@/components/app/SyncStatusIndicator';
 
 export function AppTopBar(): React.JSX.Element {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ export function AppTopBar(): React.JSX.Element {
         <span className="text-sm font-semibold text-navy">Bonjour {name} 👋</span>
         <GlobalSearch compact />
       </div>
+      {user && <SyncStatusIndicator />}
       {user && <NotificationBell />}
       {user && <UserMenu />}
     </div>

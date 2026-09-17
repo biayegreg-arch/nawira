@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { api, ApiError } from '@/lib/api';
+import { runOrQueue } from '@/lib/offline/queue';
 import { staggerDelay } from '@/lib/utils';
 import { todayIso } from '@/lib/calendar-day-types';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
@@ -108,23 +109,47 @@ export default function LogPage(): React.JSX.Element | null {
   const handleSubmit = useCallback(
     (values: DailyLogSubmitValues) => {
       setSaving(true);
+      const today = todayIso();
       void (async () => {
         try {
           const { flow, temperatureValue, temperatureUnit, ...logValues } = values;
-          await api('/api/daily-logs/today', { method: 'PUT', body: logValues });
+          let anyQueued = false;
+
+          const logResult = await runOrQueue(
+            `daily-log:${today}`,
+            '/api/daily-logs/today',
+            'PUT',
+            logValues,
+          );
+          anyQueued ||= logResult.queued;
+
           if (flow !== 'NONE') {
-            await api('/api/period-events', { method: 'POST', body: { flow } });
+            const flowResult = await runOrQueue(
+              `period-event:${today}`,
+              '/api/period-events',
+              'POST',
+              { flow },
+            );
+            anyQueued ||= flowResult.queued;
           }
-          await api('/api/fertility-signals/today', {
-            method: 'PUT',
-            body: {
+
+          const signalResult = await runOrQueue(
+            `fertility-signal:${today}`,
+            '/api/fertility-signals/today',
+            'PUT',
+            {
               temperatureValue,
               temperatureUnit,
               cervicalMucusType: existingSignals?.cervicalMucusType ?? null,
               lhResult: existingSignals?.lhResult ?? null,
             },
-          });
-          toast('Données enregistrées.', 'success');
+          );
+          anyQueued ||= signalResult.queued;
+
+          toast(
+            anyQueued ? 'Hors ligne — sera synchronisé automatiquement.' : 'Données enregistrées.',
+            anyQueued ? 'info' : 'success',
+          );
           await load();
         } catch (err) {
           toast(
@@ -142,14 +167,21 @@ export default function LogPage(): React.JSX.Element | null {
   const handlePeriodRangeSubmit = useCallback(
     async (values: PeriodRangeSubmitValues) => {
       try {
-        const res = await api<{ ok: true; daysLogged: number }>('/api/period-events', {
-          method: 'POST',
-          body: values,
-        });
-        toast(
-          `${res.daysLogged} jour${res.daysLogged > 1 ? 's' : ''} de règles ajouté${res.daysLogged > 1 ? 's' : ''}.`,
-          'success',
+        const result = await runOrQueue<{ ok: true; daysLogged: number }>(
+          `period-event-range:${values.startDate}:${values.endDate}`,
+          '/api/period-events',
+          'POST',
+          values,
         );
+        if (result.queued) {
+          toast('Hors ligne — sera synchronisé automatiquement.', 'info');
+        } else {
+          const days = result.result?.daysLogged ?? 0;
+          toast(
+            `${days} jour${days > 1 ? 's' : ''} de règles ajouté${days > 1 ? 's' : ''}.`,
+            'success',
+          );
+        }
         await load();
       } catch (err) {
         toast(
