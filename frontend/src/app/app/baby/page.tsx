@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import { api, ApiError } from '@/lib/api';
+import { ApiError } from '@/lib/api';
 import { onCycleDataChanged, runOrQueue } from '@/lib/offline/queue';
+import { fetchCached } from '@/lib/offline/read-cache';
 import { staggerDelay } from '@/lib/utils';
 import { todayIso } from '@/lib/calendar-day-types';
 import { FertilityWindowCard } from '@/components/baby/FertilityWindowCard';
@@ -13,6 +14,7 @@ import { ConceptionStatsCard } from '@/components/baby/ConceptionStatsCard';
 import { OtherSignalsCard, type OtherSignalsValues } from '@/components/baby/OtherSignalsCard';
 import { LHTestTracker, type RecentLhEntry } from '@/components/baby/LHTestTracker';
 import { ProjetBebeTabs } from '@/components/baby/ProjetBebeTabs';
+import { OfflineDataBanner } from '@/components/app/OfflineDataBanner';
 
 interface CycleSummary {
   startDate: string;
@@ -64,26 +66,31 @@ export default function BabyPage(): React.JSX.Element | null {
   const [profileStats, setProfileStats] = useState<ProfileStats | null>(null);
   const [error, setError] = useState(false);
   const [savingOther, setSavingOther] = useState(false);
+  const [offlineCachedAt, setOfflineCachedAt] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(false);
     try {
       const [cyclesRes, predictionRes, signalsRes, recentRes, profileRes] = await Promise.all([
-        api<{ cycles: CycleSummary[] }>('/api/cycles'),
-        api<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
-        api<{ signal: TodaySignals | null }>('/api/fertility-signals/today'),
-        api<{ entries: RecentLhEntry[] }>('/api/fertility-signals/recent'),
-        api<{
+        fetchCached<{ cycles: CycleSummary[] }>('/api/cycles'),
+        fetchCached<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
+        fetchCached<{ signal: TodaySignals | null }>('/api/fertility-signals/today'),
+        fetchCached<{ entries: RecentLhEntry[] }>('/api/fertility-signals/recent'),
+        fetchCached<{
           profile: { createdAt: string };
           stats: ProfileStats;
         }>('/api/profile'),
       ]);
-      setCycles(cyclesRes.cycles);
-      setPrediction(predictionRes.prediction);
-      setSignals(signalsRes.signal ?? EMPTY_SIGNALS);
-      setRecentLhEntries(recentRes.entries);
-      setProfileCreatedAt(profileRes.profile.createdAt);
-      setProfileStats(profileRes.stats);
+      setCycles(cyclesRes.data.cycles);
+      setPrediction(predictionRes.data.prediction);
+      setSignals(signalsRes.data.signal ?? EMPTY_SIGNALS);
+      setRecentLhEntries(recentRes.data.entries);
+      setProfileCreatedAt(profileRes.data.profile.createdAt);
+      setProfileStats(profileRes.data.stats);
+      const stale = [cyclesRes, predictionRes, signalsRes, recentRes, profileRes].find(
+        (r) => r.stale,
+      );
+      setOfflineCachedAt(stale?.cachedAt ?? null);
     } catch {
       setError(true);
     }
@@ -155,6 +162,7 @@ export default function BabyPage(): React.JSX.Element | null {
 
   return (
     <div className="p-4 lg:p-8">
+      {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <div className="mb-6">
         <h1 className="flex items-center gap-3 text-2xl font-bold text-navy">
           <span className="text-3xl">🌿</span>

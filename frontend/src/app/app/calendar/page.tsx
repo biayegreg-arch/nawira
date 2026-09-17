@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
-import { api } from '@/lib/api';
 import { onCycleDataChanged } from '@/lib/offline/queue';
+import { fetchCached } from '@/lib/offline/read-cache';
 import { staggerDelay } from '@/lib/utils';
 import { buildDayTypes, todayIso } from '@/lib/calendar-day-types';
 import { MonthGrid, type CalendarDayType } from '@/components/calendar/MonthGrid';
 import { CalendarLegend } from '@/components/calendar/CalendarLegend';
+import { OfflineDataBanner } from '@/components/app/OfflineDataBanner';
 
 interface CycleSummary {
   startDate: string;
@@ -47,6 +48,7 @@ export default function CalendarPage(): React.JSX.Element | null {
   const [cycles, setCycles] = useState<CycleSummary[] | null>(null);
   const [prediction, setPrediction] = useState<PredictionSummary | null>(null);
   const [error, setError] = useState(false);
+  const [offlineCachedAt, setOfflineCachedAt] = useState<string | null>(null);
 
   const now = new Date();
   const [view, setView] = useState({ year: now.getFullYear(), month: now.getMonth() });
@@ -55,11 +57,13 @@ export default function CalendarPage(): React.JSX.Element | null {
     setError(false);
     try {
       const [cyclesRes, predictionRes] = await Promise.all([
-        api<{ cycles: CycleSummary[]; todayLogged: boolean }>('/api/cycles'),
-        api<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
+        fetchCached<{ cycles: CycleSummary[]; todayLogged: boolean }>('/api/cycles'),
+        fetchCached<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
       ]);
-      setCycles(cyclesRes.cycles);
-      setPrediction(predictionRes.prediction);
+      setCycles(cyclesRes.data.cycles);
+      setPrediction(predictionRes.data.prediction);
+      const stale = [cyclesRes, predictionRes].find((r) => r.stale);
+      setOfflineCachedAt(stale?.cachedAt ?? null);
     } catch {
       setError(true);
     }
@@ -114,6 +118,7 @@ export default function CalendarPage(): React.JSX.Element | null {
 
   return (
     <div className="mx-auto max-w-4xl p-4 lg:p-8">
+      {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <h1 className="mb-1 text-2xl font-bold text-navy">Calendrier</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Visualise tes règles passées et tes prochaines prédictions.

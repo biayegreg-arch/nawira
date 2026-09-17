@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import { api, ApiError } from '@/lib/api';
+import { ApiError } from '@/lib/api';
 import { onCycleDataChanged, runOrQueue } from '@/lib/offline/queue';
+import { fetchCached } from '@/lib/offline/read-cache';
 import { greetingName, staggerDelay } from '@/lib/utils';
 import { buildDayTypes, todayIso } from '@/lib/calendar-day-types';
+import { OfflineDataBanner } from '@/components/app/OfflineDataBanner';
 import { CycleRing } from '@/components/today/CycleRing';
 import { PeriodLogCta } from '@/components/today/PeriodLogCta';
 import { PredictionCards } from '@/components/today/PredictionCards';
@@ -60,20 +62,21 @@ export default function TodayPage(): React.JSX.Element | null {
   const [error, setError] = useState(false);
   const [logging, setLogging] = useState(false);
   const [savingMood, setSavingMood] = useState(false);
+  const [offlineCachedAt, setOfflineCachedAt] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(false);
     try {
       const [cyclesRes, predictionRes, logRes] = await Promise.all([
-        api<{ cycles: CycleSummary[]; todayLogged: boolean }>('/api/cycles'),
-        api<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
-        api<{ log: DailyLogState | null }>('/api/daily-logs/today'),
+        fetchCached<{ cycles: CycleSummary[]; todayLogged: boolean }>('/api/cycles'),
+        fetchCached<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
+        fetchCached<{ log: DailyLogState | null }>('/api/daily-logs/today'),
       ]);
-      setCycles(cyclesRes.cycles);
-      setTodayLogged(cyclesRes.todayLogged);
-      setPrediction(predictionRes.prediction);
+      setCycles(cyclesRes.data.cycles);
+      setTodayLogged(cyclesRes.data.todayLogged);
+      setPrediction(predictionRes.data.prediction);
       setTodayLog(
-        logRes.log ?? {
+        logRes.data.log ?? {
           painLevel: null,
           painLocation: null,
           mood: null,
@@ -84,6 +87,8 @@ export default function TodayPage(): React.JSX.Element | null {
           symptoms: [],
         },
       );
+      const stale = [cyclesRes, predictionRes, logRes].find((r) => r.stale);
+      setOfflineCachedAt(stale?.cachedAt ?? null);
     } catch {
       setError(true);
     }
@@ -189,6 +194,7 @@ export default function TodayPage(): React.JSX.Element | null {
 
   return (
     <div className="p-4 lg:p-8">
+      {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <div
         className="animate-fade-in-up mb-6 rounded-xl p-6"
         style={{ background: 'linear-gradient(135deg, #F8F5FD 0%, #FDF5F9 100%)' }}

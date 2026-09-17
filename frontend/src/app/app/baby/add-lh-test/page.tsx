@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { Info, ClipboardCheck, Calendar, Lightbulb, History } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import { api, ApiError } from '@/lib/api';
+import { ApiError } from '@/lib/api';
 import { runOrQueue } from '@/lib/offline/queue';
+import { fetchCached } from '@/lib/offline/read-cache';
 import { todayIso } from '@/lib/calendar-day-types';
 import { ProjetBebeBreadcrumb } from '@/components/baby/ProjetBebeBreadcrumb';
 import { formatFrenchDate } from '@/lib/format-date';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { OfflineDataBanner } from '@/components/app/OfflineDataBanner';
 
 interface CycleSummary {
   startDate: string;
@@ -115,22 +117,25 @@ export default function AddLhTestPage(): React.JSX.Element | null {
   const [selected, setSelected] = useState<string | null>(null);
   const [error, setError] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [offlineCachedAt, setOfflineCachedAt] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(false);
     try {
       const [cyclesRes, predictionRes, signalsRes, recentRes] = await Promise.all([
-        api<{ cycles: CycleSummary[] }>('/api/cycles'),
-        api<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
-        api<{ signal: TodaySignals | null }>('/api/fertility-signals/today'),
-        api<{ entries: RecentLhEntry[] }>('/api/fertility-signals/recent'),
+        fetchCached<{ cycles: CycleSummary[] }>('/api/cycles'),
+        fetchCached<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
+        fetchCached<{ signal: TodaySignals | null }>('/api/fertility-signals/today'),
+        fetchCached<{ entries: RecentLhEntry[] }>('/api/fertility-signals/recent'),
       ]);
-      setCycles(cyclesRes.cycles);
-      setPrediction(predictionRes.prediction);
-      const todaySignals = signalsRes.signal ?? EMPTY_SIGNALS;
+      setCycles(cyclesRes.data.cycles);
+      setPrediction(predictionRes.data.prediction);
+      const todaySignals = signalsRes.data.signal ?? EMPTY_SIGNALS;
       setSignals(todaySignals);
       setSelected(todaySignals.lhResult);
-      setRecentEntries(recentRes.entries);
+      setRecentEntries(recentRes.data.entries);
+      const stale = [cyclesRes, predictionRes, signalsRes, recentRes].find((r) => r.stale);
+      setOfflineCachedAt(stale?.cachedAt ?? null);
     } catch {
       setError(true);
     }
@@ -205,6 +210,7 @@ export default function AddLhTestPage(): React.JSX.Element | null {
 
   return (
     <div className="p-4 lg:p-8">
+      {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <ProjetBebeBreadcrumb current="Ajouter un test LH" />
       <div className="mb-6">
         <h1 className="mb-1 flex items-center gap-3 text-2xl font-bold text-navy">

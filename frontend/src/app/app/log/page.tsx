@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
-import { api, ApiError } from '@/lib/api';
+import { ApiError } from '@/lib/api';
 import { runOrQueue } from '@/lib/offline/queue';
+import { fetchCached } from '@/lib/offline/read-cache';
 import { staggerDelay } from '@/lib/utils';
 import { todayIso } from '@/lib/calendar-day-types';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { OfflineDataBanner } from '@/components/app/OfflineDataBanner';
 import {
   DailyLogForm,
   type DailyLogInitialValues,
@@ -54,24 +56,25 @@ export default function LogPage(): React.JSX.Element | null {
   const [existingSignals, setExistingSignals] = useState<FertilitySignals | null>(null);
   const [error, setError] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [offlineCachedAt, setOfflineCachedAt] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(false);
     try {
       const [logRes, cyclesRes, predictionRes, recentRes, signalsRes] = await Promise.all([
-        api<{ log: Omit<DailyLogInitialValues, 'temperatureValue' | 'temperatureUnit'> | null }>(
-          '/api/daily-logs/today',
-        ),
-        api<{ cycles: CycleSummary[]; todayLogged: boolean; todayFlow: string | null }>(
+        fetchCached<{
+          log: Omit<DailyLogInitialValues, 'temperatureValue' | 'temperatureUnit'> | null;
+        }>('/api/daily-logs/today'),
+        fetchCached<{ cycles: CycleSummary[]; todayLogged: boolean; todayFlow: string | null }>(
           '/api/cycles',
         ),
-        api<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
-        api<{ entries: RecentEntry[] }>('/api/daily-logs/recent'),
-        api<{ signal: FertilitySignals | null }>('/api/fertility-signals/today'),
+        fetchCached<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
+        fetchCached<{ entries: RecentEntry[] }>('/api/daily-logs/recent'),
+        fetchCached<{ signal: FertilitySignals | null }>('/api/fertility-signals/today'),
       ]);
-      const signal = signalsRes.signal;
+      const signal = signalsRes.data.signal;
       setInitialValues({
-        ...(logRes.log ?? {
+        ...(logRes.data.log ?? {
           painLevel: null,
           painLocation: null,
           mood: null,
@@ -84,11 +87,11 @@ export default function LogPage(): React.JSX.Element | null {
         temperatureValue: signal?.temperatureValue ?? null,
         temperatureUnit: signal?.temperatureUnit ?? null,
       });
-      setTodayFlowLogged(cyclesRes.todayLogged);
-      setFlow(cyclesRes.todayFlow ?? 'NONE');
-      setCycles(cyclesRes.cycles);
-      setPrediction(predictionRes.prediction);
-      setRecentEntries(recentRes.entries);
+      setTodayFlowLogged(cyclesRes.data.todayLogged);
+      setFlow(cyclesRes.data.todayFlow ?? 'NONE');
+      setCycles(cyclesRes.data.cycles);
+      setPrediction(predictionRes.data.prediction);
+      setRecentEntries(recentRes.data.entries);
       setExistingSignals(
         signal ?? {
           temperatureValue: null,
@@ -97,6 +100,8 @@ export default function LogPage(): React.JSX.Element | null {
           lhResult: null,
         },
       );
+      const stale = [logRes, cyclesRes, predictionRes, recentRes, signalsRes].find((r) => r.stale);
+      setOfflineCachedAt(stale?.cachedAt ?? null);
     } catch {
       setError(true);
     }
@@ -227,6 +232,7 @@ export default function LogPage(): React.JSX.Element | null {
 
   return (
     <div className="p-4 lg:p-8">
+      {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="mb-1 text-2xl font-bold text-navy">Ajouter des données</h1>

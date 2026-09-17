@@ -4,11 +4,12 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
-import { api } from '@/lib/api';
 import { onCycleDataChanged } from '@/lib/offline/queue';
+import { fetchCached } from '@/lib/offline/read-cache';
 import { staggerDelay } from '@/lib/utils';
 import { CycleListItem } from '@/components/cycles/CycleListItem';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
+import { OfflineDataBanner } from '@/components/app/OfflineDataBanner';
 
 interface CycleSummary {
   startDate: string;
@@ -32,16 +33,19 @@ export default function CyclesHistoryPage(): React.JSX.Element | null {
   const [cycles, setCycles] = useState<CycleSummary[] | null>(null);
   const [prediction, setPrediction] = useState<PredictionSummary | null>(null);
   const [error, setError] = useState(false);
+  const [offlineCachedAt, setOfflineCachedAt] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(false);
     try {
       const [cyclesRes, predictionRes] = await Promise.all([
-        api<{ cycles: CycleSummary[] }>('/api/cycles'),
-        api<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
+        fetchCached<{ cycles: CycleSummary[] }>('/api/cycles'),
+        fetchCached<{ prediction: PredictionSummary | null }>('/api/predictions/current'),
       ]);
-      setCycles(cyclesRes.cycles);
-      setPrediction(predictionRes.prediction);
+      setCycles(cyclesRes.data.cycles);
+      setPrediction(predictionRes.data.prediction);
+      const stale = [cyclesRes, predictionRes].find((r) => r.stale);
+      setOfflineCachedAt(stale?.cachedAt ?? null);
     } catch {
       setError(true);
     }
@@ -77,6 +81,7 @@ export default function CyclesHistoryPage(): React.JSX.Element | null {
 
   return (
     <div className="mx-auto max-w-3xl p-4 lg:p-8">
+      {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <div className="mb-6 flex items-center gap-3 text-sm">
         <Link href="/app/today" className="flex items-center gap-2 text-muted-foreground">
           <ArrowLeft size={16} />
