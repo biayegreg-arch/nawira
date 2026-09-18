@@ -85,6 +85,28 @@ describe('POST /api/auth/login', () => {
     });
   });
 
+  it('Test 1a: activity-log failure does not block login success', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'u1',
+      email: 'a@b.com',
+      passwordHash: '$2a$12$hashhashhashhashhashhashhashhashhashhashhashhashhashhha',
+      emailVerifiedAt: new Date(),
+      tokenVersion: 0,
+      profile: null,
+    } as never);
+    vi.mocked(verifyPassword).mockResolvedValue(true);
+    prismaMock.accountActivity.create.mockRejectedValue(new Error('db unavailable'));
+
+    const res = await POST(makeReq({ email: 'a@b.com', password: 'longenough' }));
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toMatchObject({ ok: true, user: { sub: 'u1', email: 'a@b.com' } });
+    expect(__cookieStore.has('app-token')).toBe(true);
+    expect(__cookieStore.has('app-refresh')).toBe(true);
+    expect(__cookieStore.has('app-csrf')).toBe(true);
+  });
+
   it('Test 1b: hasProfile is true when a Profile row exists', async () => {
     prismaMock.user.findUnique.mockResolvedValue({
       id: 'u1',

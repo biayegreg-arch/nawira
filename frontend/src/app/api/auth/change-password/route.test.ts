@@ -198,6 +198,25 @@ describe('PUT /api/auth/change-password (AUTH-09)', () => {
     });
   });
 
+  it('Test 1a — activity-log failure does not block change-password success', async () => {
+    await seedAccessCookie(validToken);
+    prismaMock.accountActivity.create.mockRejectedValue(new Error('db unavailable'));
+    const req = buildRequest({
+      body: { currentPassword: 'Current-Pass-Old-2026', newPassword: 'Brand-New-Pass-2026' },
+      csrf: CSRF_TOKEN,
+      csrfCookieValue: CSRF_TOKEN,
+    });
+
+    const res = await PUT(req);
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toMatchObject({ ok: true });
+    expect(__cookieStore.has(COOKIE_NAME)).toBe(true);
+    expect(__cookieStore.has(REFRESH_COOKIE_NAME)).toBe(true);
+    expect(__cookieStore.has(CSRF_COOKIE_NAME)).toBe(true);
+  });
+
   it('Test 2 — missing CSRF header returns 403', async () => {
     await seedAccessCookie(validToken);
     const req = buildRequest({

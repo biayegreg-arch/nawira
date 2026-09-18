@@ -107,6 +107,18 @@ describe('GET /api/account/export', () => {
     });
   });
 
+  it('activity-log failure does not block export success', async () => {
+    authOk('u1', 'a@b.com');
+    prismaMock.accountActivity.create.mockRejectedValue(new Error('db unavailable'));
+
+    const res = await GET(makeReq());
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Disposition')).toMatch(/^attachment; filename="nawira-export-/);
+    const body = await res.json();
+    expect(body.user).toMatchObject({ id: 'u1', email: 'a@b.com' });
+  });
+
   it('scopes every query to the authenticated userId', async () => {
     authOk('u1', 'a@b.com');
 

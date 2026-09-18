@@ -315,6 +315,28 @@ describe('GET /api/auth/oauth/google/callback', () => {
     });
   });
 
+  it('activity-log failure does not block OAuth success redirect', async () => {
+    await seedCookie('app-oauth-state', STATE);
+    await seedCookie('app-oauth-pkce', PKCE);
+
+    prismaMock.oAuthAccount.findUnique.mockResolvedValue({
+      userId: 'u-returning',
+    } as never);
+    prismaMock.user.findUnique.mockResolvedValueOnce({
+      id: 'u-returning',
+      email: 'a@b.com',
+      tokenVersion: 0,
+    } as never);
+    prismaMock.accountActivity.create.mockRejectedValue(new Error('db unavailable'));
+
+    const res = await GET(makeReq({ code: 'c', state: STATE }));
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).not.toContain('/auth/error');
+    expect(mockSetAuthCookies).toHaveBeenCalledTimes(1);
+    expect(mockSetCsrfCookie).toHaveBeenCalledTimes(1);
+  });
+
   it('success branch with no app-oauth-next cookie: 302 to APP_URL', async () => {
     await seedCookie('app-oauth-state', STATE);
     await seedCookie('app-oauth-pkce', PKCE);

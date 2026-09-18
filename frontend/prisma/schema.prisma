@@ -9,48 +9,84 @@ datasource db {
 }
 
 model User {
-  id                     String                   @id @default(cuid())
-  email                  String                   @unique
-  passwordHash           String?
-  emailVerifiedAt        DateTime?
-  tokenVersion           Int                      @default(0)
-  withdrawalPinHash      String?
-  createdAt              DateTime                 @default(now())
-  updatedAt              DateTime                 @updatedAt
-  name                   String?
-  avatarUrl              String?
-  role                   String                   @default("USER")
-  status                 String                   @default("ACTIVE")
-  adminActions           AdminAction[]
-  analyticsEvents        AnalyticsEvent[]
-  assistantConversations AssistantConversation[]
-  accountActivity        AccountActivity[]
+  id                String    @id @default(cuid())
+  email             String    @unique
+  // Nullable: OAuth-only users (e.g. signed up with Google) never set a
+  // password. Email/password signup still requires it; the auth route
+  // enforces presence at runtime.
+  passwordHash      String?
+  emailVerifiedAt   DateTime?
+  tokenVersion      Int       @default(0)
+  withdrawalPinHash String? // bcrypt hash of withdrawal PIN; null = no PIN set
+  // Optional display name — populated from OAuth profile on first sign-in.
+  // Email/password users can fill it later via /api/auth/me PATCH (future).
+  name              String?
+  // Optional avatar URL — populated from OAuth profile on first sign-in.
+  avatarUrl         String?
+  // App-wide role. USER is the default; ADMIN unlocks /admin back-office;
+  // SUPERADMIN can promote/demote other admins. Bootstrap an initial
+  // SUPERADMIN via `pnpm db:make-superadmin <email>` (see scripts).
+  role              String    @default("USER") // USER | ADMIN | SUPERADMIN
+  // Account status. ACTIVE = login + refresh allowed; SUSPENDED = both
+  // refused with 403 ACCOUNT_SUSPENDED. Mutated via /api/admin/users/[id]/status
+  // (ADMIN can suspend; only SUPERADMIN can restore). DELETED = terminal,
+  // set only by self-service DELETE /api/account (lib/server/account/
+  // delete-account.ts) — no route re-checks this value because deletion
+  // already scrambles `email` (breaks login lookup) and bumps `tokenVersion`
+  // (invalidates every refresh token), so login/refresh are unreachable for
+  // a DELETED row without a separate status branch.
+  status            String    @default("ACTIVE") // ACTIVE | SUSPENDED | DELETED
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  verificationCodes      VerificationCode[]
+  uploads                FileUpload[]
+  notifications          Notification[]
+  notifPrefs             NotificationPreferences?
+  profile                Profile?
   consents               Consent[]
+  periodEvents           PeriodEvent[]
   cycles                 Cycle[]
   dailyLogs              DailyLog[]
   fertilitySignals       FertilitySignal[]
-  uploads                FileUpload[]
-  insights               Insight[]
-  notifications          Notification[]
-  notifPrefs             NotificationPreferences?
-  oauthAccounts          OAuthAccount[]
-  orders                 Order[]
-  ownedOrganizations     Organization[]           @relation("OrgOwner")
-  memberships            OrganizationMember[]     @relation("OrgMembership")
-  periodEvents           PeriodEvent[]
   prediction             Prediction?
-  profile                Profile?
-  verificationCodes      VerificationCode[]
+  insights               Insight[]
+  orders                 Order[]
   withdrawals            Withdrawal[]
+  oauthAccounts          OAuthAccount[]
+  adminActions           AdminAction[]
+  assistantConversations AssistantConversation[]
+  accountActivity        AccountActivity[]
+  analyticsEvents        AnalyticsEvent[]
+
+  // Multi-tenancy is opt-in per project: by default no resource is org-scoped.
+  // Apps that need it (marketplace, B2B SaaS, classifieds) wire owner relations
+  // on their domain models.
+  ownedOrganizations Organization[]       @relation("OrgOwner")
+  memberships        OrganizationMember[] @relation("OrgMembership")
 
   @@index([email])
   @@index([role])
   @@index([status])
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// Admin audit log — every back-office mutation is recorded here so we can
+// answer "who did what when" during incidents / compliance reviews.
+//
+// `action` is a free-form dotted string the UI groups by (e.g.
+// "withdrawal.cancel", "user.role_change", "order.refund").
+// `targetType` + `targetId` reference the affected row when applicable.
+// `metadata` carries the diff or extra context as JSON.
+//
+// Retention: not pruned automatically (compliance). If your jurisdiction
+// requires deletion after N years, add a cron in backend/src/index.ts
+// modeled on the WebhookLog purge.
+// ───────────────────────────────────────────────────────────────────────
 model AdminAction {
   id         String   @id @default(cuid())
   actorId    String
+  actor      User     @relation(fields: [actorId], references: [id], onDelete: Restrict)
   action     String
   targetType String?
   targetId   String?
@@ -58,13 +94,18 @@ model AdminAction {
   ip         String?
   userAgent  String?
   createdAt  DateTime @default(now())
-  actor      User     @relation(fields: [actorId], references: [id])
 
   @@index([actorId, createdAt])
   @@index([action, createdAt])
   @@index([targetType, targetId])
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// User-facing account-security activity log (E8 part A). Distinct from
+// AdminAction above: this is "what happened to MY account" (login,
+// password change, OAuth link, data export), shown on the user's own
+// /settings privacy page — not an admin/back-office audit trail.
+// ───────────────────────────────────────────────────────────────────────
 model AccountActivity {
   id        String   @id @default(cuid())
   userId    String
@@ -78,40 +119,64 @@ model AccountActivity {
   @@index([userId, createdAt])
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// Multi-tenancy primitives — opt-in.
+//
+// Default project surface stays user-owned (`Order.userId`, `Withdrawal.userId`).
+// Apps that need orgs add `organizationId String?` to their domain models
+// case by case and use `requireOrgRole()` middleware to gate access.
+//
+// Slug must be unique app-wide (not just within an owner) so it can be
+// used as a stable URL segment.
+// ───────────────────────────────────────────────────────────────────────
 model Organization {
   id        String               @id @default(cuid())
   slug      String               @unique
   name      String
   ownerId   String
+  owner     User                 @relation("OrgOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  members   OrganizationMember[]
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt
-  owner     User                 @relation("OrgOwner", fields: [ownerId], references: [id])
-  members   OrganizationMember[]
 
   @@index([ownerId])
 }
 
+// Role precedence: OWNER > ADMIN > MEMBER. The owner is also a member row
+// (created in the same tx as the org) so list-my-orgs queries can join
+// uniformly via memberships.
 model OrganizationMember {
   id             String       @id @default(cuid())
   organizationId String
-  userId         String
-  role           String       @default("MEMBER")
-  createdAt      DateTime     @default(now())
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
   user           User         @relation("OrgMembership", fields: [userId], references: [id], onDelete: Cascade)
+  role           String       @default("MEMBER") // OWNER | ADMIN | MEMBER
+  createdAt      DateTime     @default(now())
 
   @@unique([organizationId, userId])
   @@index([userId])
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// OAuth identities — one User can have N linked providers (Google, GitHub, …).
+// (provider, providerAccountId) is unique so the same Google account can't
+// link twice. Email matching at sign-in is intentional: if a user signed up
+// with email/password and later "Sign in with Google" using the same email,
+// we link the Google account to the existing user instead of creating a
+// duplicate (see backend/src/routes/oauth.ts).
+// ───────────────────────────────────────────────────────────────────────
 model OAuthAccount {
   id                String   @id @default(cuid())
   userId            String
-  provider          String
-  providerAccountId String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String // "google" | "github" | …
+  providerAccountId String // sub from the OIDC ID token
+  // Optional refresh token (encrypted at rest if you store one) — Google
+  // only returns it on first consent with `access_type=offline`. Most
+  // boilerplate flows don't need it; we keep the column for future use.
   refreshToken      String?
   createdAt         DateTime @default(now())
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -120,39 +185,45 @@ model OAuthAccount {
 model VerificationCode {
   id        String    @id @default(cuid())
   userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   code      String
-  type      String
+  type      String // EMAIL_VERIFY | PASSWORD_RESET
   expiresAt DateTime
   usedAt    DateTime?
   attempts  Int       @default(0)
   createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type])
   @@index([code, type])
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// File uploads — Cloudinary (column names kept from the R2 era; no migration needed)
+// ───────────────────────────────────────────────────────────────────────
 model FileUpload {
   id        String   @id @default(cuid())
-  userId    String?
-  key       String   @unique
+  userId    String? // nullable — uploads can be anonymous if route allows
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  key       String   @unique // Cloudinary public_id (column name historical — was R2 object key)
   filename  String
   mimeType  String
   sizeBytes Int
   createdAt DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// Phase 2 — durable email queue rows
+// ───────────────────────────────────────────────────────────────────────
 model EmailJob {
   id          String    @id @default(cuid())
   to          String
   subject     String
   html        String
   text        String?
-  status      String    @default("PENDING")
+  status      String    @default("PENDING") // PENDING | SENT | FAILED | DEAD
   attempts    Int       @default(0)
   lastError   String?
   scheduledAt DateTime  @default(now())
@@ -162,9 +233,13 @@ model EmailJob {
   @@index([status, scheduledAt])
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// Phase 2 — notifications (at-most-once via dedupeKey)
+// ───────────────────────────────────────────────────────────────────────
 model Notification {
   id        String    @id @default(cuid())
   userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      String
   title     String
   body      String
@@ -172,7 +247,6 @@ model Notification {
   dedupeKey String    @unique
   readAt    DateTime?
   createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt])
   @@index([userId, createdAt])
@@ -180,16 +254,27 @@ model Notification {
 
 model NotificationPreferences {
   userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // JSON map of { eventType: { email: bool, inApp: bool } } — flexible without migrations.
   prefs     Json     @default("{}")
   updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// Outbox — durable side-effects (notifications, emails) emitted from
+// inside transactions (e.g. webhook handlers, withdrawal flow). Side-effect
+// rows are inserted in the same tx as the state change, then a worker
+// drains them. Survives crashes the previous postCommit-callback pattern
+// silently dropped.
+//
+// `kind` is a free-form string the dispatcher routes on
+// (e.g. "notification.payment_received", "email.payment_confirmation").
+// ───────────────────────────────────────────────────────────────────────
 model OutboxEvent {
   id          String    @id @default(cuid())
   kind        String
   payload     Json
-  status      String    @default("PENDING")
+  status      String    @default("PENDING") // PENDING | SENT | FAILED | DEAD
   attempts    Int       @default(0)
   lastError   String?
   scheduledAt DateTime  @default(now())
@@ -199,6 +284,9 @@ model OutboxEvent {
   @@index([status, scheduledAt])
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// Phase 2 — webhook idempotency log
+// ───────────────────────────────────────────────────────────────────────
 model WebhookLog {
   id          String    @id @default(cuid())
   provider    String
@@ -212,28 +300,45 @@ model WebhookLog {
   @@index([provider, createdAt])
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// Phase 3 — payments (Order + Withdrawal)
+//
+// `amount` is stored in the smallest unit of `currency` (no decimals).
+// For XOF (FCFA, Senegal) that's 1 = 1 FCFA. For USD adapt to cents
+// at the call site — the schema is currency-agnostic.
+// ───────────────────────────────────────────────────────────────────────
 model Order {
-  id               String    @id @default(cuid())
-  userId           String?
-  amount           Int
-  currency         String    @default("XOF")
-  status           String    @default("PENDING")
-  customerEmail    String?
-  customerPhone    String?
-  customerName     String?
-  metadata         Json?
-  provider         String
-  providerChargeId String?   @unique
-  paymentUrl       String?
-  paymentMethod    String?
+  id            String  @id @default(cuid())
+  userId        String? // nullable — guest checkout supported
+  user          User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  amount        Int // gross amount, smallest unit
+  currency      String  @default("XOF") // ISO 4217
+  status        String  @default("PENDING") // PENDING | PAID | EXPIRED | FAILED | REFUNDED
+  customerEmail String?
+  customerPhone String?
+  customerName  String?
+  metadata      Json? // app-specific fields
+
+  // Stripe-grade idempotency. Required header on POST /api/orders; replay
+  // with same value returns the original Order row instead of double-charging.
+  // Nullable so existing rows pre-migration don't break the @unique constraint.
+  idempotencyKey String? @unique
+
+  // Provider reference
+  provider         String // e.g. "bictorys"
+  providerChargeId String? @unique
+  paymentUrl       String? // checkout/redirect URL returned by provider
+  paymentMethod    String? // WAVE | ORANGE_MONEY | FREE_MONEY (set on PAID by webhook)
+
+  // Optional commission (for marketplace-style apps)
   commissionAmount Int?
   netAmount        Int?
-  expiresAt        DateTime
-  paidAt           DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  idempotencyKey   String?   @unique
-  user             User?     @relation(fields: [userId], references: [id])
+
+  // Lifecycle
+  expiresAt DateTime // PENDING expiry; not cleared on PAID (history)
+  paidAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@index([userId, createdAt])
   @@index([status, expiresAt])
@@ -241,60 +346,72 @@ model Order {
 }
 
 model Withdrawal {
-  id               String    @id @default(cuid())
-  userId           String
-  amount           Int
-  currency         String    @default("XOF")
-  status           String    @default("PENDING")
-  destination      Json
-  provider         String
-  providerPayoutId String?   @unique
+  id          String @id @default(cuid())
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  amount      Int // requested amount, smallest unit
+  currency    String @default("XOF")
+  status      String @default("PENDING") // PENDING | PROCESSING | COMPLETED | FAILED | CANCELLED
+  destination Json // { method: "WAVE" | "ORANGE_MONEY" | ..., phone: "+221...", accountName?: "..." }
+
+  // Provider reference
+  provider         String // e.g. "bictorys"
+  providerPayoutId String? @unique
   failureReason    String?
-  requestedAt      DateTime  @default(now())
-  processedAt      DateTime?
-  completedAt      DateTime?
-  user             User      @relation(fields: [userId], references: [id])
+
+  requestedAt DateTime  @default(now())
+  processedAt DateTime?
+  completedAt DateTime?
 
   @@index([userId, requestedAt])
   @@index([status, requestedAt])
   @@index([provider, providerPayoutId])
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// NAWIRA Phase 1 — cycle-tracking domain models.
+// See docs/superpowers/specs/2026-09-06-phase1-data-model-design.md for
+// the full rationale (PRD section references, why Cycle/Prediction are
+// materialized rather than computed on read, why enums are plain String
+// columns matching the rest of this schema).
+// ───────────────────────────────────────────────────────────────────────
+
 model Profile {
   userId            String   @id
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   birthDate         DateTime
-  goal              String
+  goal              String // PERIOD_TRACKING | UNDERSTAND_CYCLE | TRYING_TO_CONCEIVE
   usualCycleLength  Int?
   usualPeriodLength Int?
   trackedConcerns   String[] @default([])
-  plan              String   @default("FREE")
-  temperatureUnit   String   @default("CELSIUS")
+  plan              String   @default("FREE") // FREE | PLUS | BABY
+  temperatureUnit   String   @default("CELSIUS") // CELSIUS | FAHRENHEIT
+  notificationLevel String   @default("NORMAL") // NORMAL | DISCREET | NONE
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-  notificationLevel String   @default("NORMAL")
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Consent {
   id        String    @id @default(cuid())
   userId    String
-  type      String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // ACCOUNT | HEALTH_DATA | ASSISTANT_HISTORY | NOTIFICATIONS | ANALYTICS | MARKETING
   version   Int
   grantedAt DateTime  @default(now())
   revokedAt DateTime?
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type])
 }
 
 model AssistantConversation {
-  id        String             @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
-  title     String?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages  AssistantMessage[]
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String? // derived from the first user message, truncated
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages AssistantMessage[]
 
   @@index([userId, updatedAt])
 }
@@ -302,11 +419,14 @@ model AssistantConversation {
 model AssistantMessage {
   id             String                @id @default(cuid())
   conversationId String
-  role           String
-  content        String
+  conversation   AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String // USER | ASSISTANT
+  content        String                @db.Text
+  // Set only on USER messages, and only when the conversation is persisted
+  // (ASSISTANT_HISTORY consent granted) — stored for a future E12 analytics
+  // pass (spec §9); no event pipeline exists yet.
   intentCategory String?
   createdAt      DateTime              @default(now())
-  conversation   AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, createdAt])
 }
@@ -314,10 +434,10 @@ model AssistantMessage {
 model PeriodEvent {
   id        String   @id @default(cuid())
   userId    String
-  date      DateTime @db.Date
-  flow      String
-  updatedAt DateTime @default(now()) @updatedAt
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  flow      String // SPOTTING | LIGHT | MEDIUM | HEAVY
+  updatedAt DateTime @default(now()) @updatedAt
 
   @@unique([userId, date])
 }
@@ -325,11 +445,11 @@ model PeriodEvent {
 model Cycle {
   id        String    @id @default(cuid())
   userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   startDate DateTime  @db.Date
   endDate   DateTime? @db.Date
   length    Int?
   isOutlier Boolean   @default(false)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, startDate])
 }
@@ -337,17 +457,17 @@ model Cycle {
 model DailyLog {
   id           String       @id @default(cuid())
   userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   date         DateTime     @db.Date
   painLevel    Int?
   painLocation String?
-  mood         String?
-  energy       String?
-  sleepQuality String?
+  mood         String? // VERY_GOOD | GOOD | TIRED | STRESSED | LOW
+  energy       String? // VERY_LOW | LOW | MEDIUM | HIGH | VERY_HIGH
+  sleepQuality String? // POOR | FAIR | GOOD | EXCELLENT
   sleepHours   Float?
   note         String?
-  updatedAt    DateTime     @default(now()) @updatedAt
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   symptoms     SymptomLog[]
+  updatedAt    DateTime     @default(now()) @updatedAt
 
   @@unique([userId, date])
 }
@@ -355,8 +475,8 @@ model DailyLog {
 model SymptomLog {
   id         String   @id @default(cuid())
   dailyLogId String
-  symptom    String
   dailyLog   DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  symptom    String // CRAMPS | HEADACHE | BLOATING | NAUSEA | ACNE | TENDER_BREASTS | FATIGUE | BACK_PAIN | CONSTIPATION | DIARRHEA | FOOD_CRAVINGS | LIBIDO_CHANGE
 
   @@unique([dailyLogId, symptom])
 }
@@ -364,22 +484,23 @@ model SymptomLog {
 model FertilitySignal {
   id                String   @id @default(cuid())
   userId            String
-  date              DateTime @db.Date
-  type              String
-  temperatureValue  Float?
-  temperatureUnit   String?
-  cervicalMucusType String?
-  lhResult          String?
-  updatedAt         DateTime @default(now()) @updatedAt
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date              DateTime @db.Date
+  type              String // BASAL_TEMPERATURE | CERVICAL_MUCUS | LH_TEST
+  temperatureValue  Float?
+  temperatureUnit   String? // CELSIUS | FAHRENHEIT
+  cervicalMucusType String? // DRY | STICKY | CREAMY | WATERY | EGG_WHITE
+  lhResult          String? // NEGATIVE | POSITIVE | PEAK | INCONCLUSIVE
+  updatedAt         DateTime @default(now()) @updatedAt
 
   @@unique([userId, date, type])
 }
 
 model Prediction {
   userId              String    @id
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   algorithmVersion    String
-  confidence          String
+  confidence          String // LOW | MEDIUM | HIGH
   expectedPeriodStart DateTime
   expectedPeriodEnd   DateTime
   ovulationEstimate   DateTime?
@@ -387,18 +508,17 @@ model Prediction {
   fertileWindowEnd    DateTime?
   computedAt          DateTime
   version             Int       @default(0)
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Insight {
   id               String   @id @default(cuid())
   userId           String
-  type             String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type             String // e.g. CYCLE_SCORE | SYMPTOM_TREND
   payload          Json
   periodAnalyzed   Json
   cyclesConsidered Int
   createdAt        DateTime @default(now())
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
 }
