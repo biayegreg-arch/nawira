@@ -80,6 +80,9 @@ describe('POST /api/auth/login', () => {
     expect(__cookieStore.has('app-token')).toBe(true);
     expect(__cookieStore.has('app-refresh')).toBe(true);
     expect(__cookieStore.has('app-csrf')).toBe(true);
+    expect(prismaMock.accountActivity.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ userId: 'u1', type: 'LOGIN' }),
+    });
   });
 
   it('Test 1b: hasProfile is true when a Profile row exists', async () => {

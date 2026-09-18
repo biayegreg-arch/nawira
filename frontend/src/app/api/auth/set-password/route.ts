@@ -32,6 +32,7 @@ import { isPwned } from '@/lib/server/auth/hibp';
 import { prisma } from '@/lib/server/prisma';
 import { makeRequestContext, withRequestContext } from '@/lib/server/observability/request-context';
 import { log } from '@/lib/server/observability/log';
+import { logAccountActivity } from '@/lib/server/account/activity';
 
 const Body = z.object({
   newPassword: z.string(),
@@ -139,6 +140,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     await setCsrfCookie();
 
     log.info('set-password success', { userId: updated.id });
+
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+    const userAgent = req.headers.get('user-agent') ?? undefined;
+    try {
+      await logAccountActivity(prisma, {
+        userId: updated.id,
+        type: 'PASSWORD_SET',
+        ...(ip !== undefined ? { ip } : {}),
+        ...(userAgent !== undefined ? { userAgent } : {}),
+      });
+    } catch (err) {
+      log.warn('account activity log failed', {
+        err: String(err),
+        userId: updated.id,
+        type: 'PASSWORD_SET',
+      });
+    }
 
     const res = NextResponse.json({ ok: true });
     res.headers.set('x-request-id', ctx.requestId);

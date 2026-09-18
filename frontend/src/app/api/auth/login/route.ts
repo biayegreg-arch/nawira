@@ -32,6 +32,7 @@ import { prisma } from '@/lib/server/prisma';
 import { zEmail } from '@/lib/server/zod-helpers';
 import { makeRequestContext, withRequestContext } from '@/lib/server/observability/request-context';
 import { log } from '@/lib/server/observability/log';
+import { logAccountActivity } from '@/lib/server/account/activity';
 
 const LoginSchema = z.object({
   email: zEmail,
@@ -174,6 +175,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const refreshToken = await createRefreshToken(user.id, user.tokenVersion);
     await setAuthCookies(accessToken, refreshToken);
     await setCsrfCookie();
+
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+    const userAgent = req.headers.get('user-agent') ?? undefined;
+    try {
+      await logAccountActivity(prisma, {
+        userId: user.id,
+        type: 'LOGIN',
+        ...(ip !== undefined ? { ip } : {}),
+        ...(userAgent !== undefined ? { userAgent } : {}),
+      });
+    } catch (err) {
+      log.warn('account activity log failed', { err: String(err), userId: user.id, type: 'LOGIN' });
+    }
 
     return NextResponse.json(
       { ok: true, user: { sub: user.id, email: user.email, hasProfile: !!user.profile } },

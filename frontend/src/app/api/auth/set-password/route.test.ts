@@ -149,6 +149,10 @@ describe('POST /api/auth/set-password', () => {
     const newAccess = __cookieStore.get(COOKIE_NAME);
     expect(newAccess?.value).toBeTruthy();
     expect(newAccess?.value).not.toBe(validToken);
+
+    expect(prismaMock.accountActivity.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ userId: 'user_1', type: 'PASSWORD_SET' }),
+    });
   });
 
   it('Test 2 — missing CSRF header returns 403', async () => {
