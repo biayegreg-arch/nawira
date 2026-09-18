@@ -20,7 +20,8 @@ export type AccountActivityType =
   | 'PASSWORD_CHANGED'
   | 'PASSWORD_SET'
   | 'OAUTH_LINKED'
-  | 'DATA_EXPORTED';
+  | 'DATA_EXPORTED'
+  | 'ACCOUNT_DELETED';
 
 export interface AccountActivityInput {
   userId: string;

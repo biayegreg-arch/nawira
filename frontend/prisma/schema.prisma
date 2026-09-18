@@ -110,7 +110,7 @@ model AccountActivity {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String // LOGIN | PASSWORD_CHANGED | PASSWORD_SET | OAUTH_LINKED | DATA_EXPORTED
+  type      String // LOGIN | PASSWORD_CHANGED | PASSWORD_SET | OAUTH_LINKED | DATA_EXPORTED | ACCOUNT_DELETED
   ip        String?
   userAgent String?
   metadata  Json?
