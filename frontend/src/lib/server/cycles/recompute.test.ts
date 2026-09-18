@@ -196,4 +196,58 @@ describe('recomputeCyclesAndPrediction', () => {
 
     expect(prismaMock.cycle.deleteMany).not.toHaveBeenCalled();
   });
+
+  describe('third_cycle_completed analytics event', () => {
+    beforeEach(() => {
+      prismaMock.user.findUnique.mockResolvedValue({ createdAt: d('2025-11-01') } as never);
+      prismaMock.consent.findFirst.mockResolvedValue({ id: 'c1' } as never);
+      prismaMock.analyticsEvent.create.mockResolvedValue({} as never);
+      prismaMock.profile.findUnique.mockResolvedValue({
+        usualCycleLength: null,
+        usualPeriodLength: null,
+      } as never);
+    });
+
+    it('fires once when this call crosses from 2 to 3 complete cycles', async () => {
+      prismaMock.periodEvent.findMany.mockResolvedValue([
+        { date: d('2026-01-01') },
+        { date: d('2026-01-29') },
+        { date: d('2026-02-26') },
+        { date: d('2026-03-26') },
+      ] as never);
+      // Before-state: 2 complete cycles (real endDate) + 1 open (endDate null).
+      prismaMock.cycle.findMany.mockResolvedValue([
+        { startDate: d('2026-01-01'), endDate: d('2026-01-28'), length: 28, isOutlier: false },
+        { startDate: d('2026-01-29'), endDate: d('2026-02-25'), length: 28, isOutlier: false },
+        { startDate: d('2026-02-26'), endDate: null, length: null, isOutlier: false },
+      ] as never);
+
+      await recomputeCyclesAndPrediction(prismaMock, 'u1');
+
+      expect(prismaMock.analyticsEvent.create).toHaveBeenCalledTimes(1);
+      const arg = prismaMock.analyticsEvent.create.mock.calls[0]?.[0];
+      expect(arg?.data).toMatchObject({ userId: 'u1', type: 'third_cycle_completed' });
+    });
+
+    it('does not re-fire when a 4th complete cycle appears on a later call', async () => {
+      prismaMock.periodEvent.findMany.mockResolvedValue([
+        { date: d('2026-01-01') },
+        { date: d('2026-01-29') },
+        { date: d('2026-02-26') },
+        { date: d('2026-03-26') },
+        { date: d('2026-04-23') },
+      ] as never);
+      // Before-state already has 3 complete cycles.
+      prismaMock.cycle.findMany.mockResolvedValue([
+        { startDate: d('2026-01-01'), endDate: d('2026-01-28'), length: 28, isOutlier: false },
+        { startDate: d('2026-01-29'), endDate: d('2026-02-25'), length: 28, isOutlier: false },
+        { startDate: d('2026-02-26'), endDate: d('2026-03-25'), length: 28, isOutlier: false },
+        { startDate: d('2026-03-26'), endDate: null, length: null, isOutlier: false },
+      ] as never);
+
+      await recomputeCyclesAndPrediction(prismaMock, 'u1');
+
+      expect(prismaMock.analyticsEvent.create).not.toHaveBeenCalled();
+    });
+  });
 });

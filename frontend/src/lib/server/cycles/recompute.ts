@@ -4,6 +4,11 @@ import { groupIntoEpisodes } from './episodes';
 import { buildCycles } from './build-cycles';
 import { computePrediction } from './prediction';
 import { computeFertilityWindow } from './fertility-window';
+import { trackEvent } from '@/lib/server/analytics/track';
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const DAYS_PER_MONTH = 30.44;
+const COMPLETE_CYCLES_MILESTONE = 3;
 
 /**
  * Re-derives the user's `Cycle` rows and single `Prediction` row from
@@ -49,6 +54,11 @@ export async function recomputeCyclesAndPrediction(
 
   const episodes = groupIntoEpisodes(periodEvents.map((e) => e.date));
   const cycles = buildCycles(episodes);
+
+  const previousComplete = existingCycles.filter((c) => c.endDate !== null).length;
+  const currentComplete = cycles.filter((c) => c.endDate !== null).length;
+  const crossedThirdCycle =
+    previousComplete < COMPLETE_CYCLES_MILESTONE && currentComplete >= COMPLETE_CYCLES_MILESTONE;
 
   const existingByStart = new Map(existingCycles.map((c) => [c.startDate.getTime(), c]));
 
@@ -121,5 +131,17 @@ export async function recomputeCyclesAndPrediction(
     });
   } else {
     await tx.prediction.deleteMany({ where: { userId } });
+  }
+
+  if (crossedThirdCycle) {
+    const user = await tx.user.findUnique({ where: { id: userId }, select: { createdAt: true } });
+    if (user) {
+      const monthsSinceSignup =
+        Math.round(((Date.now() - user.createdAt.getTime()) / MS_PER_DAY / DAYS_PER_MONTH) * 10) /
+        10;
+      await trackEvent(tx, userId, 'third_cycle_completed', {
+        months_since_signup: monthsSinceSignup,
+      });
+    }
   }
 }

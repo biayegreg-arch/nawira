@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ServiceWorkerUpdateBanner } from './ServiceWorkerUpdateBanner';
+import { track } from '@/lib/analytics';
 
 export function PwaRegister(): React.JSX.Element | null {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
@@ -43,6 +44,22 @@ export function PwaRegister(): React.JSX.Element | null {
       reloaded = true;
       window.location.reload();
     });
+
+    // Only observed here, not intercepted — event.preventDefault() is
+    // deliberately NOT called, so the browser's native install-prompt UI
+    // still shows normally. This pass just measures its occurrence.
+    function handleBeforeInstallPrompt(): void {
+      track('pwa_install_prompt_shown', {});
+    }
+    function handleAppInstalled(): void {
+      track('pwa_installed', {});
+    }
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
   }, []);
 
   if (!waitingWorker) return null;

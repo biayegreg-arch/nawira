@@ -1,12 +1,19 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Activity } from 'lucide-react';
 import { OnboardingLayout } from '@/components/onboarding/OnboardingLayout';
 import { Button } from '@/components/ui/Button';
+import { track, ONBOARDING_START_KEY } from '@/lib/analytics';
 
 export default function OnboardingWelcomePage(): React.JSX.Element {
   const router = useRouter();
+
+  useEffect(() => {
+    sessionStorage.setItem(ONBOARDING_START_KEY, String(Date.now()));
+    track('onboarding_started', {});
+  }, []);
 
   return (
     <OnboardingLayout step={1}>

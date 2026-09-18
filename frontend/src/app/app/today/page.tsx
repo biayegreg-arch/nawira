@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { ApiError } from '@/lib/api';
 import { onCycleDataChanged, runOrQueue } from '@/lib/offline/queue';
 import { fetchCached } from '@/lib/offline/read-cache';
+import { track } from '@/lib/analytics';
 import { greetingName, staggerDelay } from '@/lib/utils';
 import { buildDayTypes, todayIso } from '@/lib/calendar-day-types';
 import { OfflineDataBanner } from '@/components/app/OfflineDataBanner';
@@ -63,6 +64,7 @@ export default function TodayPage(): React.JSX.Element | null {
   const [logging, setLogging] = useState(false);
   const [savingMood, setSavingMood] = useState(false);
   const [offlineCachedAt, setOfflineCachedAt] = useState<string | null>(null);
+  const predictionViewedTracked = useRef(false);
 
   const load = useCallback(async () => {
     setError(false);
@@ -75,6 +77,13 @@ export default function TodayPage(): React.JSX.Element | null {
       setCycles(cyclesRes.data.cycles);
       setTodayLogged(cyclesRes.data.todayLogged);
       setPrediction(predictionRes.data.prediction);
+      if (predictionRes.data.prediction && !predictionViewedTracked.current) {
+        predictionViewedTracked.current = true;
+        track('prediction_viewed', {
+          type: predictionRes.data.prediction.fertileWindowStart ? 'full' : 'period_only',
+          confidence: predictionRes.data.prediction.confidence,
+        });
+      }
       setTodayLog(
         logRes.data.log ?? {
           painLevel: null,
@@ -113,6 +122,7 @@ export default function TodayPage(): React.JSX.Element | null {
         if (result.queued) {
           toast('Hors ligne — sera synchronisé automatiquement.', 'info');
         }
+        track('period_logged', { offline_flag: result.queued });
         await load();
       } catch (err) {
         toast(

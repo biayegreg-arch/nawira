@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { BarChart2 } from 'lucide-react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { track } from '@/lib/analytics';
 import { staggerDelay } from '@/lib/utils';
 import {
   CycleScoreCard,
@@ -81,6 +82,7 @@ export default function InsightsPage(): React.JSX.Element | null {
   const [result, setResult] = useState<InsightsResponse | null>(null);
   const [confidence, setConfidence] = useState<'LOW' | 'MEDIUM' | 'HIGH' | null>(null);
   const [error, setError] = useState(false);
+  const insightsViewedTracked = useRef(false);
 
   const load = useCallback(async () => {
     setError(false);
@@ -91,6 +93,12 @@ export default function InsightsPage(): React.JSX.Element | null {
       ]);
       setResult(insightsRes);
       setConfidence(predictionRes.prediction?.confidence ?? null);
+      if (insightsRes.eligible && !insightsViewedTracked.current) {
+        insightsViewedTracked.current = true;
+        for (const insight of insightsRes.insights) {
+          track('insight_viewed', { type: insight.type, evidence_count: insight.evidenceCount });
+        }
+      }
     } catch {
       setError(true);
     }

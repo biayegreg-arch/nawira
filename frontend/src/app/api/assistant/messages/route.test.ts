@@ -177,6 +177,40 @@ describe('POST /api/assistant/messages', () => {
     expect(body).toContain('"messageId":"msg-assistant-1"');
   });
 
+  it('tracks assistant_used with the classified intent when ANALYTICS consent is granted', async () => {
+    prismaMock.consent.findFirst.mockImplementation(
+      (args) =>
+        Promise.resolve(
+          (args as { where: { type: string } }).where.type === 'ANALYTICS'
+            ? {
+                id: 'c1',
+                userId: 'u1',
+                type: 'ANALYTICS',
+                version: 1,
+                grantedAt: new Date(),
+                revokedAt: null,
+              }
+            : null,
+        ) as never,
+    );
+    prismaMock.analyticsEvent.create.mockResolvedValue({} as never);
+
+    const res = await POST(makeReq({ message: 'Bonjour', history: [] }));
+    expect(res.status).toBe(200);
+
+    // trackEvent is fire-and-forget (must not delay the SSE stream response) —
+    // wait for its microtask chain to settle before asserting.
+    await vi.waitFor(() => {
+      expect(prismaMock.analyticsEvent.create).toHaveBeenCalledWith({
+        data: {
+          userId: 'u1',
+          type: 'assistant_used',
+          properties: { intent_category: 'OTHER', no_health_text: true },
+        },
+      });
+    });
+  });
+
   it('streams the response as SSE chunks followed by a done event', async () => {
     const res = await POST(makeReq({ message: 'Salut', history: [] }));
     expect(res.headers.get('content-type')).toBe('text/event-stream');

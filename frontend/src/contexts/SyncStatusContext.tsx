@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { drain, pendingCount as getPendingCount } from '@/lib/offline/queue';
 import { backoffDelayMs } from '@/lib/offline/sync-logic';
 import type { SyncStatus } from '@/lib/offline/types';
+import { track } from '@/lib/analytics';
 
 interface SyncStatusContextValue {
   status: SyncStatus;
@@ -44,6 +45,7 @@ export function SyncStatusProvider({ children }: { children: React.ReactNode }) 
         attemptsRef.current = 0;
         if (result.synced > 0) {
           setStatus('synced');
+          track('sync_completed', {});
           setTimeout(
             () => setStatus((s) => (s === 'synced' ? 'idle' : s)),
             SYNCED_BADGE_DURATION_MS,
@@ -53,6 +55,7 @@ export function SyncStatusProvider({ children }: { children: React.ReactNode }) 
         }
       } else if (result.failed > 0) {
         setStatus('error');
+        track('sync_failed', {});
         clearScheduledDrain();
       } else {
         // Still offline mid-drain, or a retryable failure remains — back off.
@@ -89,6 +92,7 @@ export function SyncStatusProvider({ children }: { children: React.ReactNode }) 
     function handleOffline(): void {
       clearScheduledDrain();
       setStatus((s) => (s === 'error' ? s : 'offline'));
+      track('offline_mode_entered', {});
     }
 
     window.addEventListener('online', handleOnline);

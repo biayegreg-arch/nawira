@@ -1,16 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PartyPopper } from 'lucide-react';
 import { OnboardingLayout } from '@/components/onboarding/OnboardingLayout';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
+import { track, ONBOARDING_START_KEY } from '@/lib/analytics';
 
 export default function OnboardingReadyPage(): React.JSX.Element {
   const router = useRouter();
   const { refresh } = useAuth();
   const [entering, setEntering] = useState(false);
+
+  useEffect(() => {
+    const startMs = sessionStorage.getItem(ONBOARDING_START_KEY);
+    if (startMs) {
+      sessionStorage.removeItem(ONBOARDING_START_KEY);
+      track('onboarding_completed', {
+        duration_sec: Math.round((Date.now() - Number(startMs)) / 1000),
+      });
+    }
+  }, []);
 
   async function onEnterDashboard(): Promise<void> {
     setEntering(true);

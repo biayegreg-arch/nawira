@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useUser } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { ApiError } from '@/lib/api';
 import { runOrQueue } from '@/lib/offline/queue';
 import { fetchCached } from '@/lib/offline/read-cache';
+import { track } from '@/lib/analytics';
 import { staggerDelay } from '@/lib/utils';
 import { todayIso } from '@/lib/calendar-day-types';
 import { AnimatedNumber } from '@/components/ui/AnimatedNumber';
@@ -44,6 +45,15 @@ interface FertilitySignals {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+function countFilledFields(values: Record<string, unknown>): number {
+  return Object.values(values).filter((v) => {
+    if (v === null || v === undefined) return false;
+    if (Array.isArray(v)) return v.length > 0;
+    if (typeof v === 'string') return v.trim().length > 0;
+    return true;
+  }).length;
+}
+
 export default function LogPage(): React.JSX.Element | null {
   const user = useUser();
   const { toast } = useToast();
@@ -57,6 +67,7 @@ export default function LogPage(): React.JSX.Element | null {
   const [error, setError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [offlineCachedAt, setOfflineCachedAt] = useState<string | null>(null);
+  const formMountedAt = useRef(Date.now());
 
   const load = useCallback(async () => {
     setError(false);
@@ -136,6 +147,7 @@ export default function LogPage(): React.JSX.Element | null {
               { flow },
             );
             anyQueued ||= flowResult.queued;
+            track('period_logged', { offline_flag: flowResult.queued });
           }
 
           const signalResult = await runOrQueue(
@@ -150,6 +162,11 @@ export default function LogPage(): React.JSX.Element | null {
             },
           );
           anyQueued ||= signalResult.queued;
+
+          track('daily_log_saved', {
+            fields_count: countFilledFields(logValues),
+            duration_sec: Math.round((Date.now() - formMountedAt.current) / 1000),
+          });
 
           toast(
             anyQueued ? 'Hors ligne — sera synchronisé automatiquement.' : 'Données enregistrées.',
@@ -178,6 +195,7 @@ export default function LogPage(): React.JSX.Element | null {
           'POST',
           values,
         );
+        track('period_logged', { offline_flag: result.queued });
         if (result.queued) {
           toast('Hors ligne — sera synchronisé automatiquement.', 'info');
         } else {

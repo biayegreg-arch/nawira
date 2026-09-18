@@ -29,6 +29,7 @@ import { filterAssistantOutput } from '@/lib/server/assistant/output-filter';
 import { classifyIntent } from '@/lib/server/assistant/intent-classifier';
 import { checkAndConsumeQuota } from '@/lib/server/assistant/quota';
 import { sendAssistantMessage, AssistantNotConfiguredError } from '@/lib/server/assistant/client';
+import { trackEvent } from '@/lib/server/analytics/track';
 import { makeRequestContext, withRequestContext } from '@/lib/server/observability/request-context';
 import { log } from '@/lib/server/observability/log';
 
@@ -196,6 +197,13 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const filteredText = filterAssistantOutput(responseText);
     const intentCategory = classifyIntent(body.message);
+    // no_health_text documents this event's own safety property (the
+    // guardrail/output-filter pipeline's entire job), not a variable
+    // outcome — never wired to filteredText content.
+    void trackEvent(prisma, userId, 'assistant_used', {
+      intent_category: intentCategory,
+      no_health_text: true,
+    });
 
     let messageId: string | null = null;
     if (historyEnabled && conversationId) {

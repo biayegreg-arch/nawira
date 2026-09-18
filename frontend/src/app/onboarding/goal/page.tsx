@@ -7,6 +7,7 @@ import { OnboardingLayout } from '@/components/onboarding/OnboardingLayout';
 import { OptionCard } from '@/components/onboarding/OptionCard';
 import { Button } from '@/components/ui/Button';
 import { useOnboardingDraft, type OnboardingDraft } from '@/lib/onboarding-draft';
+import { track } from '@/lib/analytics';
 
 const GOALS: Array<{
   value: NonNullable<OnboardingDraft['goal']>;
@@ -38,6 +39,7 @@ export default function OnboardingGoalPage(): React.JSX.Element {
   function onContinue(): void {
     if (!goal) return;
     update({ goal });
+    track('goal_selected', { goal });
     router.push('/onboarding/last-period');
   }
 

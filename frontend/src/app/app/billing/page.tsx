@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useUser } from '@/contexts/AuthContext';
 import { api } from '@/lib/api';
+import { track } from '@/lib/analytics';
 import { staggerDelay } from '@/lib/utils';
 import { CurrentPlanCard } from '@/components/billing/CurrentPlanCard';
 import { PremiumPlansGrid } from '@/components/billing/PremiumPlansGrid';
@@ -37,6 +38,7 @@ export default function BillingPage(): React.JSX.Element | null {
     try {
       const res = await api<ProfileResponse>('/api/profile');
       setPlan(res.profile.plan);
+      track('paywall_viewed', { paywall_id: 'billing_page', plan: 'PLUS' });
     } catch {
       setError(true);
     }
