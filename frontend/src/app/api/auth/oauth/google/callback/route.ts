@@ -36,6 +36,7 @@ import { createNotification } from '@/lib/server/notifications';
 import { welcomeNotification } from '@/lib/server/notifications/templates';
 import { makeRequestContext, withRequestContext } from '@/lib/server/observability/request-context';
 import { log } from '@/lib/server/observability/log';
+import { logAccountActivity } from '@/lib/server/account/activity';
 
 const COOKIE_PREFIX = process.env.COOKIE_PREFIX || 'app';
 const OAUTH_STATE_COOKIE = `${COOKIE_PREFIX}-oauth-state`;
@@ -187,6 +188,23 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const refresh = await createRefreshToken(u.id, u.tokenVersion);
     await setAuthCookies(access, refresh);
     await setCsrfCookie();
+
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+    const userAgent = req.headers.get('user-agent') ?? undefined;
+    try {
+      await logAccountActivity(prisma, {
+        userId: u.id,
+        type: 'OAUTH_LINKED',
+        ...(ip !== undefined ? { ip } : {}),
+        ...(userAgent !== undefined ? { userAgent } : {}),
+      });
+    } catch (err) {
+      log.warn('account activity log failed', {
+        err: String(err),
+        userId: u.id,
+        type: 'OAUTH_LINKED',
+      });
+    }
 
     // D-03: welcome notification on first OAuth account creation.
     // NOTIF-05 invariant — go through createNotification (never prisma.notification.create directly).

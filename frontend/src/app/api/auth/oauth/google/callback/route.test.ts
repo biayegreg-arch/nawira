@@ -229,6 +229,9 @@ describe('GET /api/auth/oauth/google/callback', () => {
     expect(mockSetCsrfCookie).toHaveBeenCalledTimes(1);
     // No welcome notification on link path.
     expect(mockCreateNotification).not.toHaveBeenCalled();
+    expect(prismaMock.accountActivity.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ userId: 'u-existing', type: 'OAUTH_LINKED' }),
+    });
   });
 
   it('D-02 create path: brand-new user → $transaction creates User + OAuthAccount; createNotification dispatched with welcomeNotification', async () => {
@@ -278,6 +281,9 @@ describe('GET /api/auth/oauth/google/callback', () => {
         dedupeKey: 'welcome:u-new',
       }),
     );
+    expect(prismaMock.accountActivity.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ userId: 'u-new', type: 'OAUTH_LINKED' }),
+    });
   });
 
   it('existing OAuth user (provider lookup hits): no User update, no welcome, just 3 cookies', async () => {
@@ -304,6 +310,9 @@ describe('GET /api/auth/oauth/google/callback', () => {
 
     expect(mockSetAuthCookies).toHaveBeenCalledTimes(1);
     expect(mockSetCsrfCookie).toHaveBeenCalledTimes(1);
+    expect(prismaMock.accountActivity.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ userId: 'u-returning', type: 'OAUTH_LINKED' }),
+    });
   });
 
   it('success branch with no app-oauth-next cookie: 302 to APP_URL', async () => {
