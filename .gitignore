@@ -17,6 +17,9 @@ next-env.d.ts
 .claude/worktrees/
 .claude/skills/ui-ux-pro-max/scripts/__pycache__/
 
+# Superpowers — project-local git worktrees for isolated plan execution
+.worktrees/
+
 # Local cruft — not part of the kit
 amp
 node-compile-cache/
