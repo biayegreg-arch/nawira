@@ -42,6 +42,8 @@ function errorMessage(err: unknown): string {
       return 'Ce compte est déjà supprimé.';
     case 'DELETION_BLOCKED_PENDING_WITHDRAWAL':
       return 'Un retrait est en cours de traitement ; réessaie une fois terminé.';
+    case 'VALIDATION_FAILED':
+      return 'Date d’expiration invalide, ou fournie avec le plan Free.';
     default:
       return err.message;
   }
@@ -57,11 +59,16 @@ export function UserDetailModal({
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [planDraft, setPlanDraft] = useState<AdminUser['plan']>(user.plan);
+  const [expiresAtDraft, setExpiresAtDraft] = useState(
+    user.planExpiresAt ? user.planExpiresAt.slice(0, 10) : '',
+  );
 
   const canChangeRole = admin.can.includes('users:role');
   const canSuspend = admin.can.includes('users:status:suspend');
   const canRestore = admin.can.includes('users:status:restore');
   const canDelete = admin.can.includes('users:delete');
+  const canManagePlan = admin.can.includes('users:plan');
 
   async function changeRole(role: AdminUser['role']): Promise<void> {
     setBusy(true);
@@ -72,6 +79,26 @@ export function UserDetailModal({
       );
       onUpdated({ ...user, role: res.user.role });
       toast('Rôle mis à jour.', 'success');
+    } catch (err) {
+      toast(errorMessage(err), 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function savePlan(): Promise<void> {
+    setBusy(true);
+    try {
+      const body: { plan: AdminUser['plan']; expiresAt?: string } = { plan: planDraft };
+      if (planDraft !== 'FREE' && expiresAtDraft) {
+        body.expiresAt = new Date(`${expiresAtDraft}T00:00:00.000Z`).toISOString();
+      }
+      const res = await api<{ profile: { plan: AdminUser['plan']; planExpiresAt: string | null } }>(
+        `/api/admin/users/${user.id}/plan`,
+        { method: 'PATCH', body },
+      );
+      onUpdated({ ...user, plan: res.profile.plan, planExpiresAt: res.profile.planExpiresAt });
+      toast('Plan mis à jour.', 'success');
     } catch (err) {
       toast(errorMessage(err), 'error');
     } finally {
@@ -187,6 +214,52 @@ export function UserDetailModal({
                 <option value="ADMIN">ADMIN</option>
                 <option value="SUPERADMIN">SUPERADMIN</option>
               </select>
+            </div>
+          )}
+
+          {canManagePlan && user.status !== 'DELETED' && (
+            <div className="flex flex-col gap-2 border-t border-border pt-4">
+              <label className="text-xs font-medium text-navy" htmlFor="plan-select">
+                Plan
+              </label>
+              <select
+                id="plan-select"
+                value={planDraft}
+                disabled={busy}
+                onChange={(e) => {
+                  const next = e.target.value as AdminUser['plan'];
+                  setPlanDraft(next);
+                  if (next === 'FREE') setExpiresAtDraft('');
+                }}
+                className="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              >
+                <option value="FREE">FREE</option>
+                <option value="PLUS">PLUS</option>
+                <option value="BABY">BABY</option>
+              </select>
+              {planDraft !== 'FREE' && (
+                <>
+                  <label className="text-xs font-medium text-navy" htmlFor="plan-expires">
+                    Expire le (optionnel — laisser vide pour permanent)
+                  </label>
+                  <input
+                    id="plan-expires"
+                    type="date"
+                    value={expiresAtDraft}
+                    disabled={busy}
+                    onChange={(e) => setExpiresAtDraft(e.target.value)}
+                    className="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                  />
+                </>
+              )}
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void savePlan()}
+                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                Enregistrer
+              </button>
             </div>
           )}
 
