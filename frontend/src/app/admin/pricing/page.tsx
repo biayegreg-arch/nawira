@@ -38,11 +38,17 @@ export default function AdminPricingPage(): React.JSX.Element {
   const [plans, setPlans] = useState<PricingPlanRow[] | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await api<{ plans: PricingPlanRow[] }>('/api/admin/pricing-plans');
-    setPlans(res.plans);
-    setDrafts(Object.fromEntries(res.plans.map((p) => [p.key, String(p.priceFcfa)])));
+    setError(null);
+    try {
+      const res = await api<{ plans: PricingPlanRow[] }>('/api/admin/pricing-plans');
+      setPlans(res.plans);
+      setDrafts(Object.fromEntries(res.plans.map((p) => [p.key, String(p.priceFcfa)])));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.');
+    }
   }, []);
 
   useEffect(() => {
@@ -78,6 +84,10 @@ export default function AdminPricingPage(): React.JSX.Element {
           Prix FCFA des plans NAWIRA Plus et Projet Bébé.
         </p>
       </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg bg-danger-bg px-4 py-3 text-sm text-danger">{error}</div>
+      )}
 
       {plans === null ? (
         <div className="grid gap-4 sm:grid-cols-2">
