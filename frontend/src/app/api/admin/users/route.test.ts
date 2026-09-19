@@ -234,6 +234,45 @@ describe('/api/admin/users [Wave 1] — list', () => {
     expect(or?.[0]?.email.contains.length).toBe(200);
   });
 
+  it('maps Profile.plan/planExpiresAt onto each row, defaulting to FREE/null when Profile is missing', async () => {
+    prismaMock.user.findMany.mockResolvedValueOnce([
+      {
+        id: 'u1',
+        email: 'u1@test.local',
+        name: null,
+        avatarUrl: null,
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerifiedAt: null,
+        createdAt: new Date('2026-05-01T00:00:00Z'),
+        profile: { plan: 'PLUS', planExpiresAt: new Date('2026-10-19T00:00:00Z') },
+      },
+      {
+        id: 'u2',
+        email: 'u2@test.local',
+        name: null,
+        avatarUrl: null,
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerifiedAt: null,
+        createdAt: new Date('2026-05-02T00:00:00Z'),
+        profile: null,
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ] as any);
+
+    const res = await GET(makeGet('http://test/api/admin/users'));
+    const body = (await res.json()) as {
+      items: Array<{ plan: string; planExpiresAt: string | null }>;
+    };
+    expect(body.items[0]).toMatchObject({
+      plan: 'PLUS',
+      planExpiresAt: '2026-10-19T00:00:00.000Z',
+    });
+    expect(body.items[1]).toMatchObject({ plan: 'FREE', planExpiresAt: null });
+    expect(body.items[0]).not.toHaveProperty('profile');
+  });
+
   it('GET does NOT touch the suspended-user shape outside its select', async () => {
     // Sanity: seedSuspendedUser is a User row; we just confirm the row's status
     // surfaces correctly through the route's status filter.

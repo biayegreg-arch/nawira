@@ -34,6 +34,7 @@ const USER_SELECT = {
   status: true,
   emailVerifiedAt: true,
   createdAt: true,
+  profile: { select: { plan: true, planExpiresAt: true } },
 } as const satisfies Prisma.UserSelect;
 
 const Q_MAX = 200;
@@ -75,7 +76,13 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       select: USER_SELECT,
     });
 
-    const page = buildPage(rows, limit);
+    const mapped = rows.map(({ profile, ...rest }) => ({
+      ...rest,
+      plan: profile?.plan ?? 'FREE',
+      planExpiresAt: profile?.planExpiresAt ?? null,
+    }));
+
+    const page = buildPage(mapped, limit);
     return NextResponse.json(page, {
       headers: { 'x-request-id': ctx.requestId },
     });

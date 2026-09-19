@@ -82,13 +82,38 @@ describe('/api/admin/users/[id] — detail', () => {
       status: 'ACTIVE',
       emailVerifiedAt: new Date('2026-01-01T00:00:00Z'),
       createdAt: new Date('2026-05-01T00:00:00Z'),
+      profile: { plan: 'BABY', planExpiresAt: null },
     } as never);
 
     const res = await GET(makeGet('http://test/api/admin/users/u1'), ctxWith('u1'));
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { user: { id: string; email: string } };
+    const body = (await res.json()) as {
+      user: { id: string; email: string; plan: string; planExpiresAt: string | null };
+    };
     expect(body.user.id).toBe('u1');
+    expect(body.user.plan).toBe('BABY');
+    expect(body.user.planExpiresAt).toBeNull();
     expect(body.user).not.toHaveProperty('passwordHash');
+    expect(body.user).not.toHaveProperty('profile');
+  });
+
+  it('GET defaults plan to FREE and planExpiresAt to null when the user has no Profile row', async () => {
+    prismaMock.user.findUnique.mockResolvedValueOnce({
+      id: 'u2',
+      email: 'u2@test.local',
+      name: null,
+      avatarUrl: null,
+      role: 'USER',
+      status: 'ACTIVE',
+      emailVerifiedAt: null,
+      createdAt: new Date('2026-05-01T00:00:00Z'),
+      profile: null,
+    } as never);
+
+    const res = await GET(makeGet('http://test/api/admin/users/u2'), ctxWith('u2'));
+    const body = (await res.json()) as { user: { plan: string; planExpiresAt: string | null } };
+    expect(body.user.plan).toBe('FREE');
+    expect(body.user.planExpiresAt).toBeNull();
   });
 
   it('GET returns 404 USER_NOT_FOUND for a missing user', async () => {

@@ -9,6 +9,8 @@ export interface AdminUser {
   status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
   emailVerifiedAt: string | null;
   createdAt: string;
+  plan: 'FREE' | 'PLUS' | 'BABY';
+  planExpiresAt: string | null;
 }
 
 export interface AdminUserListResponse {

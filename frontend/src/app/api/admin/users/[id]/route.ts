@@ -36,6 +36,7 @@ const USER_SELECT = {
   status: true,
   emailVerifiedAt: true,
   createdAt: true,
+  profile: { select: { plan: true, planExpiresAt: true } },
 } as const satisfies Prisma.UserSelect;
 
 export async function GET(
@@ -51,16 +52,22 @@ export async function GET(
     if (limited) return limited;
 
     const { id } = await ctx.params;
-    const user = await prisma.user.findUnique({
+    const row = await prisma.user.findUnique({
       where: { id },
       select: USER_SELECT,
     });
-    if (!user) {
+    if (!row) {
       return NextResponse.json(
         { error: 'USER_NOT_FOUND', message: 'User not found' },
         { status: 404, headers: { 'x-request-id': reqCtx.requestId } },
       );
     }
+    const { profile, ...rest } = row;
+    const user = {
+      ...rest,
+      plan: profile?.plan ?? 'FREE',
+      planExpiresAt: profile?.planExpiresAt ?? null,
+    };
     return NextResponse.json({ user }, { headers: { 'x-request-id': reqCtx.requestId } });
   });
 }
