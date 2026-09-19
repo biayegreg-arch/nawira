@@ -1,6 +1,6 @@
 # Banani implementation status
 
-Last updated: 2026-09-08 (full-app audit — 2 dead links fixed on the landing page, notification bell built to close a fully-built-but-unused backend gap; see delta below)
+Last updated: 2026-09-19 (E11 Admin — `/admin` overview + `/admin/users`, see delta below)
 
 Source flow: **"Design System NAWIRA"** — Banani flow id `acguXQuGeGbU` (https://app.banani.co/flow/acguXQuGeGbU)
 Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope. A later, separate fetch (2026-09-07) added 7 more screens the user created directly for the Projet Bébé flow: `ProjetBebe` (re-fetch), `ProjetBebeRessources`, `ProjetBebeCalendarV2`, `AddLHTest`, `ConceptionAdvice`, plus 2 duplicates (`ProjetBebe_next1`, `ProjetBebeDiscovery`) dropped per the same duplicate-screen policy.
@@ -25,6 +25,7 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] `Subscription` — **built against its real Banani source, with real PRD pricing/plans replacing Banani's fictional Euro pricing** — `frontend/src/app/app/billing/page.tsx` (replaces the `ComingSoonPage` placeholder) + `frontend/src/components/billing/*` — plan: `.planning/banani/subscription.md` — 2026-09-08
 - [x] `Assistant` — **built against the real Phase 7 chat API**, replacing the `ComingSoonPage` placeholder — `frontend/src/app/app/assistant/page.tsx` + `frontend/src/components/assistant/{MessageBubble,ChatPanel,TopicsPanel}.tsx` + `frontend/src/lib/assistant-chat.ts` — plan: `.planning/banani/assistant.md` — commit `6d9d432` — 2026-09-09
 - [x] `Analytics` — **built against the real Phase 6 insights API, with real data throughout** (no fabricated numbers) — replaced the `ComingSoonPage` placeholder, extended the backend with a new `MOOD_DISTRIBUTION` insight type — `frontend/src/app/app/insights/page.tsx` + `frontend/src/components/insights/{CycleScoreCard,SymptomStatistics,MoodDistributionChart,CycleComparisonCard,AnalyticsRecommendations}.tsx` + `frontend/src/lib/server/insights/compute-insights.ts` — plan: `.planning/banani/insights.md` — commit `fbeaed8` — 2026-09-09
+- [x] `Admin` (E11) — **rebuilt almost entirely against real `/api/admin/*` data**, dropping every fictional section (MRR/revenue, moderation, platform-settings toggles, subscriber/retention KPIs — zero backing data anywhere in the schema) — `frontend/src/app/admin/{layout,page}.tsx` + `frontend/src/app/admin/users/page.tsx` + `frontend/src/components/admin/*` + new `Badge`/`InitialsAvatar` primitives — plan: `.planning/banani/admin.md` — 2026-09-19
 
 New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Field.tsx`, `frontend/src/components/auth/AuthCard.tsx`. Design tokens added to `frontend/src/app/globals.css` (`@theme` block — primary/navy confirmed exact match with PRD §0; rose/green/amber/purple are Banani's actual accent hexes, renamed to avoid colliding with Tailwind's built-in default palette names of the same words).
 
@@ -494,3 +495,67 @@ horizontal overflow at 375px. (Two initial verification passes were muddied by d
 Turbopack first-hit compile lag on the PATCH route — up to ~7s on the very first mutating call in
 a fresh dev-server session — not an application bug; confirmed by tracing request/response timing
 directly.)
+
+### Delta vs Banani source — `Admin` (E11, `/admin`, 2026-09-19)
+
+Fetched the real Banani source (`Admin.jsx`). Unlike every prior screen, most of its content had
+**zero backing data anywhere in the schema** — confirmed with the user via 3 batched
+`AskUserQuestion`s before writing any code (recommended options chosen on all 3):
+
+- **Dropped entirely, no fabricated backend**: the 4 KPI cards (utilisatrices actives/abonnées
+  Plus/MRR/taux de rétention — no aggregate-stats endpoint exists), the MRR/revenue panel (no
+  subscription/recurring-billing model exists — `Profile.plan` never leaves its `FREE` default,
+  confirmed again via grep, same finding as the `Subscription` screen's delta above), the
+  moderation & signalements panel (no forum/report model exists anywhere), and the platform-settings
+  toggles (no platform-config model exists). Same "no fake content" discipline as every prior
+  screen's fake-stats/fake-testimonial/fake-payment-method removals.
+- **Dedicated admin shell, not the consumer app's.** Banani's source literally reused
+  `NawiraSidebar`/`TopBar` (the consumer app's own nav — "Aujourd'hui", "Projet Bébé", etc.),
+  which makes no sense for a back-office. Built `AdminSidebar`/`AdminTopBar`/`AdminMobileNav`
+  instead (`frontend/src/components/admin/`), gated via `GET /api/admin/me`, modeled on
+  `examples/frontend-pages/admin/layout.tsx`. Nav lists the 7 real `/api/admin/*` read surfaces
+  (Users/Orders/Withdrawals/Audit-log/Outbox/Email-queue/Rate-limits) — only Users is a live link
+  this pass, the other 6 render disabled ("Bientôt disponible") since no Banani source or plan
+  exists for them yet.
+- **`/admin` overview**: real admin identity (email/role) + the real `can: string[]` capability
+  array from `GET /api/admin/me` (rendered as chips — genuinely real, not fabricated), plus the 7
+  section-link cards (repurposing Banani's KPI-card visual language: icon/color/label) linking to
+  each back-office section.
+- **`/admin/users`**: the one screen with a real, complete backend match — built as a full
+  search + cursor-paginated list + detail modal + role change (SUPERADMIN-only, `PATCH
+  .../role`, server enforces the last-SUPERADMIN guard) + status suspend/restore (`PATCH
+  .../status`, role-aware server gate for restoring or suspending a SUPERADMIN target). Client
+  hides role/restore controls per the `can` array but always defers to the server's actual
+  decision (surfaced via toast on the rare mismatch, e.g. an ADMIN attempting to suspend a
+  SUPERADMIN).
+- **Users table demographic fields dropped.** Banani's mock used fabricated `gender`/`heritage`/
+  `age` fields feeding a fake `UserAvatar` illustration generator. Replaced with a new, generic
+  `InitialsAvatar` primitive (2-letter initials, deterministic color from the user's real email) —
+  no fabricated identity data of any kind.
+- New shared primitives: `Badge.tsx` (role/status pills — first real need for a generic badge in
+  this codebase) and `InitialsAvatar.tsx`, both in `src/components/ui/` for reuse anywhere a user
+  chip is needed later.
+- Banani's `screenSize: "desktop"` mockup used fixed 4-column/2-panel grids throughout. Rebuilt
+  mobile-first: `AdminSidebar` hidden below `lg:`, replaced by an `AdminMobileNav` `<select>`
+  (a back-office's ~8-item nav doesn't need a hamburger sheet — a native select is the simplest
+  correct substitute); the users table becomes a stacked card list below `md:`, a real `<table>`
+  from `md:` up.
+
+### Verified — `Admin` (E11, 2026-09-19)
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm format`, `pnpm build` all green (`/admin` and `/admin/users`
+  resolve correctly in the build's route list) and `pnpm test` (884/884, no regressions).
+- Real browser check (system Chrome via Playwright, seeded SUPERADMIN session
+  `admin@example.com`) at 375/768/1280px on both `/admin` and `/admin/users`: no horizontal
+  overflow at any of the 6 checks (`scrollWidth === clientWidth`), mobile card list / desktop
+  table breakpoint confirmed, sidebar nav active-state highlighting correct.
+- Full mutation round-trip driven end-to-end against the live dev server: opened a real seeded
+  user's detail modal, suspended the account (`PATCH /api/admin/users/[id]/status` → 200,
+  confirmed a real `AdminAction` row written with `action: 'user.suspend'` and the correct
+  `{from, to}` metadata), then restored it (`PATCH` → 200, `status: 'ACTIVE'` confirmed via a
+  direct DB read) — the full capability-gated, audit-logged mutation path works for real, not
+  just against mocks.
+- Two mid-verification browser-script runs showed a stale toast/status read — traced to dev-server
+  Fast-Refresh/HMR interference between rapid successive Playwright test-script runs against the
+  same long-lived dev server, not an application bug; confirmed by re-running with an explicit
+  `page.waitForResponse()` on the PATCH call, which returned a clean 200 every time.
