@@ -87,6 +87,20 @@ export async function PATCH(
         data: { plan: parsed.data.plan, planExpiresAt: nextExpiresAtDate },
       });
 
+      const metadata = {
+        from: target.plan,
+        to: updated.plan,
+        expiresAt: updated.planExpiresAt ? updated.planExpiresAt.toISOString() : null,
+      };
+      await logAdminAction(tx, {
+        actorId: auth.admin.id,
+        action: 'user.plan_change',
+        targetType: 'User',
+        targetId: id,
+        metadata,
+      });
+      await logAccountActivity(tx, { userId: id, type: 'PLAN_CHANGED', metadata });
+
       return {
         kind: 'OK' as const,
         from: target.plan,
@@ -99,22 +113,6 @@ export async function PATCH(
         { error: 'USER_NOT_FOUND', message: 'User not found' },
         { status: 404, headers: { 'x-request-id': reqCtx.requestId } },
       );
-    }
-
-    if (result.kind === 'OK') {
-      const metadata = {
-        from: result.from,
-        to: result.profile.plan,
-        expiresAt: result.profile.planExpiresAt ? result.profile.planExpiresAt.toISOString() : null,
-      };
-      await logAdminAction(prisma, {
-        actorId: auth.admin.id,
-        action: 'user.plan_change',
-        targetType: 'User',
-        targetId: id,
-        metadata,
-      });
-      await logAccountActivity(prisma, { userId: id, type: 'PLAN_CHANGED', metadata });
     }
 
     return NextResponse.json(
