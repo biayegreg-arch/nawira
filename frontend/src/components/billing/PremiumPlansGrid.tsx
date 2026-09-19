@@ -9,9 +9,13 @@ function formatFcfa(amount: number): string {
 
 interface PremiumPlansGridProps {
   currentPlan: BillingPlan['key'];
+  prices: Partial<Record<'PLUS' | 'BABY', number>>;
 }
 
-export function PremiumPlansGrid({ currentPlan }: PremiumPlansGridProps): React.JSX.Element {
+export function PremiumPlansGrid({
+  currentPlan,
+  prices,
+}: PremiumPlansGridProps): React.JSX.Element {
   return (
     <div>
       <h2 className="mb-5 text-lg font-bold text-navy">Nos plans</h2>
@@ -36,8 +40,10 @@ export function PremiumPlansGrid({ currentPlan }: PremiumPlansGridProps): React.
 
             <div className="mb-4 border-b border-border pb-4">
               <div className="flex items-baseline">
-                <span className="text-2xl font-bold text-navy">{formatFcfa(plan.priceFcfa)}</span>
-                {plan.priceFcfa > 0 && (
+                <span className="text-2xl font-bold text-navy">
+                  {formatFcfa(plan.key === 'FREE' ? 0 : (prices[plan.key] ?? plan.priceFcfa))}
+                </span>
+                {plan.key !== 'FREE' && (
                   <span className="ml-1 text-xs text-muted-foreground">/mois</span>
                 )}
               </div>

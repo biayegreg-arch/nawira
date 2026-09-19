@@ -28,16 +28,25 @@ interface ProfileResponse {
   profile: { plan: BillingPlan['key'] };
 }
 
+interface PricingResponse {
+  plans: Array<{ key: 'PLUS' | 'BABY'; priceFcfa: number }>;
+}
+
 export default function BillingPage(): React.JSX.Element | null {
   const user = useUser();
   const [plan, setPlan] = useState<BillingPlan['key'] | null>(null);
+  const [prices, setPrices] = useState<Partial<Record<'PLUS' | 'BABY', number>>>({});
   const [error, setError] = useState(false);
 
   const load = useCallback(async () => {
     setError(false);
     try {
-      const res = await api<ProfileResponse>('/api/profile');
-      setPlan(res.profile.plan);
+      const [profileRes, pricingRes] = await Promise.all([
+        api<ProfileResponse>('/api/profile'),
+        api<PricingResponse>('/api/pricing'),
+      ]);
+      setPlan(profileRes.profile.plan);
+      setPrices(Object.fromEntries(pricingRes.plans.map((p) => [p.key, p.priceFcfa])));
       track('paywall_viewed', { paywall_id: 'billing_page', plan: 'PLUS' });
     } catch {
       setError(true);
@@ -85,7 +94,7 @@ export default function BillingPage(): React.JSX.Element | null {
       </div>
 
       <div className="animate-fade-in-up mb-8" style={staggerDelay(1)}>
-        <PremiumPlansGrid currentPlan={plan} />
+        <PremiumPlansGrid currentPlan={plan} prices={prices} />
       </div>
 
       <div
