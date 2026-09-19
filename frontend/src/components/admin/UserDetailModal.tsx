@@ -38,6 +38,8 @@ function errorMessage(err: unknown): string {
       return 'Seul un SUPERADMIN peut suspendre un compte SUPERADMIN.';
     case 'USER_NOT_FOUND':
       return 'Cette utilisatrice n’existe plus.';
+    case 'PROFILE_NOT_FOUND':
+      return 'Cette utilisatrice n’a pas terminé son onboarding — impossible de lui attribuer un plan.';
     case 'ALREADY_DELETED':
       return 'Ce compte est déjà supprimé.';
     case 'DELETION_BLOCKED_PENDING_WITHDRAWAL':

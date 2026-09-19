@@ -105,9 +105,27 @@ describe('PATCH /api/admin/users/[id]/plan', () => {
     expect(body.error).toBe('VALIDATION_FAILED');
   });
 
-  it('returns 404 USER_NOT_FOUND when the target user has no Profile row', async () => {
+  it('returns 404 PROFILE_NOT_FOUND when the target User exists but has no Profile row', async () => {
     prismaMock.$transaction.mockImplementationOnce(async (cb: unknown) => {
-      const tx = { profile: { findUnique: vi.fn().mockResolvedValue(null) } };
+      const tx = {
+        profile: { findUnique: vi.fn().mockResolvedValue(null) },
+        user: { findUnique: vi.fn().mockResolvedValue({ id: 'u1' }) },
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (cb as (tx: any) => unknown)(tx);
+    });
+    const res = await PATCH(makePatch('http://test/x', { plan: 'PLUS' }), ctxWith('u1'));
+    expect(res.status).toBe(404);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toBe('PROFILE_NOT_FOUND');
+  });
+
+  it('returns 404 USER_NOT_FOUND when the target user does not exist at all', async () => {
+    prismaMock.$transaction.mockImplementationOnce(async (cb: unknown) => {
+      const tx = {
+        profile: { findUnique: vi.fn().mockResolvedValue(null) },
+        user: { findUnique: vi.fn().mockResolvedValue(null) },
+      };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (cb as (tx: any) => unknown)(tx);
     });
@@ -126,6 +144,7 @@ describe('PATCH /api/admin/users/[id]/plan', () => {
             .mockResolvedValue({ userId: 'u1', plan: 'PLUS', planExpiresAt: null }),
           update: vi.fn(),
         },
+        user: { findUnique: vi.fn() },
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (cb as (tx: any) => unknown)(tx);
@@ -150,6 +169,7 @@ describe('PATCH /api/admin/users/[id]/plan', () => {
             .mockResolvedValue({ userId: 'u1', plan: 'FREE', planExpiresAt: null }),
           update,
         },
+        user: { findUnique: vi.fn() },
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (cb as (tx: any) => unknown)(tx);
@@ -197,6 +217,7 @@ describe('PATCH /api/admin/users/[id]/plan', () => {
           }),
           update,
         },
+        user: { findUnique: vi.fn() },
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (cb as (tx: any) => unknown)(tx);
@@ -218,6 +239,7 @@ describe('PATCH /api/admin/users/[id]/plan', () => {
             .mockResolvedValue({ userId: 'u1', plan: 'PLUS', planExpiresAt: null }),
           update: vi.fn(),
         },
+        user: { findUnique: vi.fn() },
       };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (cb as (tx: any) => unknown)(tx);

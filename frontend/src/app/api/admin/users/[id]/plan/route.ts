@@ -38,6 +38,7 @@ const Body = z
 
 type Discriminator =
   | { kind: 'NOT_FOUND' }
+  | { kind: 'PROFILE_NOT_FOUND' }
   | { kind: 'NOOP'; profile: { plan: string; planExpiresAt: Date | null } }
   | { kind: 'OK'; from: string; profile: { plan: string; planExpiresAt: Date | null } };
 
@@ -73,7 +74,11 @@ export async function PATCH(
         where: { userId: id },
         select: { plan: true, planExpiresAt: true },
       });
-      if (!target) return { kind: 'NOT_FOUND' as const };
+      if (!target) {
+        const existingUser = await tx.user.findUnique({ where: { id }, select: { id: true } });
+        if (!existingUser) return { kind: 'NOT_FOUND' as const };
+        return { kind: 'PROFILE_NOT_FOUND' as const };
+      }
 
       const unchanged =
         target.plan === parsed.data.plan &&
@@ -111,6 +116,16 @@ export async function PATCH(
     if (result.kind === 'NOT_FOUND') {
       return NextResponse.json(
         { error: 'USER_NOT_FOUND', message: 'User not found' },
+        { status: 404, headers: { 'x-request-id': reqCtx.requestId } },
+      );
+    }
+
+    if (result.kind === 'PROFILE_NOT_FOUND') {
+      return NextResponse.json(
+        {
+          error: 'PROFILE_NOT_FOUND',
+          message: "This user hasn't completed onboarding yet; no plan can be assigned.",
+        },
         { status: 404, headers: { 'x-request-id': reqCtx.requestId } },
       );
     }

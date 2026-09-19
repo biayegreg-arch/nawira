@@ -41,15 +41,20 @@ export default function BillingPage(): React.JSX.Element | null {
   const load = useCallback(async () => {
     setError(false);
     try {
-      const [profileRes, pricingRes] = await Promise.all([
-        api<ProfileResponse>('/api/profile'),
-        api<PricingResponse>('/api/pricing'),
-      ]);
+      const profileRes = await api<ProfileResponse>('/api/profile');
       setPlan(profileRes.profile.plan);
-      setPrices(Object.fromEntries(pricingRes.plans.map((p) => [p.key, p.priceFcfa])));
       track('paywall_viewed', { paywall_id: 'billing_page', plan: 'PLUS' });
     } catch {
       setError(true);
+      return;
+    }
+    try {
+      const pricingRes = await api<PricingResponse>('/api/pricing');
+      setPrices(Object.fromEntries(pricingRes.plans.map((p) => [p.key, p.priceFcfa])));
+    } catch {
+      // Pricing fetch failure falls back to the static BILLING_PLANS prices
+      // already baked into PremiumPlansGrid (prices[plan.key] ?? plan.priceFcfa)
+      // — never blocks the page.
     }
   }, []);
 
