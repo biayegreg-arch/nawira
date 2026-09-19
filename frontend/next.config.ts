@@ -5,10 +5,9 @@ import { withSentryConfig } from '@sentry/nextjs';
 // Set via next.config.ts (not middleware.ts) so Vercel's edge can serve them
 // from the CDN cache without invoking a function — zero per-request latency.
 //
-// CSP is intentionally NOT included here. App Router pages need a per-request
-// nonce (server-rendered) for inline scripts; ship CSP via middleware.ts when
-// the first frontend page lands. For now, the API-only surface doesn't render
-// HTML and doesn't need CSP.
+// CSP is NOT included here — it needs a per-request nonce, which a static
+// header list can't carry. It ships from frontend/middleware.ts instead
+// (production-only; see the `buildCsp`/`withCsp` helpers there).
 const securityHeaders = [
   {
     key: 'Strict-Transport-Security',
