@@ -18,6 +18,23 @@ vi.mock('@/lib/server/auth/dummy-bcrypt', () => ({
 vi.mock('@/lib/server/auth/hibp', () => ({
   isPwned: vi.fn().mockResolvedValue(false),
 }));
+// hashPassword does real bcrypt-12 hashing (pure-JS bcryptjs, no native
+// bindings) — the "returns 429 TOO_MANY_SIGNUP_ATTEMPTS" test below fires up
+// to `max` (5) concurrent new-user signups before the rate limit trips, each
+// of which would otherwise pay that real cost inside this file's 5s test
+// timeout, making the test flaky under CPU load. Mock just this one export;
+// generateVerificationCode and everything else from '@/lib/server/auth'
+// stays real, matching the partial-mock pattern already used in
+// login/route.test.ts (verifyPassword).
+vi.mock('@/lib/server/auth', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/server/auth')>('@/lib/server/auth');
+  return {
+    ...actual,
+    hashPassword: vi
+      .fn()
+      .mockResolvedValue('$2b$12$fakehashfakehashfakehashfakehashfakehashfakeHASHE'),
+  };
+});
 
 import { POST } from './route';
 import { dummyBcryptCompare } from '@/lib/server/auth/dummy-bcrypt';
