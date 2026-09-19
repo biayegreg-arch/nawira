@@ -119,6 +119,15 @@ model AccountActivity {
   @@index([userId, createdAt])
 }
 
+model PricingPlan {
+  id        String   @id @default(cuid())
+  key       String   @unique // "PLUS" | "BABY" — FREE has no row (always 0 FCFA)
+  priceFcfa Int // integer FCFA, no decimals (CLAUDE.md money invariant)
+  updatedAt DateTime @updatedAt
+  updatedBy String? // User.id of the admin who last changed it (denormalized
+  // convenience; the authoritative trail is AdminAction)
+}
+
 // ───────────────────────────────────────────────────────────────────────
 // Multi-tenancy primitives — opt-in.
 //
@@ -377,18 +386,20 @@ model Withdrawal {
 // ───────────────────────────────────────────────────────────────────────
 
 model Profile {
-  userId            String   @id
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String    @id
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   birthDate         DateTime
   goal              String // PERIOD_TRACKING | UNDERSTAND_CYCLE | TRYING_TO_CONCEIVE
   usualCycleLength  Int?
   usualPeriodLength Int?
-  trackedConcerns   String[] @default([])
-  plan              String   @default("FREE") // FREE | PLUS | BABY
-  temperatureUnit   String   @default("CELSIUS") // CELSIUS | FAHRENHEIT
-  notificationLevel String   @default("NORMAL") // NORMAL | DISCREET | NONE
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  trackedConcerns   String[]  @default([])
+  plan              String    @default("FREE") // FREE | PLUS | BABY
+  planExpiresAt     DateTime? // null = permanent; set only via admin grant with an end date;
+  // cleared automatically by the plan-expiration cron on downgrade
+  temperatureUnit   String    @default("CELSIUS") // CELSIUS | FAHRENHEIT
+  notificationLevel String    @default("NORMAL") // NORMAL | DISCREET | NONE
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Consent {
