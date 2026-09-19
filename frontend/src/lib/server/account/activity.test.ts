@@ -4,6 +4,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockDeep, mockReset, type DeepMockProxy } from 'vitest-mock-extended';
 import type { PrismaClient } from '@prisma/client';
+import type { AccountActivityType } from './activity';
 import { logAccountActivity } from './activity';
 
 const prismaMock = mockDeep<PrismaClient>() as unknown as DeepMockProxy<PrismaClient>;
@@ -55,5 +56,14 @@ describe('logAccountActivity', () => {
     await logAccountActivity(txMock, { userId: 'u3', type: 'DATA_EXPORTED' });
 
     expect(accountActivityCreate).toHaveBeenCalledOnce();
+  });
+});
+
+describe('AccountActivityType', () => {
+  it('includes PLAN_CHANGED and PLAN_EXPIRED as valid values', () => {
+    const changed: AccountActivityType = 'PLAN_CHANGED';
+    const expired: AccountActivityType = 'PLAN_EXPIRED';
+    expect(changed).toBe('PLAN_CHANGED');
+    expect(expired).toBe('PLAN_EXPIRED');
   });
 });
