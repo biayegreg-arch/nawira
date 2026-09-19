@@ -6,7 +6,22 @@ import { api, ApiError } from '@/lib/api';
 import { InitialsAvatar } from '@/components/ui/InitialsAvatar';
 import { Badge } from '@/components/ui/Badge';
 import { UserDetailModal } from '@/components/admin/UserDetailModal';
+import { Skeleton } from '@/components/ui/Skeleton';
 import type { AdminUser, AdminUserListResponse } from '@/components/admin/types';
+
+function UserRowSkeleton(): React.JSX.Element {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 md:rounded-none md:border-x-0 md:border-t-0 md:p-3 md:px-6">
+      <Skeleton className="h-10 w-10 shrink-0 rounded-full" />
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <Skeleton className="h-3.5 w-1/3" />
+        <Skeleton className="h-3 w-1/2" />
+      </div>
+      <Skeleton className="hidden h-5 w-16 shrink-0 rounded-full md:block" />
+      <Skeleton className="hidden h-5 w-16 shrink-0 rounded-full md:block" />
+    </div>
+  );
+}
 
 const ROLE_TONE: Record<AdminUser['role'], 'neutral' | 'primary' | 'warning'> = {
   USER: 'neutral',
@@ -92,6 +107,14 @@ export default function AdminUsersPage(): React.JSX.Element {
         </div>
       )}
 
+      {loading && users.length === 0 && (
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <UserRowSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
       {/* Mobile / tablet: stacked cards (no horizontal scroll below md) */}
       <div className="flex flex-col gap-3 md:hidden">
         {users.map((user) => (
@@ -164,14 +187,21 @@ export default function AdminUsersPage(): React.JSX.Element {
         </div>
       )}
 
-      {hasMore && (
+      {loading && users.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <UserRowSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
+      {hasMore && !loading && (
         <button
           type="button"
-          disabled={loading}
           onClick={() => void load(false)}
-          className="self-center rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50"
+          className="self-center rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy"
         >
-          {loading ? 'Chargement…' : 'Charger plus'}
+          Charger plus
         </button>
       )}
 

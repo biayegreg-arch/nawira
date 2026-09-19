@@ -89,10 +89,11 @@ describe('GET /api/admin/me [Wave 1]', () => {
     expect(body.can).toContain('users:role');
     expect(body.can).toContain('withdrawals:cancel');
     expect(body.can).toContain('users:status:restore');
-    expect(body.can).toHaveLength(11);
+    expect(body.can).toContain('users:delete');
+    expect(body.can).toHaveLength(12);
   });
 
-  it('SUPERADMIN list is the exact 11-item set required by D-ADMIN-04', async () => {
+  it('SUPERADMIN list is the exact 12-item set required by D-ADMIN-04', async () => {
     mockRequireAdmin.mockResolvedValueOnce(superadminCtx);
     const res = await GET(makeGet());
     const body = await res.json();
@@ -101,6 +102,7 @@ describe('GET /api/admin/me [Wave 1]', () => {
       'users:role',
       'users:status:suspend',
       'users:status:restore',
+      'users:delete',
       'orders:read',
       'withdrawals:read',
       'withdrawals:cancel',
@@ -154,6 +156,7 @@ describe('GET /api/admin/me [Wave 1]', () => {
     expect(body.can).not.toContain('users:role');
     expect(body.can).not.toContain('users:status:restore');
     expect(body.can).not.toContain('withdrawals:cancel');
+    expect(body.can).not.toContain('users:delete');
   });
 });
 
@@ -167,7 +170,7 @@ describe('source invariants', () => {
     expect(src).toContain('withRequestContext');
   });
 
-  it("each SUPERADMIN-only capability ('users:role', 'users:status:restore', 'withdrawals:cancel') appears exactly once in the code (not counting comments)", () => {
+  it("each SUPERADMIN-only capability ('users:role', 'users:status:restore', 'users:delete', 'withdrawals:cancel') appears exactly once in the code (not counting comments)", () => {
     // Strip line- and block-comments before counting so the docstring
     // listing the SUPERADMIN-only capabilities doesn't inflate the count
     // (the acceptance check is "appears in SUPERADMIN list only, not ADMIN").
@@ -177,5 +180,6 @@ describe('source invariants', () => {
     expect(occurrences('users:role')).toBe(1);
     expect(occurrences('withdrawals:cancel')).toBe(1);
     expect(occurrences('users:status:restore')).toBe(1);
+    expect(occurrences('users:delete')).toBe(1);
   });
 });

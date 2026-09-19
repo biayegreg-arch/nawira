@@ -14,9 +14,11 @@ import {
   Crown,
   HelpCircle,
   LogOut,
+  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 import { LogoutButton } from './LogoutButton';
 
 interface NavItem {
@@ -43,6 +45,8 @@ const accountItems: NavItem[] = [
 
 export function AppSidebar(): React.JSX.Element {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
 
   const isActive = (href: string): boolean => pathname === href || pathname.startsWith(`${href}/`);
 
@@ -124,6 +128,24 @@ export function AppSidebar(): React.JSX.Element {
             </Link>
           );
         })}
+        {isAdmin && (
+          <>
+            <div className="mt-4 mb-1 px-3 text-[11px] font-semibold tracking-wider text-white/45 uppercase">
+              Administration
+            </div>
+            <Link
+              href="/admin"
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm',
+                isActive('/admin') ? 'bg-white/[0.18] font-semibold text-white' : 'text-white/70',
+              )}
+            >
+              <ShieldCheck size={18} />
+              <span>Espace Admin</span>
+            </Link>
+          </>
+        )}
+
         <LogoutButton className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-white/65">
           <LogOut size={16} />
           <span>Déconnexion</span>

@@ -1,6 +1,6 @@
 # Banani implementation status
 
-Last updated: 2026-09-19 (E11 Admin — `/admin` overview + `/admin/users`, see delta below)
+Last updated: 2026-09-19 (E11 Admin — full 8-section back-office + dashboard entry point + admin-initiated deletion, see delta below)
 
 Source flow: **"Design System NAWIRA"** — Banani flow id `acguXQuGeGbU` (https://app.banani.co/flow/acguXQuGeGbU)
 Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope. A later, separate fetch (2026-09-07) added 7 more screens the user created directly for the Projet Bébé flow: `ProjetBebe` (re-fetch), `ProjetBebeRessources`, `ProjetBebeCalendarV2`, `AddLHTest`, `ConceptionAdvice`, plus 2 duplicates (`ProjetBebe_next1`, `ProjetBebeDiscovery`) dropped per the same duplicate-screen policy.
@@ -26,6 +26,7 @@ Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: 
 - [x] `Assistant` — **built against the real Phase 7 chat API**, replacing the `ComingSoonPage` placeholder — `frontend/src/app/app/assistant/page.tsx` + `frontend/src/components/assistant/{MessageBubble,ChatPanel,TopicsPanel}.tsx` + `frontend/src/lib/assistant-chat.ts` — plan: `.planning/banani/assistant.md` — commit `6d9d432` — 2026-09-09
 - [x] `Analytics` — **built against the real Phase 6 insights API, with real data throughout** (no fabricated numbers) — replaced the `ComingSoonPage` placeholder, extended the backend with a new `MOOD_DISTRIBUTION` insight type — `frontend/src/app/app/insights/page.tsx` + `frontend/src/components/insights/{CycleScoreCard,SymptomStatistics,MoodDistributionChart,CycleComparisonCard,AnalyticsRecommendations}.tsx` + `frontend/src/lib/server/insights/compute-insights.ts` — plan: `.planning/banani/insights.md` — commit `fbeaed8` — 2026-09-09
 - [x] `Admin` (E11) — **rebuilt almost entirely against real `/api/admin/*` data**, dropping every fictional section (MRR/revenue, moderation, platform-settings toggles, subscriber/retention KPIs — zero backing data anywhere in the schema) — `frontend/src/app/admin/{layout,page}.tsx` + `frontend/src/app/admin/users/page.tsx` + `frontend/src/components/admin/*` + new `Badge`/`InitialsAvatar` primitives — plan: `.planning/banani/admin.md` — 2026-09-19
+- [x] `Admin` follow-up (E11 continued) — dashboard "Espace Admin" entry point (role-gated), shimmer skeleton loaders replacing plain-text loading states, admin-initiated account deletion, and the 6 remaining back-office pages (Commandes/Retraits/Journal d'audit/File de sortie/File emails/Limites de débit) built directly against their real `/api/admin/*` routes with no Banani source (user's explicit go-ahead) — see delta below — 2026-09-19
 
 New shared primitives: `frontend/src/components/ui/Button.tsx`, `frontend/src/components/ui/Field.tsx`, `frontend/src/components/auth/AuthCard.tsx`. Design tokens added to `frontend/src/app/globals.css` (`@theme` block — primary/navy confirmed exact match with PRD §0; rose/green/amber/purple are Banani's actual accent hexes, renamed to avoid colliding with Tailwind's built-in default palette names of the same words).
 
@@ -559,3 +560,90 @@ Fetched the real Banani source (`Admin.jsx`). Unlike every prior screen, most of
   Fast-Refresh/HMR interference between rapid successive Playwright test-script runs against the
   same long-lived dev server, not an application bug; confirmed by re-running with an explicit
   `page.waitForResponse()` on the PATCH call, which returned a clean 200 every time.
+
+### Delta vs Banani source — `Admin` follow-up (E11 continued, 2026-09-19)
+
+No new Banani fetch for this pass — user explicitly approved building the 6 remaining sections
+directly against their real `/api/admin/*` routes (no source screen exists for them), matching
+`/admin/users`' established design conventions.
+
+- **Dashboard entry point.** `role` now flows end-to-end: `GET /api/auth/me` selects `User.role`
+  and returns it (presentational only — every admin route still re-checks role server-side);
+  `AuthContext`'s `User` type gained a `role` field, picked up automatically since `AuthProvider`
+  does `setUser(res.user)` directly. `AppSidebar.tsx` gained an "Administration" nav section
+  (`ShieldCheck` icon, "Espace Admin" → `/admin`) and `UserMenu.tsx` gained a matching dropdown
+  entry, both gated on `user.role === 'ADMIN' || 'SUPERADMIN'` — visible on desktop sidebar,
+  mobile top-bar dropdown, and tablet.
+- **Shimmer skeleton loaders, no classic spinners/text** (explicit user constraint: "Je ne veux
+  pas voir les loaders classiques"). New `--color-gray` shimmer keyframe in `globals.css`
+  (`prefers-reduced-motion`-aware, matching the existing entrance-animation convention) + a
+  `Skeleton` primitive (`src/components/ui/Skeleton.tsx`) + a shared `AdminListSkeleton` row
+  shimmer (`src/components/admin/AdminListSkeleton.tsx`) reused across every paginated admin
+  list. The `/admin` layout's access-check gate (previously plain "Vérification de l'accès…"
+  text) now renders a full shimmer shell (sidebar bars, topbar, content cards) matching the real
+  layout's shape.
+- **Data accuracy re-verified** against the live dev DB across all 8 sections (see Verified below)
+  — every list, badge, and detail field traced back to a real Prisma row or Redis key, nothing
+  fabricated.
+- **Admin-initiated account deletion** — new SUPERADMIN-gated `DELETE /api/admin/users/[id]`
+  (added to the existing `users/[id]/route.ts`), reusing the same `deleteAccount()` helper as the
+  self-service `DELETE /api/account` route (E8 Part B). Refuses to delete an already-deleted
+  account (`ALREADY_DELETED`) or the last SUPERADMIN (`LAST_SUPERADMIN`, same guard as the
+  role-change route), passes through `deleteAccount()`'s own `DELETION_BLOCKED_PENDING_WITHDRAWAL`
+  guard, and logs a `user.delete` `AdminAction` on success. New `users:delete` capability added to
+  `GET /api/admin/me`'s locked `CAPABILITIES_BY_ROLE` contract (SUPERADMIN-only, 12 total —
+  updated the route's own docstring + all 3 dependent tests). `UserDetailModal.tsx` gained a
+  "Zone dangereuse" section with an explicit two-step confirm (click → inline warning + Annuler/
+  Confirmer, no `window.confirm`) gated on `can.includes('users:delete')`.
+- **Reliability fix surfaced by real-latency testing, not simulated.** Driving the new delete
+  route against the live dev DB (real Neon latency, not mocks) surfaced a genuine timeout: the
+  existing `deleteAccount()` transaction runs ~18-20 sequential queries (one `deleteMany` per
+  domain table + one `update` per withdrawal), which exceeded Prisma's default 5s interactive-
+  transaction timeout under this environment's per-query latency (`P2028` "Transaction not
+  found"). Fixed by passing `{ timeout: 15000 }` to `deleteAccount.ts`'s `$transaction()` call —
+  benefits both the self-service and admin-initiated deletion paths equally, not a workaround
+  specific to the admin route. Confirmed fixed by re-running the same browser-driven deletion,
+  which then returned 200 and produced a correct `AdminAction` row.
+- **6 new list pages**, all mobile-first, cursor-paginated (or, for rate-limits, a flat bucket
+  summary — no pagination in that route), matching `/admin/users`' shimmer-skeleton + search/
+  filter + card↔table responsive pattern:
+  - `/admin/orders` — status filter, `Order` fields, read-only detail modal (`RecordDetailModal`,
+    new shared component for JSON/field-list detail views).
+  - `/admin/withdrawals` — status filter, detail modal with a SUPERADMIN-gated cancel action
+    (`WithdrawalDetailModal.tsx`, reuses `POST .../withdrawals/[id]/cancel`).
+  - `/admin/audit-log` — action/targetType filters, `RecordDetailModal` with a formatted
+    `metadata` JSON block.
+  - `/admin/outbox` — status/kind filters, `RecordDetailModal` with a formatted `payload` JSON
+    block.
+  - `/admin/email-queue` — status filter, `RecordDetailModal` extended via `children` to show the
+    PII-scoped `bodyPreview` (never the full `html`/`text` — server-side truncation unchanged).
+  - `/admin/rate-limits` — no cursor pagination (the backend route returns a flat bucket summary);
+    7 bucket cards showing `totalKeys` + top-10 hottest keys with real hit counts and expiry
+    times, read directly from Redis; gracefully renders a "Redis n'est pas configuré" message
+    when `redis === null`.
+  - `admin-nav.ts`'s 6 previously-disabled ("Bientôt disponible") sections are now all
+    `available: true`.
+
+### Verified — `Admin` follow-up (E11 continued, 2026-09-19)
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm format`, `pnpm test` all green — **895/895**, no
+  regressions (one pre-existing flaky timeout in an unrelated signup-rate-limit test, confirmed
+  passing in isolation, not touched by this pass).
+- Real browser check (system Chrome via Playwright) across a full login → dashboard → all 8
+  `/admin/*` sections walk: the "Espace Admin" sidebar entry and `UserMenu` dropdown entry both
+  render only for an ADMIN/SUPERADMIN session; every list page loads real seeded data (orders
+  empty-state confirmed accurate — no seeded orders in this dev DB; withdrawals same; audit-log
+  showed real `BOOTSTRAP_SUPERADMIN`/`user.suspend`/`user.restore`/`user.delete` rows from this
+  and earlier verification passes; outbox and email-queue showed real `SENT`/`FAILED` jobs;
+  rate-limits showed a real live Redis key for the exact login attempt made during this
+  verification run, with a real hit count and expiry timestamp).
+- Skeleton-loader shimmer confirmed visually (network-throttled) on `/admin` and `/admin/users`
+  — a full shimmer shell during the access-check gate, shimmer row placeholders during the
+  initial list fetch and "load more", no spinner or plain-text loading state anywhere.
+- Full admin-deletion round-trip driven end-to-end against the live dev DB: created a throwaway
+  user, opened its detail modal, triggered "Zone dangereuse" → confirmed deletion, verified the
+  200 response, the `DELETED` status badge updating in place, the success toast, and a real
+  `AdminAction` row (`action: 'user.delete'`) via a direct DB read — then cleaned up all
+  throwaway test accounts and scratch scripts afterward.
+- `contactnawira@gmail.com` confirmed SUPERADMIN in the real `/admin/users` list (per the user's
+  earlier request, to let them test the back-office themselves).

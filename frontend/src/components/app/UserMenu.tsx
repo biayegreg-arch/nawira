@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
-import { Camera, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { Camera, LogOut, Settings, ShieldCheck, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { api, ApiError } from '@/lib/api';
@@ -51,6 +51,7 @@ export function UserMenu(): React.JSX.Element | null {
 
   if (!user) return null;
   const name = greetingName(user.email);
+  const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
 
   async function onFileChange(e: ChangeEvent<HTMLInputElement>): Promise<void> {
     const file = e.target.files?.[0];
@@ -161,6 +162,19 @@ export function UserMenu(): React.JSX.Element | null {
               Paramètres
             </Link>
           </div>
+
+          {isAdmin && (
+            <div className="border-t border-border py-1">
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-navy hover:bg-gray-50"
+              >
+                <ShieldCheck size={16} />
+                Espace Admin
+              </Link>
+            </div>
+          )}
 
           <div className="border-t border-border py-1">
             <LogoutButton className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-navy hover:bg-gray-50">

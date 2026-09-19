@@ -7,6 +7,7 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminTopBar } from '@/components/admin/AdminTopBar';
 import { AdminMobileNav } from '@/components/admin/AdminMobileNav';
 import { AdminContext, type AdminIdentity } from '@/contexts/AdminContext';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface AdminMeResponse {
   admin: { id: string; email: string; role: 'ADMIN' | 'SUPERADMIN' };
@@ -42,8 +43,27 @@ export default function AdminLayout({
 
   if (!checked || !identity) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Vérification de l&apos;accès…
+      <div className="flex" style={{ minHeight: '100vh' }}>
+        <div className="hidden w-64 shrink-0 flex-col gap-2 bg-gradient-to-b from-sidebar-from to-sidebar-to p-4 lg:flex">
+          <Skeleton className="mx-auto mb-6 mt-4 h-14 w-14 rounded-xl bg-white/15" />
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-9 w-full bg-white/10" />
+          ))}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex items-center justify-between border-b border-border bg-white px-4 py-4 lg:px-8">
+            <Skeleton className="h-5 w-32" />
+            <Skeleton className="h-9 w-9 rounded-full" />
+          </div>
+          <main className="flex flex-1 flex-col gap-6 bg-background p-4 lg:p-8">
+            <Skeleton className="h-4 w-56" />
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-28 w-full" />
+              ))}
+            </div>
+          </main>
+        </div>
       </div>
     );
   }

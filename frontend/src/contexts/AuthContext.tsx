@@ -20,6 +20,8 @@ export interface User {
   linkedProviders: string[];
   /** false until the user has completed onboarding (Phase 2) and has a Profile row. */
   hasProfile: boolean;
+  /** Presentational only — admin routes re-check this server-side regardless. */
+  role: 'USER' | 'ADMIN' | 'SUPERADMIN';
 }
 
 interface AuthContextValue {

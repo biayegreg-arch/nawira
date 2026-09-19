@@ -31,13 +31,17 @@ function errorMessage(err: unknown): string {
   if (!(err instanceof ApiError)) return 'Une erreur est survenue.';
   switch (err.code) {
     case 'LAST_SUPERADMIN':
-      return 'Impossible de rétrograder le dernier SUPERADMIN.';
+      return 'Impossible de rétrograder ou supprimer le dernier SUPERADMIN.';
     case 'RESTORE_REQUIRES_SUPERADMIN':
       return 'Seul un SUPERADMIN peut réactiver ce compte.';
     case 'SUSPEND_REQUIRES_SUPERADMIN':
       return 'Seul un SUPERADMIN peut suspendre un compte SUPERADMIN.';
     case 'USER_NOT_FOUND':
       return 'Cette utilisatrice n’existe plus.';
+    case 'ALREADY_DELETED':
+      return 'Ce compte est déjà supprimé.';
+    case 'DELETION_BLOCKED_PENDING_WITHDRAWAL':
+      return 'Un retrait est en cours de traitement ; réessaie une fois terminé.';
     default:
       return err.message;
   }
@@ -52,10 +56,12 @@ export function UserDetailModal({
   const { toast } = useToast();
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const canChangeRole = admin.can.includes('users:role');
   const canSuspend = admin.can.includes('users:status:suspend');
   const canRestore = admin.can.includes('users:status:restore');
+  const canDelete = admin.can.includes('users:delete');
 
   async function changeRole(role: AdminUser['role']): Promise<void> {
     setBusy(true);
@@ -69,6 +75,22 @@ export function UserDetailModal({
     } catch (err) {
       toast(errorMessage(err), 'error');
     } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteUser(): Promise<void> {
+    setBusy(true);
+    try {
+      await api(`/api/admin/users/${user.id}`, {
+        method: 'DELETE',
+        body: { confirmation: 'DELETE' },
+      });
+      onUpdated({ ...user, status: 'DELETED' });
+      toast('Compte supprimé définitivement.', 'success');
+      onClose();
+    } catch (err) {
+      toast(errorMessage(err), 'error');
       setBusy(false);
     }
   }
@@ -201,6 +223,48 @@ export function UserDetailModal({
                 >
                   Réactiver le compte
                 </button>
+              )}
+            </div>
+          )}
+
+          {canDelete && user.status !== 'DELETED' && (
+            <div className="flex flex-col gap-2 border-t border-border pt-4">
+              <div className="text-xs font-semibold text-danger">Zone dangereuse</div>
+              {!confirmingDelete ? (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setConfirmingDelete(true)}
+                  className="rounded-lg border border-danger px-4 py-2.5 text-sm font-semibold text-danger disabled:opacity-50"
+                >
+                  Supprimer définitivement ce compte
+                </button>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    Cette action est irréversible : les données de santé et comportementales seront
+                    effacées ; les données financières (commandes, retraits) seront anonymisées,
+                    jamais supprimées.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => setConfirmingDelete(false)}
+                      className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => void deleteUser()}
+                      className="flex-1 rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                    >
+                      Confirmer la suppression
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           )}

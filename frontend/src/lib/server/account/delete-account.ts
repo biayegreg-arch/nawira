@@ -41,68 +41,77 @@ export async function deleteAccount(
     };
   }
 
-  await prisma.$transaction(async (tx) => {
-    // Health / behavioral / self-service data — hard deleted. DailyLog and
-    // AssistantConversation cascade to SymptomLog and AssistantMessage at
-    // the Postgres FK level (ON DELETE CASCADE), so no separate deleteMany
-    // is needed for those two child tables.
-    await tx.verificationCode.deleteMany({ where: { userId } });
-    await tx.fileUpload.deleteMany({ where: { userId } });
-    await tx.notification.deleteMany({ where: { userId } });
-    await tx.notificationPreferences.deleteMany({ where: { userId } });
-    await tx.profile.deleteMany({ where: { userId } });
-    await tx.consent.deleteMany({ where: { userId } });
-    await tx.assistantConversation.deleteMany({ where: { userId } });
-    await tx.dailyLog.deleteMany({ where: { userId } });
-    await tx.periodEvent.deleteMany({ where: { userId } });
-    await tx.cycle.deleteMany({ where: { userId } });
-    await tx.fertilitySignal.deleteMany({ where: { userId } });
-    await tx.prediction.deleteMany({ where: { userId } });
-    await tx.insight.deleteMany({ where: { userId } });
-    await tx.analyticsEvent.deleteMany({ where: { userId } });
-    await tx.accountActivity.deleteMany({ where: { userId } });
-    await tx.oAuthAccount.deleteMany({ where: { userId } });
+  await prisma.$transaction(
+    async (tx) => {
+      // Health / behavioral / self-service data — hard deleted. DailyLog and
+      // AssistantConversation cascade to SymptomLog and AssistantMessage at
+      // the Postgres FK level (ON DELETE CASCADE), so no separate deleteMany
+      // is needed for those two child tables.
+      await tx.verificationCode.deleteMany({ where: { userId } });
+      await tx.fileUpload.deleteMany({ where: { userId } });
+      await tx.notification.deleteMany({ where: { userId } });
+      await tx.notificationPreferences.deleteMany({ where: { userId } });
+      await tx.profile.deleteMany({ where: { userId } });
+      await tx.consent.deleteMany({ where: { userId } });
+      await tx.assistantConversation.deleteMany({ where: { userId } });
+      await tx.dailyLog.deleteMany({ where: { userId } });
+      await tx.periodEvent.deleteMany({ where: { userId } });
+      await tx.cycle.deleteMany({ where: { userId } });
+      await tx.fertilitySignal.deleteMany({ where: { userId } });
+      await tx.prediction.deleteMany({ where: { userId } });
+      await tx.insight.deleteMany({ where: { userId } });
+      await tx.analyticsEvent.deleteMany({ where: { userId } });
+      await tx.accountActivity.deleteMany({ where: { userId } });
+      await tx.oAuthAccount.deleteMany({ where: { userId } });
 
-    // Financial data — anonymized, never deleted.
-    await tx.order.updateMany({
-      where: { userId },
-      data: { customerEmail: null, customerPhone: null, customerName: null },
-    });
+      // Financial data — anonymized, never deleted.
+      await tx.order.updateMany({
+        where: { userId },
+        data: { customerEmail: null, customerPhone: null, customerName: null },
+      });
 
-    const withdrawals = await tx.withdrawal.findMany({
-      where: { userId },
-      select: { id: true, destination: true },
-    });
-    for (const w of withdrawals) {
-      const destination = w.destination as unknown as { method?: string } | null;
-      await tx.withdrawal.update({
-        where: { id: w.id },
+      const withdrawals = await tx.withdrawal.findMany({
+        where: { userId },
+        select: { id: true, destination: true },
+      });
+      for (const w of withdrawals) {
+        const destination = w.destination as unknown as { method?: string } | null;
+        await tx.withdrawal.update({
+          where: { id: w.id },
+          data: {
+            destination: { method: destination?.method ?? null, phone: null, accountName: null },
+          },
+        });
+      }
+
+      await tx.user.update({
+        where: { id: userId },
         data: {
-          destination: { method: destination?.method ?? null, phone: null, accountName: null },
+          email: `deleted-${userId}@deleted.nawira.invalid`,
+          name: null,
+          avatarUrl: null,
+          passwordHash: null,
+          withdrawalPinHash: null,
+          status: 'DELETED',
+          tokenVersion: { increment: 1 },
         },
       });
-    }
 
-    await tx.user.update({
-      where: { id: userId },
-      data: {
-        email: `deleted-${userId}@deleted.nawira.invalid`,
-        name: null,
-        avatarUrl: null,
-        passwordHash: null,
-        withdrawalPinHash: null,
-        status: 'DELETED',
-        tokenVersion: { increment: 1 },
-      },
-    });
-
-    await logAccountActivity(tx, {
-      userId,
-      type: 'ACCOUNT_DELETED',
-      ...(meta.ip !== undefined ? { ip: meta.ip } : {}),
-      ...(meta.userAgent !== undefined ? { userAgent: meta.userAgent } : {}),
-    });
-  });
+      await logAccountActivity(tx, {
+        userId,
+        type: 'ACCOUNT_DELETED',
+        ...(meta.ip !== undefined ? { ip: meta.ip } : {}),
+        ...(meta.userAgent !== undefined ? { userAgent: meta.userAgent } : {}),
+      });
+    },
+    // This transaction runs ~15-20 sequential queries (one deleteMany per
+    // domain table, plus one update per withdrawal). Prisma's default
+    // interactive-transaction timeout (5s) can be exceeded by that many
+    // round-trips under real network latency (e.g. Neon), aborting an
+    // otherwise-correct deletion. 15s gives comfortable headroom without
+    // holding row locks indefinitely.
+    { timeout: 15000 },
+  );
 
   return { ok: true };
 }

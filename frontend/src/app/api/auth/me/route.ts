@@ -48,6 +48,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       select: {
         id: true,
         email: true,
+        role: true,
         emailVerifiedAt: true,
         createdAt: true,
         updatedAt: true,
@@ -64,6 +65,9 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       sub: auth.user.sub,
       id: dbUser?.id ?? auth.user.sub,
       email: dbUser?.email ?? auth.user.email,
+      // Presentational only — every admin route re-checks role server-side
+      // via requireAdmin/requireSuperadmin regardless of this field.
+      role: (dbUser?.role ?? 'USER') as 'USER' | 'ADMIN' | 'SUPERADMIN',
       emailVerifiedAt: dbUser?.emailVerifiedAt
         ? dbUser.emailVerifiedAt instanceof Date
           ? dbUser.emailVerifiedAt.toISOString()

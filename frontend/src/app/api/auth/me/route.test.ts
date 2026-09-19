@@ -48,13 +48,34 @@ describe('GET /api/auth/me', () => {
     prismaMock.user.findUnique.mockResolvedValue({
       id: 'u1',
       email: 'a@b.com',
+      role: 'USER',
       tokenVersion: 0,
     } as never);
 
     const res = await GET(makeReq({ bearer: 'valid-access-token' }));
     expect(res.status).toBe(200);
     expect(await res.json()).toMatchObject({
-      user: { sub: 'u1', email: 'a@b.com', hasProfile: false },
+      user: { sub: 'u1', email: 'a@b.com', role: 'USER', hasProfile: false },
+    });
+  });
+
+  it('Test 6: SUPERADMIN role is passed through', async () => {
+    vi.mocked(verifyToken).mockResolvedValue({
+      sub: 'u1',
+      email: 'a@b.com',
+      tokenVersion: 0,
+    });
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'u1',
+      email: 'a@b.com',
+      role: 'SUPERADMIN',
+      tokenVersion: 0,
+    } as never);
+
+    const res = await GET(makeReq({ bearer: 'valid-access-token' }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({
+      user: { role: 'SUPERADMIN' },
     });
   });
 
