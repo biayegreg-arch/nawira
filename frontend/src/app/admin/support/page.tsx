@@ -38,6 +38,8 @@ const STATUS_TONE: Record<TicketRow['status'], 'primary' | 'warning' | 'success'
 export default function AdminSupportPage(): React.JSX.Element {
   const [tickets, setTickets] = useState<TicketRow[] | null>(null);
   const [status, setStatus] = useState('');
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -50,12 +52,30 @@ export default function AdminSupportPage(): React.JSX.Element {
           `/api/admin/support-tickets?${params.toString()}`,
         );
         setTickets(res.items);
+        setCursor(res.nextCursor);
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.');
       }
     }
     void load();
   }, [status]);
+
+  async function loadMore(): Promise<void> {
+    if (!cursor || loadingMore) return;
+    setLoadingMore(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ limit: '50', cursor });
+      if (status) params.set('status', status);
+      const res = await api<TicketListResponse>(`/api/admin/support-tickets?${params.toString()}`);
+      setTickets((prev) => [...(prev ?? []), ...res.items]);
+      setCursor(res.nextCursor);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.');
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -98,6 +118,17 @@ export default function AdminSupportPage(): React.JSX.Element {
             </Link>
           ))}
         </div>
+      )}
+
+      {tickets !== null && cursor && (
+        <button
+          type="button"
+          onClick={() => void loadMore()}
+          disabled={loadingMore}
+          className="self-center rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50"
+        >
+          {loadingMore ? 'Chargement…' : 'Charger plus'}
+        </button>
       )}
     </div>
   );
