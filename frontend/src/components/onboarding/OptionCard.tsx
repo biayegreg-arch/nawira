@@ -31,7 +31,7 @@ export function OptionCard({
           {icon}
         </span>
       )}
-      <span className="flex flex-col">
+      <span className="flex min-w-0 flex-col break-words">
         <span className="font-medium text-navy">{title}</span>
         {description && <span className="text-sm text-muted-foreground">{description}</span>}
       </span>

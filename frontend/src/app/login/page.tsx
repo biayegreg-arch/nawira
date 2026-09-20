@@ -93,7 +93,10 @@ function LoginForm(): React.JSX.Element {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Link href="/forgot-password" className="self-end text-xs font-medium text-primary">
+          <Link
+            href="/forgot-password"
+            className="inline-flex min-h-11 items-center self-end text-xs font-medium text-primary"
+          >
             Mot de passe oublié ?
           </Link>
         </div>
@@ -109,7 +112,7 @@ function LoginForm(): React.JSX.Element {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Pas encore de compte ?{' '}
-        <Link href="/signup" className="font-medium text-primary">
+        <Link href="/signup" className="inline-flex min-h-11 items-center font-medium text-primary">
           Créer un compte
         </Link>
       </p>

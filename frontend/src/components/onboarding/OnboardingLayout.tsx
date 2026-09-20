@@ -17,8 +17,8 @@ export function OnboardingLayout({
   const progress = Math.round((step / TOTAL_STEPS) * 100);
 
   return (
-    <main className="flex min-h-screen w-full flex-col bg-background px-4 py-8">
-      <div className="mx-auto w-full max-w-sm">
+    <main className="flex min-h-dvh w-full flex-col bg-background px-4 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:pt-8 md:pb-[max(2rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto w-full max-w-md">
         <div className="mb-6 flex items-center gap-3">
           {backHref ? (
             <Link

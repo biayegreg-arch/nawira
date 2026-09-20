@@ -100,7 +100,7 @@ function ResetPasswordForm(): React.JSX.Element {
       </form>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        <Link href="/login" className="font-medium text-primary">
+        <Link href="/login" className="inline-flex min-h-11 items-center font-medium text-primary">
           Retour à la connexion
         </Link>
       </p>

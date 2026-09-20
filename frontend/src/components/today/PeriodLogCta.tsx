@@ -28,7 +28,7 @@ export function PeriodLogCta({
   if (todayLogged) {
     return (
       <div className="animate-scale-in flex items-center gap-2 rounded-xl bg-rose-soft px-4 py-3 text-sm font-medium text-rose">
-        <Check size={16} />
+        <Check size={16} className="shrink-0" />
         Règles enregistrées aujourd&rsquo;hui
       </div>
     );
@@ -37,21 +37,21 @@ export function PeriodLogCta({
   if (ended) {
     return (
       <div className="animate-scale-in flex items-center gap-2 rounded-xl bg-green-soft px-4 py-3 text-sm font-medium text-green">
-        <Check size={16} />
+        <Check size={16} className="shrink-0" />
         C&rsquo;est noté — à très vite pour ton prochain cycle !
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
-      <Button onClick={onLog} disabled={loading} className="w-full sm:w-auto">
+    <div className="flex w-full flex-col gap-2 sm:w-auto xl:flex-row">
+      <Button onClick={onLog} disabled={loading} className="min-h-12 w-full sm:w-auto">
         {loading ? 'Enregistrement…' : 'Mes règles ont commencé'}
       </Button>
       <button
         type="button"
         onClick={() => setEnded(true)}
-        className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-navy transition-all duration-150 hover:bg-gray-50 active:scale-[0.97] sm:w-auto"
+        className="min-h-11 w-full rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-navy transition-all duration-150 hover:bg-gray-50 active:scale-[0.97] sm:w-auto"
       >
         Mes règles sont terminées
       </button>

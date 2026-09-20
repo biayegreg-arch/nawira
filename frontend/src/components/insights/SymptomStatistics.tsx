@@ -83,8 +83,8 @@ export function SymptomStatistics({ topSymptoms }: SymptomStatisticsProps): Reac
   const activePhase = topSymptoms ? selectedPhase : defaultPhase;
 
   return (
-    <div className="rounded-xl border border-border bg-white p-6">
-      <h2 className="mb-5 text-lg font-bold text-navy">Symptômes observés</h2>
+    <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
+      <h2 className="mb-5 text-base font-bold md:text-lg text-navy">Symptômes observés</h2>
 
       {!topSymptoms ? (
         <p className="text-xs text-muted-foreground">
@@ -126,14 +126,14 @@ export function SymptomStatistics({ topSymptoms }: SymptomStatisticsProps): Reac
                 return (
                   <div
                     key={s.symptom}
-                    className="animate-fade-in-up flex items-center gap-4"
+                    className="animate-fade-in-up flex items-center gap-3"
                     style={staggerDelay(i)}
                   >
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-purple">
                       <Icon size={16} />
                     </div>
-                    <div className="flex-1">
-                      <div className="mb-1 flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-1 flex items-center justify-between gap-2">
                         <span className="text-sm font-medium text-navy">
                           {SYMPTOM_LABELS[s.symptom] ?? s.symptom}
                         </span>

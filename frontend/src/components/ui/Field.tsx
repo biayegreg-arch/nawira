@@ -17,7 +17,7 @@ export function Field({ label, hint, id, className, ...props }: FieldProps): Rea
           // py-3 (not py-2.5) so the rendered height clears the 44px
           // minimum touch target (WCAG 2.5.5 / Apple HIG) at text-sm —
           // measured 42px before this change.
-          'rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary',
+          'w-full min-w-0 rounded-lg border border-border px-3.5 py-3 text-base text-navy md:text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary',
           className,
         )}
         {...props}

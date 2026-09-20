@@ -143,18 +143,18 @@ export function UserDetailModal({
 
   return (
     <div
-      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="animate-scale-in w-full max-w-md overflow-hidden rounded-xl border border-border bg-white shadow-lg"
+        className="animate-scale-in flex max-h-[85dvh] w-full max-w-md flex-col overflow-hidden rounded-xl border border-border bg-white shadow-lg"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="user-detail-title"
       >
-        <div className="flex items-center justify-between border-b border-border bg-background p-5">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border bg-background p-4 sm:p-5">
           <h2 id="user-detail-title" className="text-base font-bold text-navy">
             Détail du compte
           </h2>
@@ -162,13 +162,13 @@ export function UserDetailModal({
             type="button"
             onClick={onClose}
             aria-label="Fermer"
-            className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-muted-foreground"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-gray-50 text-muted-foreground"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="flex flex-col gap-4 p-5">
+        <div className="flex flex-col gap-4 overflow-y-auto p-4 sm:p-5">
           <div className="flex items-center gap-3">
             <InitialsAvatar name={user.name} email={user.email} />
             <div className="min-w-0">
@@ -184,15 +184,15 @@ export function UserDetailModal({
           </div>
 
           <dl className="grid grid-cols-2 gap-3 text-xs">
-            <div>
+            <div className="min-w-0">
               <dt className="text-muted-foreground">Inscrit·e le</dt>
-              <dd className="font-medium text-navy">
+              <dd className="break-words font-medium text-navy">
                 {new Date(user.createdAt).toLocaleDateString('fr-FR')}
               </dd>
             </div>
-            <div>
+            <div className="min-w-0">
               <dt className="text-muted-foreground">Email vérifié</dt>
-              <dd className="font-medium text-navy">
+              <dd className="break-words font-medium text-navy">
                 {user.emailVerifiedAt
                   ? new Date(user.emailVerifiedAt).toLocaleDateString('fr-FR')
                   : '—'}
@@ -210,7 +210,7 @@ export function UserDetailModal({
                 value={user.role}
                 disabled={busy}
                 onChange={(e) => void changeRole(e.target.value as AdminUser['role'])}
-                className="mt-1 w-full rounded-lg border border-border px-3 py-2.5 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="mt-1 w-full rounded-lg border border-border px-3 py-3 text-base text-navy outline-none md:text-sm focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 <option value="USER">USER</option>
                 <option value="ADMIN">ADMIN</option>
@@ -233,7 +233,7 @@ export function UserDetailModal({
                   setPlanDraft(next);
                   if (next === 'FREE') setExpiresAtDraft('');
                 }}
-                className="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                className="w-full rounded-lg border border-border px-3 py-3 text-base text-navy outline-none md:text-sm focus:border-primary focus:ring-1 focus:ring-primary"
               >
                 <option value="FREE">FREE</option>
                 <option value="PLUS">PLUS</option>
@@ -250,7 +250,7 @@ export function UserDetailModal({
                     value={expiresAtDraft}
                     disabled={busy}
                     onChange={(e) => setExpiresAtDraft(e.target.value)}
-                    className="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="w-full rounded-lg border border-border px-3 py-3 text-base text-navy outline-none md:text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                   />
                 </>
               )}
@@ -258,7 +258,7 @@ export function UserDetailModal({
                 type="button"
                 disabled={busy}
                 onClick={() => void savePlan()}
-                className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                className="min-h-11 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
               >
                 Enregistrer
               </button>
@@ -276,14 +276,14 @@ export function UserDetailModal({
                     id="suspend-reason"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
-                    className="rounded-lg border border-border px-3 py-2.5 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="rounded-lg border border-border px-3 py-3 text-base text-navy outline-none md:text-sm focus:border-primary focus:ring-1 focus:ring-primary"
                     placeholder="Raison de la suspension"
                   />
                   <button
                     type="button"
                     disabled={busy}
                     onClick={() => void changeStatus('SUSPENDED')}
-                    className="rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                    className="min-h-11 rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                   >
                     Suspendre le compte
                   </button>
@@ -294,7 +294,7 @@ export function UserDetailModal({
                   type="button"
                   disabled={busy}
                   onClick={() => void changeStatus('ACTIVE')}
-                  className="rounded-lg bg-green px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                  className="min-h-11 rounded-lg bg-green px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   Réactiver le compte
                 </button>
@@ -310,7 +310,7 @@ export function UserDetailModal({
                   type="button"
                   disabled={busy}
                   onClick={() => setConfirmingDelete(true)}
-                  className="rounded-lg border border-danger px-4 py-2.5 text-sm font-semibold text-danger disabled:opacity-50"
+                  className="min-h-11 rounded-lg border border-danger px-4 py-2.5 text-sm font-semibold text-danger disabled:opacity-50"
                 >
                   Supprimer définitivement ce compte
                 </button>
@@ -321,12 +321,12 @@ export function UserDetailModal({
                     effacées ; les données financières (commandes, retraits) seront anonymisées,
                     jamais supprimées.
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row">
                     <button
                       type="button"
                       disabled={busy}
                       onClick={() => setConfirmingDelete(false)}
-                      className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50"
+                      className="min-h-11 flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50"
                     >
                       Annuler
                     </button>
@@ -334,7 +334,7 @@ export function UserDetailModal({
                       type="button"
                       disabled={busy}
                       onClick={() => void deleteUser()}
-                      className="flex-1 rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                      className="min-h-11 flex-1 rounded-lg bg-danger px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
                     >
                       Confirmer la suppression
                     </button>

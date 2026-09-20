@@ -19,18 +19,18 @@ export function LogoutModal({
 
   return (
     <div
-      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onClick={onCancel}
       role="presentation"
     >
       <div
-        className="animate-scale-in w-full max-w-sm overflow-hidden rounded-xl border border-border bg-white shadow-lg"
+        className="animate-scale-in max-h-[85dvh] w-full max-w-sm overflow-y-auto rounded-xl border border-border bg-white shadow-lg"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="logout-modal-title"
       >
-        <div className="flex items-center justify-between border-b border-border bg-background p-6">
+        <div className="flex items-center justify-between gap-3 border-b border-border bg-background p-4 sm:p-6">
           <h2 id="logout-modal-title" className="text-lg font-bold text-navy">
             Déconnexion
           </h2>
@@ -38,13 +38,13 @@ export function LogoutModal({
             type="button"
             onClick={onCancel}
             aria-label="Fermer"
-            className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-muted-foreground"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-gray-50 text-muted-foreground"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="flex flex-col gap-4 p-6">
+        <div className="flex flex-col gap-4 p-4 sm:p-6">
           <div className="text-center">
             <h3 className="text-sm font-semibold text-navy">Tu es sûre ?</h3>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -75,11 +75,11 @@ export function LogoutModal({
           </div>
         </div>
 
-        <div className="flex gap-3 border-t border-border p-6">
+        <div className="flex gap-3 border-t border-border p-4 sm:p-6">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-md border border-border bg-gray-50 px-4 py-2.5 text-sm font-semibold text-navy transition-transform duration-150 active:scale-[0.97]"
+            className="min-h-11 flex-1 rounded-md border border-border bg-gray-50 px-4 py-2.5 text-sm font-semibold text-navy transition-transform duration-150 active:scale-[0.97]"
           >
             Annuler
           </button>
@@ -87,7 +87,7 @@ export function LogoutModal({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 rounded-md bg-danger px-4 py-2.5 text-sm font-semibold text-white transition-transform duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
+            className="min-h-11 flex-1 rounded-md bg-danger px-4 py-2.5 text-sm font-semibold text-white transition-transform duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
           >
             {loading ? 'Déconnexion…' : 'Déconnexion'}
           </button>

@@ -57,7 +57,7 @@ export function PredictionCards({
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-soft text-rose">
           <CalendarIcon size={18} />
         </div>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <div className="mb-0.5 text-xs text-muted-foreground">Prochaines règles</div>
           <div className="text-xl leading-tight font-bold text-navy">
             {daysToPeriod >= 0 ? (
@@ -77,7 +77,7 @@ export function PredictionCards({
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-soft text-amber">
             <Sun size={18} />
           </div>
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <div className="mb-0.5 text-xs text-muted-foreground">Ovulation estimée</div>
             <div className="text-xl leading-tight font-bold text-navy">
               ≈ {formatFrenchDate(prediction.ovulationEstimate)}
@@ -94,7 +94,7 @@ export function PredictionCards({
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-soft text-green">
             <Leaf size={18} />
           </div>
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <div className="mb-0.5 text-xs text-muted-foreground">Fenêtre fertile</div>
             <div className="text-base leading-tight font-bold text-navy">
               {formatFrenchDate(prediction.fertileWindowStart)} –{' '}
@@ -112,7 +112,7 @@ export function PredictionCards({
       {hasCycles && (
         <Link
           href="/app/cycles"
-          className="flex items-center justify-between rounded-lg border border-border bg-white px-5 py-3 text-xs font-medium text-primary"
+          className="flex items-center justify-between rounded-lg border border-border bg-white min-h-11 px-5 py-3 text-xs font-medium text-primary"
         >
           Voir l&rsquo;historique de mes cycles
           <ChevronRight size={14} />

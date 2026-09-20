@@ -6,7 +6,7 @@ type Variant = 'primary' | 'secondary';
 type Size = 'md' | 'lg';
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all duration-150 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-all duration-150 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
 
 const variants: Record<Variant, string> = {
   primary: 'bg-primary text-white hover:bg-primary/90 hover:shadow-md hover:shadow-primary/20',

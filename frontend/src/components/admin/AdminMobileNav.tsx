@@ -26,7 +26,7 @@ export function AdminMobileNav(): React.JSX.Element {
       <select
         value={current?.href ?? '/admin'}
         onChange={onChange}
-        className="w-full rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+        className="min-h-11 w-full rounded-lg border border-border px-3.5 py-3 text-base text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
       >
         {ADMIN_NAV.map((item) => (
           <option key={item.href} value={item.href} disabled={!item.available}>

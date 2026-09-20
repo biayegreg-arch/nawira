@@ -62,7 +62,9 @@ export default function OnboardingNotificationsPage(): React.JSX.Element {
     <OnboardingLayout step={10}>
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="font-headings text-xl font-bold text-navy">Notifications</h1>
+          <h1 className="font-headings text-xl font-bold leading-tight text-navy md:text-2xl">
+            Notifications
+          </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Choisis le niveau de notifications qui te convient.
           </p>
@@ -84,7 +86,7 @@ export default function OnboardingNotificationsPage(): React.JSX.Element {
             {error}
           </p>
         )}
-        <Button onClick={onContinue} disabled={submitting} className="w-full">
+        <Button onClick={onContinue} disabled={submitting} className="min-h-12 w-full">
           {submitting ? 'Enregistrement…' : 'Continuer'}
         </Button>
       </div>

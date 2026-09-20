@@ -16,13 +16,13 @@ function formatExpiry(iso: string): string {
 
 export function CurrentPlanCard({ plan, planExpiresAt }: CurrentPlanCardProps): React.JSX.Element {
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
-      <div className="mb-5 flex items-start justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-navy">Plan actuel</h2>
+    <div className="rounded-lg border border-border bg-white p-4 sm:p-6">
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-lg font-bold text-navy md:text-xl">Plan actuel</h2>
           <p className="mt-1 text-sm text-muted-foreground">{PLAN_LABELS[plan]}</p>
         </div>
-        <span className="text-3xl">🎁</span>
+        <span className="shrink-0 text-2xl md:text-3xl">🎁</span>
       </div>
 
       {plan !== 'FREE' && planExpiresAt && (

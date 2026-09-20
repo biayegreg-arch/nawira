@@ -43,12 +43,12 @@ export function FertilityWindowCard({
     today <= prediction.fertileWindowEnd!;
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
+    <div className="rounded-lg border border-border bg-white p-4 sm:p-6">
       <div className="mb-5 flex items-center gap-2">
-        <span className="text-2xl">🌿</span>
-        <div>
-          <h2 className="text-2xl font-bold text-navy">Fenêtre fertile</h2>
-          <p className="text-xs text-muted-foreground">Ton meilleur moment pour concevoir</p>
+        <span className="shrink-0 text-2xl">🌿</span>
+        <div className="min-w-0">
+          <h2 className="text-lg font-bold text-navy md:text-xl">Fenêtre fertile</h2>
+          <p className="text-sm text-muted-foreground">Ton meilleur moment pour concevoir</p>
         </div>
       </div>
 
@@ -64,7 +64,7 @@ export function FertilityWindowCard({
               style={staggerDelay(0)}
             >
               <div className="mb-1 text-xs text-muted-foreground">Fenêtre fertile</div>
-              <div className="text-lg font-bold text-navy">
+              <div className="break-words text-lg font-bold text-navy">
                 {formatFrenchDate(prediction.fertileWindowStart!)} –{' '}
                 {formatFrenchDate(prediction.fertileWindowEnd!)}
               </div>
@@ -108,13 +108,13 @@ export function FertilityWindowCard({
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
               href="/app/baby/add-lh-test"
-              className="flex-1 rounded-md bg-green px-4 py-2.5 text-center text-sm font-semibold text-white"
+              className="flex min-h-11 flex-1 items-center justify-center rounded-md bg-green px-4 py-2.5 text-center text-sm font-semibold text-white"
             >
               Ajouter un test LH
             </Link>
             <Link
               href="/app/baby/tips"
-              className="flex-1 rounded-md border border-border bg-gray-50 px-4 py-2.5 text-center text-sm font-semibold text-body"
+              className="flex min-h-11 flex-1 items-center justify-center rounded-md border border-border bg-gray-50 px-4 py-2.5 text-center text-sm font-semibold text-body"
             >
               Voir les conseils
             </Link>

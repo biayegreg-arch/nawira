@@ -78,9 +78,9 @@ export default function AdminPricingPage(): React.JSX.Element {
   }
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="mx-auto w-full max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-navy">Abonnement</h1>
+        <h1 className="text-2xl font-bold leading-tight text-navy md:text-3xl">Abonnement</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Prix FCFA des plans NAWIRA Plus et Projet Bébé.
         </p>
@@ -91,22 +91,22 @@ export default function AdminPricingPage(): React.JSX.Element {
       )}
 
       {plans === null ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4">
           <Skeleton className="h-40 rounded-xl" />
           <Skeleton className="h-40 rounded-xl" />
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4">
           {plans.map((plan) => (
-            <div key={plan.key} className="rounded-xl border border-border bg-white p-5">
+            <div key={plan.key} className="rounded-xl border border-border bg-white p-4 sm:p-5">
               <h2 className="text-base font-bold text-navy">{PLAN_TITLES[plan.key]}</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-1 break-all text-xs text-muted-foreground">
                 Modifié le {new Date(plan.updatedAt).toLocaleDateString('fr-FR')}
                 {plan.updatedBy ? ` par ${plan.updatedBy}` : ''}
               </p>
 
               {canWrite ? (
-                <div className="mt-4 flex items-center gap-2">
+                <div className="mt-4 flex flex-wrap items-center gap-2">
                   <input
                     type="number"
                     min={0}
@@ -114,14 +114,14 @@ export default function AdminPricingPage(): React.JSX.Element {
                     value={drafts[plan.key] ?? ''}
                     disabled={busyKey === plan.key}
                     onChange={(e) => setDrafts((d) => ({ ...d, [plan.key]: e.target.value }))}
-                    className="w-32 rounded-lg border border-border px-3 py-2 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="min-h-11 min-w-0 flex-1 rounded-lg border border-border px-3 py-2 text-base text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary sm:w-32 sm:flex-none md:text-sm"
                   />
                   <span className="text-sm text-muted-foreground">FCFA</span>
                   <button
                     type="button"
                     disabled={busyKey === plan.key}
                     onClick={() => void save(plan.key)}
-                    className="ml-auto rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                    className="min-h-11 w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:ml-auto sm:w-auto"
                   >
                     Enregistrer
                   </button>

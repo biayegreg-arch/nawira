@@ -31,9 +31,9 @@ export function ContactSupportCard(): React.JSX.Element {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-white p-6">
-      <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-navy">
-        <Mail size={18} className="text-primary" />
+    <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
+      <h2 className="mb-4 flex items-center gap-2 text-base font-bold md:text-lg text-navy">
+        <Mail size={18} className="shrink-0 text-primary" />
         Contacte notre équipe
       </h2>
       <p className="mb-4 text-sm text-muted-foreground">
@@ -44,24 +44,27 @@ export function ContactSupportCard(): React.JSX.Element {
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Sujet"
-          className="rounded-lg border border-border bg-gray-50 p-3 text-sm text-navy outline-none"
+          className="min-h-11 w-full rounded-lg border border-border bg-gray-50 p-3 text-base text-navy outline-none md:text-sm"
         />
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={4}
           placeholder="Décris ton problème…"
-          className="rounded-lg border border-border bg-gray-50 p-3 text-sm text-navy outline-none"
+          className="min-h-11 w-full rounded-lg border border-border bg-gray-50 p-3 text-base text-navy outline-none md:text-sm"
         />
-        {error && <p className="text-xs text-danger">{error}</p>}
+        {error && <p className="break-words text-sm text-danger">{error}</p>}
         <button
           onClick={() => void submit()}
           disabled={sending || !subject.trim() || !message.trim()}
-          className="self-end rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="min-h-12 w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:w-auto sm:self-end"
         >
           {sending ? 'Envoi…' : 'Envoyer'}
         </button>
-        <Link href="/app/support" className="self-start text-sm font-medium text-primary">
+        <Link
+          href="/app/support"
+          className="inline-flex min-h-11 items-center self-start text-sm font-medium text-primary"
+        >
           Mes demandes
         </Link>
       </div>

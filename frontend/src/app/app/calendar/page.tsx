@@ -100,7 +100,7 @@ export default function CalendarPage(): React.JSX.Element | null {
 
   if (error) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Impossible de charger ton calendrier. Réessaie plus tard.
         </div>
@@ -110,33 +110,33 @@ export default function CalendarPage(): React.JSX.Element | null {
 
   if (cycles === null) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="h-96 animate-pulse rounded-xl bg-gray-100" />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl p-4 lg:p-8">
+    <div className="mx-auto w-full max-w-4xl p-4 sm:p-6 lg:p-8">
       {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
-      <h1 className="mb-1 text-2xl font-bold text-navy">Calendrier</h1>
+      <h1 className="mb-1 text-2xl leading-tight font-bold text-navy md:text-3xl">Calendrier</h1>
       <p className="mb-6 text-sm text-muted-foreground">
         Visualise tes règles passées et tes prochaines prédictions.
       </p>
 
-      <div className="animate-fade-in-up rounded-xl border border-border bg-white p-5 lg:p-6">
+      <div className="animate-fade-in-up rounded-xl border border-border bg-white p-4 sm:p-5 lg:p-6">
         <div className="mb-5 flex items-center justify-between">
           <button
             type="button"
             onClick={goToPreviousMonth}
             aria-label="Mois précédent"
-            className="flex h-12 w-12 items-center justify-center rounded-full text-navy transition-all duration-150 hover:bg-gray-50 active:scale-90"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-navy transition-all duration-150 hover:bg-gray-50 active:scale-90"
           >
             <ChevronLeft size={20} />
           </button>
           <div
             key={`${view.year}-${view.month}`}
-            className="animate-fade-in text-base font-semibold text-navy capitalize"
+            className="animate-fade-in min-w-0 text-center text-base font-semibold text-navy capitalize"
           >
             {MONTH_LABELS[view.month]} {view.year}
           </div>
@@ -144,7 +144,7 @@ export default function CalendarPage(): React.JSX.Element | null {
             type="button"
             onClick={goToNextMonth}
             aria-label="Mois suivant"
-            className="flex h-12 w-12 items-center justify-center rounded-full text-navy transition-all duration-150 hover:bg-gray-50 active:scale-90"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-navy transition-all duration-150 hover:bg-gray-50 active:scale-90"
           >
             <ChevronRight size={20} />
           </button>
@@ -170,13 +170,16 @@ export default function CalendarPage(): React.JSX.Element | null {
         style={staggerDelay(1)}
       >
         <Info size={18} className="mt-0.5 shrink-0 text-primary" />
-        <div>
+        <div className="min-w-0">
           <p className="text-sm text-body">
             Les prédictions s&rsquo;affinent au fil de tes cycles enregistrés. Plus tu suis tes
             règles régulièrement, plus les estimations deviennent fiables. Touche la date
             d&rsquo;aujourd&rsquo;hui pour ouvrir ton journal du jour.
           </p>
-          <Link href="/app/cycles" className="mt-2 inline-block text-sm font-medium text-primary">
+          <Link
+            href="/app/cycles"
+            className="mt-1 inline-flex min-h-11 items-center text-sm font-medium text-primary"
+          >
             Voir l&rsquo;historique de mes cycles →
           </Link>
         </div>

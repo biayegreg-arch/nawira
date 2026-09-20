@@ -79,12 +79,12 @@ export default function AdminSupportPage(): React.JSX.Element {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-navy">Support</h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold leading-tight text-navy md:text-3xl">Support</h1>
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-3 py-2 text-base text-navy sm:w-auto md:text-sm"
         >
           <option value="">Tous les statuts</option>
           <option value="OPEN">Ouvert</option>
@@ -110,11 +110,13 @@ export default function AdminSupportPage(): React.JSX.Element {
             >
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-semibold text-navy">{t.subject}</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="truncate text-xs text-muted-foreground">
                   {t.userEmailMasked} · {t.messageCount} message{t.messageCount > 1 ? 's' : ''}
                 </div>
               </div>
-              <Badge tone={STATUS_TONE[t.status]}>{STATUS_LABEL[t.status]}</Badge>
+              <Badge tone={STATUS_TONE[t.status]} className="shrink-0">
+                {STATUS_LABEL[t.status]}
+              </Badge>
             </Link>
           ))}
         </div>
@@ -125,7 +127,7 @@ export default function AdminSupportPage(): React.JSX.Element {
           type="button"
           onClick={() => void loadMore()}
           disabled={loadingMore}
-          className="self-center rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50 sm:w-auto sm:self-center"
         >
           {loadingMore ? 'Chargement…' : 'Charger plus'}
         </button>

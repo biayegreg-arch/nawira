@@ -71,22 +71,22 @@ export default function AdminAuditLogPage(): React.JSX.Element {
 
   return (
     <div className="flex flex-col gap-5">
-      <form onSubmit={onSubmit} className="flex flex-wrap gap-2">
+      <form onSubmit={onSubmit} className="flex flex-col gap-2 sm:flex-row">
         <input
           value={action}
           onChange={(e) => setAction(e.target.value)}
           placeholder="Action (ex: user.role_change)"
-          className="min-w-0 flex-1 rounded-lg border border-border bg-white px-3.5 py-3 text-sm text-navy outline-none focus:border-primary"
+          className="min-h-11 w-full min-w-0 rounded-lg border border-border bg-white px-3.5 py-3 text-base text-navy outline-none focus:border-primary sm:flex-1 md:text-sm"
         />
         <input
           value={targetType}
           onChange={(e) => setTargetType(e.target.value)}
           placeholder="Type de cible (ex: User)"
-          className="min-w-0 flex-1 rounded-lg border border-border bg-white px-3.5 py-3 text-sm text-navy outline-none focus:border-primary"
+          className="min-h-11 w-full min-w-0 rounded-lg border border-border bg-white px-3.5 py-3 text-base text-navy outline-none focus:border-primary sm:flex-1 md:text-sm"
         />
         <button
           type="submit"
-          className="rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white"
+          className="min-h-11 w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white sm:w-auto"
         >
           Filtrer
         </button>
@@ -114,7 +114,7 @@ export default function AdminAuditLogPage(): React.JSX.Element {
           >
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold text-navy">{r.action}</div>
-              <div className="truncate text-xs text-muted-foreground">
+              <div className="break-all text-xs text-muted-foreground">
                 {r.targetType ? `${r.targetType} · ${r.targetId ?? '—'}` : '—'} · par {r.actorId}
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function AdminAuditLogPage(): React.JSX.Element {
         <button
           type="button"
           onClick={() => void load(false)}
-          className="self-center rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy sm:w-auto sm:self-center"
         >
           Charger plus
         </button>

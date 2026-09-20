@@ -119,13 +119,13 @@ export default function AdminArticlesPage(): React.JSX.Element {
   if (error && articles === null) return <p className="text-sm text-danger">{error}</p>;
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-navy">Articles</h1>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 md:max-w-none">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold leading-tight text-navy md:text-3xl">Articles</h1>
         {canWrite && (
           <button
             onClick={() => setCreating((v) => !v)}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white"
+            className="min-h-11 w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white sm:w-auto"
           >
             {creating ? 'Annuler' : 'Nouvel article'}
           </button>
@@ -138,19 +138,19 @@ export default function AdminArticlesPage(): React.JSX.Element {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Titre"
-            className="rounded-lg border border-border p-3 text-sm text-navy outline-none"
+            className="min-h-11 w-full rounded-lg border border-border p-3 text-base text-navy outline-none focus:border-primary md:text-sm"
           />
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={6}
             placeholder="Contenu"
-            className="rounded-lg border border-border p-3 text-sm text-navy outline-none"
+            className="min-h-11 w-full rounded-lg border border-border p-3 text-base text-navy outline-none focus:border-primary md:text-sm"
           />
           <button
             onClick={() => void createArticle()}
             disabled={saving || !title.trim() || !body.trim()}
-            className="self-end rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="min-h-11 w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:w-auto sm:self-end"
           >
             {saving ? 'Création…' : 'Créer (brouillon)'}
           </button>
@@ -166,26 +166,28 @@ export default function AdminArticlesPage(): React.JSX.Element {
           {articles.map((a) => (
             <div
               key={a.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-4"
+              className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
             >
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold text-navy">{a.title}</div>
-                <div className="text-xs text-muted-foreground">/{a.slug}</div>
+              <div className="flex min-w-0 items-start justify-between gap-3 sm:flex-1">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-navy">{a.title}</div>
+                  <div className="break-all text-xs text-muted-foreground">/{a.slug}</div>
+                </div>
+                <Badge tone={a.status === 'PUBLISHED' ? 'success' : 'neutral'} className="shrink-0">
+                  {a.status === 'PUBLISHED' ? 'Publié' : 'Brouillon'}
+                </Badge>
               </div>
-              <Badge tone={a.status === 'PUBLISHED' ? 'success' : 'neutral'}>
-                {a.status === 'PUBLISHED' ? 'Publié' : 'Brouillon'}
-              </Badge>
               {canWrite && (
                 <div className="flex gap-2">
                   <button
                     onClick={() => void togglePublish(a)}
-                    className="text-xs font-medium text-primary underline"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-medium text-primary underline"
                   >
                     {a.status === 'DRAFT' ? 'Publier' : 'Dépublier'}
                   </button>
                   <button
                     onClick={() => void remove(a)}
-                    className="text-xs font-medium text-danger underline"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-medium text-danger underline"
                   >
                     Supprimer
                   </button>
@@ -201,7 +203,7 @@ export default function AdminArticlesPage(): React.JSX.Element {
           type="button"
           onClick={() => void loadMore()}
           disabled={loadingMore}
-          className="self-center rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50 sm:w-auto sm:self-center"
         >
           {loadingMore ? 'Chargement…' : 'Charger plus'}
         </button>

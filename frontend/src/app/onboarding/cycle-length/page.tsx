@@ -23,7 +23,7 @@ export default function OnboardingCycleLengthPage(): React.JSX.Element {
 
   const chipClass = (isSelected: boolean): string =>
     cn(
-      'rounded-full border px-4 py-3 text-sm font-medium',
+      'min-h-11 rounded-full border px-4 py-3 text-sm font-medium',
       isSelected
         ? 'border-primary bg-primary-soft text-primary'
         : 'border-border bg-white text-navy hover:bg-gray-50',
@@ -33,7 +33,7 @@ export default function OnboardingCycleLengthPage(): React.JSX.Element {
     <OnboardingLayout step={6} backHref="/onboarding/period-length">
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="font-headings text-xl font-bold text-navy">
+          <h1 className="font-headings text-xl font-bold leading-tight text-navy md:text-2xl">
             Quelle est la durée habituelle de ton cycle ?
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -66,7 +66,7 @@ export default function OnboardingCycleLengthPage(): React.JSX.Element {
             Je ne sais pas
           </button>
         </div>
-        <Button onClick={onContinue} className="w-full">
+        <Button onClick={onContinue} className="min-h-12 w-full">
           Continuer
         </Button>
       </div>

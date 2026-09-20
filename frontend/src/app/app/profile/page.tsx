@@ -57,7 +57,7 @@ export default function ProfilePage(): React.JSX.Element | null {
 
   if (error) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="px-4 py-6 sm:px-6 lg:p-8">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Impossible de charger ton profil. Réessaie plus tard.
         </div>
@@ -67,7 +67,7 @@ export default function ProfilePage(): React.JSX.Element | null {
 
   if (data === null) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="px-4 py-6 sm:px-6 lg:p-8">
         <div className="h-64 animate-pulse rounded-xl bg-gray-100" />
       </div>
     );
@@ -76,10 +76,10 @@ export default function ProfilePage(): React.JSX.Element | null {
   const { profile, stats } = data;
 
   return (
-    <div className="mx-auto max-w-3xl p-4 lg:p-8">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8">
       <div className="mb-6">
-        <h1 className="flex items-center gap-3 text-2xl font-bold text-navy">
-          <span className="text-3xl">👤</span>
+        <h1 className="flex items-center gap-3 text-2xl font-bold leading-tight text-navy md:text-3xl">
+          <span className="text-2xl md:text-3xl">👤</span>
           Mon profil
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -138,7 +138,7 @@ export default function ProfilePage(): React.JSX.Element | null {
                   {profile.trackedConcerns.map((c) => (
                     <span
                       key={c}
-                      className="rounded-full bg-amber-soft px-2 py-1 text-xs text-amber"
+                      className="break-words rounded-full bg-amber-soft px-2 py-1 text-xs text-amber"
                     >
                       {CONCERN_LABELS[c] ?? c}
                     </span>
@@ -164,7 +164,7 @@ export default function ProfilePage(): React.JSX.Element | null {
       <div className="mt-6 flex flex-col gap-1 rounded-xl border border-border bg-white p-2 lg:hidden">
         <Link
           href="/app/settings"
-          className="flex items-center justify-between rounded-lg px-3 py-3 text-sm text-navy"
+          className="flex min-h-11 items-center justify-between rounded-lg px-3 py-3 text-sm text-navy"
         >
           <span className="flex items-center gap-3">
             <Settings size={18} className="text-muted-foreground" />
@@ -174,7 +174,7 @@ export default function ProfilePage(): React.JSX.Element | null {
         </Link>
         <Link
           href="/app/help"
-          className="flex items-center justify-between rounded-lg px-3 py-3 text-sm text-navy"
+          className="flex min-h-11 items-center justify-between rounded-lg px-3 py-3 text-sm text-navy"
         >
           <span className="flex items-center gap-3">
             <HelpCircle size={18} className="text-muted-foreground" />
@@ -182,7 +182,7 @@ export default function ProfilePage(): React.JSX.Element | null {
           </span>
           <ChevronRight size={16} className="text-muted-light" />
         </Link>
-        <LogoutButton className="flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-danger">
+        <LogoutButton className="flex items-center gap-3 rounded-lg min-h-11 px-3 py-3 text-left text-sm text-danger">
           <LogOut size={18} />
           Déconnexion
         </LogoutButton>

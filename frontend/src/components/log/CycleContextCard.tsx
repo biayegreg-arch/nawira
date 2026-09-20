@@ -83,16 +83,16 @@ export function CycleContextCard({
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-soft text-primary">
           <Activity size={15} />
         </div>
-        <h3 className="text-sm font-bold text-navy">Contexte du cycle</h3>
+        <h3 className="text-base font-bold text-navy">Contexte du cycle</h3>
       </div>
       <div className="flex flex-col gap-2">
         {phase && (
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between gap-3 text-sm">
             <span className="text-muted-foreground">Phase actuelle</span>
             <span className={`font-semibold ${phase.colorClass}`}>{phase.label}</span>
           </div>
         )}
-        <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center justify-between gap-3 text-sm">
           <span className="text-muted-foreground">Jour du cycle</span>
           <span className="font-semibold text-navy">
             {currentDay !== null ? (
@@ -105,7 +105,7 @@ export function CycleContextCard({
             )}
           </span>
         </div>
-        <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center justify-between gap-3 text-sm">
           <span className="text-muted-foreground">Prochaines règles</span>
           <span className="font-semibold text-navy">
             {daysToPeriod !== null && daysToPeriod >= 0 ? (
@@ -115,7 +115,7 @@ export function CycleContextCard({
             )}
           </span>
         </div>
-        <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center justify-between gap-3 text-sm">
           <span className="text-muted-foreground">Fenêtre fertile</span>
           <span className="font-semibold text-amber">{fertileWindowStatus}</span>
         </div>

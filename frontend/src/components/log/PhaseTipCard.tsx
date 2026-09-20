@@ -27,7 +27,7 @@ export function PhaseTipCard({ phase }: PhaseTipCardProps): React.JSX.Element | 
           <Lightbulb size={12} />
           Conseil pour ta phase
         </div>
-        <p className="text-xs leading-relaxed text-body">{TIPS[phase.key]}</p>
+        <p className="text-sm leading-relaxed text-body">{TIPS[phase.key]}</p>
       </div>
     </div>
   );

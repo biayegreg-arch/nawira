@@ -29,7 +29,9 @@ export default function OnboardingBabyProjectPage(): React.JSX.Element {
           <Heart className="h-7 w-7 text-rose" />
         </span>
         <div>
-          <h1 className="font-headings text-xl font-bold text-navy">Projet bébé</h1>
+          <h1 className="font-headings text-xl font-bold leading-tight text-navy md:text-2xl">
+            Projet bébé
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             NAWIRA peut t&rsquo;aider à repérer ta fenêtre de fertilité grâce à la température
             basale, la glaire cervicale et les tests d&rsquo;ovulation. Tu pourras enregistrer ces

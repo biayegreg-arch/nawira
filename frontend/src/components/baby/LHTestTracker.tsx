@@ -54,8 +54,8 @@ export function LHTestTracker({
   const status = todayResult ? LH_STATUS[todayResult] : null;
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
-      <h2 className="mb-5 text-lg font-bold text-navy">Suivi des tests LH</h2>
+    <div className="rounded-lg border border-border bg-white p-4 sm:p-6">
+      <h2 className="mb-5 text-base font-bold md:text-lg text-navy">Suivi des tests LH</h2>
 
       <div className="mb-5 flex flex-col gap-3">
         {status && (
@@ -63,14 +63,18 @@ export function LHTestTracker({
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber text-white">
               <Droplet size={18} />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
                 <div className="text-sm font-semibold text-navy">Aujourd&rsquo;hui</div>
-                <span className={`rounded-full px-2 py-1 text-xs font-medium ${status.badgeClass}`}>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${status.badgeClass}`}
+                >
                   {status.badge}
                 </span>
               </div>
-              {status.note && <p className="mt-1 text-xs text-muted-foreground">{status.note}</p>}
+              {status.note && (
+                <p className="mt-1 break-words text-sm text-muted-foreground">{status.note}</p>
+              )}
             </div>
           </div>
         )}
@@ -83,10 +87,10 @@ export function LHTestTracker({
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
               <Droplet size={14} />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <div className="text-xs font-semibold text-navy">{shortDate(entry.date)}</div>
-                <span className="text-xs text-muted-foreground">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-semibold text-navy">{shortDate(entry.date)}</div>
+                <span className="text-sm text-muted-foreground">
                   {LH_LABELS[entry.lhResult] ?? entry.lhResult}
                 </span>
               </div>
@@ -101,7 +105,7 @@ export function LHTestTracker({
 
       <Link
         href="/app/baby/add-lh-test"
-        className="flex w-full items-center justify-center gap-2 rounded-md bg-primary-soft px-4 py-2.5 text-sm font-semibold text-primary"
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-primary-soft px-4 py-2.5 text-sm font-semibold text-primary"
       >
         <Plus size={14} />
         Ajouter un test

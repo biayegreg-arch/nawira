@@ -79,11 +79,11 @@ export default function AdminEmailQueuePage(): React.JSX.Element {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex gap-2">
+      <div className="flex">
         <select
           value={status}
           onChange={(e) => onStatusChange(e.target.value)}
-          className="rounded-lg border border-border bg-white px-3.5 py-3 text-sm text-navy outline-none focus:border-primary"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-3.5 py-3 text-base text-navy outline-none focus:border-primary sm:w-auto md:text-sm"
         >
           <option value="">Tous les statuts</option>
           {STATUS_OPTIONS.map((s) => (
@@ -131,7 +131,7 @@ export default function AdminEmailQueuePage(): React.JSX.Element {
         <button
           type="button"
           onClick={() => void load(false)}
-          className="self-center rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy sm:w-auto sm:self-center"
         >
           Charger plus
         </button>
@@ -156,7 +156,7 @@ export default function AdminEmailQueuePage(): React.JSX.Element {
         >
           <div>
             <div className="mb-1.5 text-xs font-medium text-navy">Aperçu du corps</div>
-            <p className="rounded-lg bg-gray-50 p-3 text-xs leading-relaxed text-body">
+            <p className="break-words rounded-lg bg-gray-50 p-3 text-xs leading-relaxed text-body">
               {selected.bodyPreview || '—'}
             </p>
           </div>

@@ -22,7 +22,7 @@ export default function OnboardingLastPeriodPage(): React.JSX.Element {
     <OnboardingLayout step={4} backHref="/onboarding/goal">
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="font-headings text-xl font-bold text-navy">
+          <h1 className="font-headings text-xl font-bold leading-tight text-navy md:text-2xl">
             Quand ont commencé tes dernières règles ?
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -51,7 +51,7 @@ export default function OnboardingLastPeriodPage(): React.JSX.Element {
         >
           Je ne sais pas
         </button>
-        <Button onClick={onContinue} className="w-full">
+        <Button onClick={onContinue} className="min-h-12 w-full">
           Continuer
         </Button>
       </div>

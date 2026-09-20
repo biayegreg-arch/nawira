@@ -21,8 +21,10 @@ export function MoodDistributionChart({
   moodDistribution,
 }: MoodDistributionChartProps): React.JSX.Element {
   return (
-    <div className="rounded-xl border border-border bg-white p-6">
-      <h2 className="mb-5 text-lg font-bold text-navy">Répartition de l&rsquo;humeur</h2>
+    <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
+      <h2 className="mb-5 text-base font-bold md:text-lg text-navy">
+        Répartition de l&rsquo;humeur
+      </h2>
 
       {!moodDistribution ? (
         <p className="text-xs text-muted-foreground">
@@ -44,9 +46,9 @@ export function MoodDistributionChart({
                   className="animate-fade-in-up flex items-center gap-3"
                   style={staggerDelay(i)}
                 >
-                  <span className="text-lg">{meta.emoji}</span>
-                  <div className="flex-1">
-                    <div className="mb-1 flex items-center justify-between">
+                  <span className="shrink-0 text-lg">{meta.emoji}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-1 flex items-center justify-between gap-2">
                       <span className="text-sm text-muted-foreground">{meta.label}</span>
                       <span className="text-sm font-semibold text-navy">
                         <AnimatedNumber value={m.percentage} suffix="%" />

@@ -26,7 +26,7 @@ export function AdminSidebar({ email, role }: AdminSidebarProps): React.JSX.Elem
           </div>
           <div className="text-center">
             <div className="text-xl font-bold tracking-widest text-white">NAWIRA</div>
-            <div className="mt-0.5 text-[10px] leading-tight text-white/65">Administration</div>
+            <div className="mt-0.5 text-xs leading-tight text-white/65">Administration</div>
           </div>
         </div>
       </div>
@@ -69,7 +69,7 @@ export function AdminSidebar({ email, role }: AdminSidebarProps): React.JSX.Elem
 
       <div className="border-t border-white/10 px-6 py-4">
         <p className="truncate text-xs font-medium text-white">{email}</p>
-        <p className="text-[11px] text-white/55">{role}</p>
+        <p className="text-xs text-white/55">{role}</p>
       </div>
     </div>
   );

@@ -109,7 +109,7 @@ export function UserMenu(): React.JSX.Element | null {
         onClick={() => setOpen((v) => !v)}
         aria-label="Mon compte"
         aria-expanded={open}
-        className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-soft text-sm font-semibold text-primary"
+        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-soft text-sm font-semibold text-primary"
       >
         {user.avatarUrl ? (
           <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
@@ -119,7 +119,7 @@ export function UserMenu(): React.JSX.Element | null {
       </button>
 
       {open && (
-        <div className="animate-scale-in absolute right-0 top-full z-30 mt-2 w-64 rounded-xl border border-border bg-white shadow-lg">
+        <div className="animate-scale-in fixed inset-x-4 top-16 z-30 max-h-[calc(100dvh-5rem)] overflow-y-auto rounded-xl border border-border bg-white shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-64">
           <div className="flex items-center gap-3 border-b border-border p-4">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-soft text-base font-semibold text-primary">
               {user.avatarUrl ? (
@@ -138,7 +138,7 @@ export function UserMenu(): React.JSX.Element | null {
             type="button"
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
-            className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-navy hover:bg-gray-50 disabled:opacity-50"
+            className="flex w-full items-center min-h-11 gap-3 px-4 py-2.5 text-left text-sm text-navy hover:bg-gray-50 disabled:opacity-50"
           >
             <Camera size={16} />
             {uploading ? 'Envoi en cours…' : 'Changer la photo'}
@@ -148,7 +148,7 @@ export function UserMenu(): React.JSX.Element | null {
             <Link
               href="/app/profile"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-navy hover:bg-gray-50"
+              className="flex items-center min-h-11 gap-3 px-4 py-2.5 text-sm text-navy hover:bg-gray-50"
             >
               <UserIcon size={16} />
               Mon profil
@@ -156,7 +156,7 @@ export function UserMenu(): React.JSX.Element | null {
             <Link
               href="/app/settings"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 text-sm text-navy hover:bg-gray-50"
+              className="flex items-center min-h-11 gap-3 px-4 py-2.5 text-sm text-navy hover:bg-gray-50"
             >
               <Settings size={16} />
               Paramètres
@@ -168,7 +168,7 @@ export function UserMenu(): React.JSX.Element | null {
               <Link
                 href="/admin"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-navy hover:bg-gray-50"
+                className="flex items-center min-h-11 gap-3 px-4 py-2.5 text-sm text-navy hover:bg-gray-50"
               >
                 <ShieldCheck size={16} />
                 Espace Admin
@@ -177,7 +177,7 @@ export function UserMenu(): React.JSX.Element | null {
           )}
 
           <div className="border-t border-border py-1">
-            <LogoutButton className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-navy hover:bg-gray-50">
+            <LogoutButton className="flex w-full items-center min-h-11 gap-3 px-4 py-2.5 text-left text-sm text-navy hover:bg-gray-50">
               <LogOut size={16} />
               Déconnexion
             </LogoutButton>

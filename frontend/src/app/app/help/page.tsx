@@ -24,10 +24,10 @@ export default function HelpCenterPage(): React.JSX.Element {
   }, [query]);
 
   return (
-    <div className="p-4 lg:p-8">
-      <div className="mb-8">
-        <h1 className="flex items-center gap-3 text-2xl font-bold text-navy">
-          <span className="text-3xl">❓</span>
+    <div className="mx-auto w-full max-w-2xl px-4 py-6 sm:px-6 lg:p-8 lg:max-w-none">
+      <div className="mb-6 md:mb-8">
+        <h1 className="flex items-center gap-3 text-2xl font-bold leading-tight text-navy md:text-3xl">
+          <span className="text-2xl md:text-3xl">❓</span>
           Centre d&rsquo;aide
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -35,22 +35,22 @@ export default function HelpCenterPage(): React.JSX.Element {
         </p>
       </div>
 
-      <div className="mb-8">
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-gray-50 px-4 py-3">
-          <Search size={18} className="text-muted-light" />
+      <div className="mb-6 md:mb-8">
+        <div className="flex min-h-12 items-center gap-3 rounded-lg border border-border bg-gray-50 px-4 py-2">
+          <Search size={18} className="shrink-0 text-muted-light" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Cherche une réponse…"
-            className="flex-1 bg-transparent text-sm text-navy outline-none"
+            className="min-h-11 min-w-0 flex-1 bg-transparent text-base text-navy outline-none md:text-sm"
           />
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+      <div className="grid grid-cols-1 gap-6 md:gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex flex-col gap-6">
-          <h2 className="text-lg font-bold text-navy">Articles et guides</h2>
+          <h2 className="text-lg font-bold text-navy md:text-xl">Articles et guides</h2>
           {filteredCategories.length > 0 ? (
             filteredCategories.map((category, i) => (
               <div key={category.title} className="animate-fade-in-up" style={staggerDelay(i)}>
@@ -72,7 +72,7 @@ export default function HelpCenterPage(): React.JSX.Element {
                 <div className="text-sm font-semibold text-navy">
                   Besoin d&rsquo;aide médicale ?
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-sm text-muted-foreground">
                   NAWIRA est un outil d&rsquo;information. Pour toute question médicale urgente,
                   consulte un professionnel de santé.
                 </p>

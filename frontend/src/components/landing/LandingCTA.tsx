@@ -37,15 +37,15 @@ export function LandingCTA(): React.JSX.Element {
   return (
     <section className="w-full bg-white px-4 py-14 sm:px-6 lg:px-12 lg:py-20">
       <div className="mx-auto flex max-w-screen-xl flex-col gap-10 lg:flex-row lg:items-center lg:gap-24">
-        <div className="max-w-md">
-          <h2 className="mb-4 font-headings text-3xl font-bold leading-tight text-navy lg:text-4xl">
+        <div className="max-w-md min-w-0">
+          <h2 className="mb-4 font-headings text-2xl font-bold leading-tight text-navy md:text-3xl lg:text-4xl">
             Prête à reprendre le contrôle de ta santé ?
           </h2>
-          <p className="mb-8 text-base leading-relaxed text-muted-foreground">
+          <p className="mb-6 text-sm leading-relaxed md:mb-8 md:text-base text-muted-foreground">
             Crée ton compte gratuitement et commence à mieux comprendre ton cycle dès
             aujourd&rsquo;hui.
           </p>
-          <LinkButton href="/signup" variant="primary" size="lg" className="w-full sm:w-auto">
+          <LinkButton href="/signup" variant="primary" size="lg" className="h-12 w-full sm:w-auto">
             Commencer gratuitement
             <ArrowRight className="h-4 w-4" />
           </LinkButton>

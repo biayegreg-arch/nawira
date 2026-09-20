@@ -36,7 +36,7 @@ export default function SettingsPage() {
 
   if (!user) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-2 px-4">
+      <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-2 px-4">
         <p className="text-sm text-gray-600">Chargement…</p>
       </main>
     );
@@ -98,15 +98,15 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-8 px-4 py-12">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 py-6 sm:gap-8 sm:py-12">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">Paramètres</h1>
-        <p className="text-sm text-gray-600">Connecté en tant que {user.email}</p>
+        <h1 className="text-2xl font-bold md:text-3xl">Paramètres</h1>
+        <p className="break-words text-sm text-gray-600">Connecté en tant que {user.email}</p>
       </header>
 
       {/* ── Password section ─────────────────────────────────────────── */}
-      <section className="flex flex-col gap-3 rounded-lg border border-gray-200 p-5">
-        <h2 className="text-lg font-semibold">
+      <section className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4 sm:p-5">
+        <h2 className="text-lg font-semibold md:text-xl">
           {hasPassword ? 'Changer le mot de passe' : 'Définir un mot de passe'}
         </h2>
         <p className="text-sm text-gray-600">
@@ -124,7 +124,7 @@ export default function SettingsPage() {
                 autoComplete="current-password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="rounded-md border border-gray-300 px-3 py-2"
+                className="w-full min-w-0 rounded-md border border-gray-300 px-3 py-3 text-base md:text-sm"
               />
             </label>
           )}
@@ -136,7 +136,7 @@ export default function SettingsPage() {
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="rounded-md border border-gray-300 px-3 py-2"
+              className="w-full min-w-0 rounded-md border border-gray-300 px-3 py-3 text-base md:text-sm"
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
@@ -147,7 +147,7 @@ export default function SettingsPage() {
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="rounded-md border border-gray-300 px-3 py-2"
+              className="w-full min-w-0 rounded-md border border-gray-300 px-3 py-3 text-base md:text-sm"
             />
           </label>
           {error && (
@@ -158,7 +158,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-md bg-black px-5 py-2.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+            className="min-h-12 w-full rounded-md bg-black px-5 py-3 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
           >
             {submitting
               ? 'Enregistrement…'
@@ -170,10 +170,10 @@ export default function SettingsPage() {
       </section>
 
       {/* ── Linked providers section ────────────────────────────────── */}
-      <section className="flex flex-col gap-3 rounded-lg border border-gray-200 p-5">
-        <h2 className="text-lg font-semibold">Comptes liés</h2>
+      <section className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4 sm:p-5">
+        <h2 className="text-lg font-semibold md:text-xl">Comptes liés</h2>
         <div className="flex items-center justify-between gap-3">
-          <div className="flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <span className="text-sm font-medium">Google</span>
             <span className="text-xs text-gray-500">
               {googleLinked
@@ -188,7 +188,7 @@ export default function SettingsPage() {
           ) : (
             <a
               href="/api/auth/oauth/google/start?next=/settings"
-              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+              className="inline-flex min-h-11 shrink-0 items-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
             >
               Lier Google
             </a>
@@ -196,7 +196,10 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <Link href="/app/today" className="text-center text-sm text-gray-600 underline">
+      <Link
+        href="/app/today"
+        className="flex min-h-11 items-center justify-center text-center text-sm text-gray-600 underline"
+      >
         Retour au dashboard
       </Link>
     </main>

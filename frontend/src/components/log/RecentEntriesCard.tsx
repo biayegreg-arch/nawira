@@ -27,7 +27,7 @@ function shortDate(iso: string): string {
 export function RecentEntriesCard({ entries }: RecentEntriesCardProps): React.JSX.Element {
   return (
     <div className="rounded-xl border border-border bg-white p-5">
-      <h3 className="mb-3 text-sm font-bold text-navy">Dernières saisies</h3>
+      <h3 className="mb-3 text-base font-bold text-navy">Dernières saisies</h3>
       {entries.length === 0 ? (
         <p className="text-xs text-muted-foreground">Aucune saisie récente.</p>
       ) : (
@@ -35,9 +35,11 @@ export function RecentEntriesCard({ entries }: RecentEntriesCardProps): React.JS
           {entries.map((entry) => (
             <div key={entry.date} className="flex items-start gap-3">
               <span className="shrink-0 text-lg">{entry.mood ? MOOD_EMOJI[entry.mood] : '📝'}</span>
-              <div>
+              <div className="min-w-0 flex-1">
                 <div className="text-xs font-semibold text-navy">{shortDate(entry.date)}</div>
-                <div className="mt-0.5 text-xs text-muted-foreground">{summarize(entry)}</div>
+                <div className="mt-0.5 text-xs break-words text-muted-foreground">
+                  {summarize(entry)}
+                </div>
               </div>
             </div>
           ))}

@@ -26,29 +26,29 @@ export function ConceptionStatsCard({
       : null;
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
-      <h2 className="mb-5 text-lg font-bold text-navy">Ton parcours de conception</h2>
+    <div className="rounded-lg border border-border bg-white p-4 sm:p-6">
+      <h2 className="mb-5 text-base font-bold md:text-lg text-navy">Ton parcours de conception</h2>
 
       <div className="mb-6 flex flex-col gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
             <Calendar size={18} />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="text-xs text-muted-foreground">Projet Bébé activé</div>
-            <div className="text-base font-bold text-navy">
+            <div className="break-words text-base font-bold text-navy">
               {monthsActive === 0 ? 'Ce mois-ci' : `Depuis ${monthsActive} mois`}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-green-soft text-green">
             <Target size={18} />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="text-xs text-muted-foreground">Fenêtres fertiles</div>
-            <div className="text-base font-bold text-navy">
+            <div className="break-words text-base font-bold text-navy">
               {cyclesCompleted === 0
                 ? 'Pas encore de cycle complet'
                 : `${cyclesCompleted} fenêtre${cyclesCompleted > 1 ? 's' : ''} optimale${cyclesCompleted > 1 ? 's' : ''}`}
@@ -56,13 +56,13 @@ export function ConceptionStatsCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-amber-soft text-amber">
             <Zap size={18} />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="text-xs text-muted-foreground">Taux d&rsquo;ovulation régulière</div>
-            <div className="text-base font-bold text-navy">
+            <div className="break-words text-base font-bold text-navy">
               {regularOvulationRate === null ? (
                 'Pas encore assez de données'
               ) : (
@@ -72,13 +72,13 @@ export function ConceptionStatsCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
             <Activity size={18} />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="text-xs text-muted-foreground">Données enregistrées</div>
-            <div className="text-base font-bold text-navy">
+            <div className="break-words text-base font-bold text-navy">
               <AnimatedNumber value={daysTracked} />/{totalDaysSinceActivation} jours
             </div>
           </div>
@@ -86,7 +86,7 @@ export function ConceptionStatsCard({
       </div>
 
       <div className="rounded-lg border border-border bg-green-soft/40 p-4">
-        <p className="text-xs leading-relaxed text-navy">
+        <p className="text-sm leading-relaxed text-navy">
           <CheckCircle2 size={12} className="mr-1 inline text-green" />
           {regularOvulationRate !== null && regularOvulationRate >= 70
             ? 'Tes données indiquent une ovulation régulière. Continue à enregistrer quotidiennement pour optimiser tes chances.'

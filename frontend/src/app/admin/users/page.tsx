@@ -80,18 +80,18 @@ export default function AdminUsersPage(): React.JSX.Element {
   return (
     <div className="flex flex-col gap-5">
       <form onSubmit={onSearchSubmit} className="flex gap-2">
-        <div className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-white px-3.5 py-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-white px-3.5">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Rechercher par email ou nom…"
-            className="w-full text-sm text-navy outline-none"
+            className="min-h-11 w-full min-w-0 bg-transparent text-base text-navy outline-none md:text-sm"
           />
         </div>
         <button
           type="submit"
-          className="rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white"
+          className="min-h-11 shrink-0 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white"
         >
           Rechercher
         </button>
@@ -130,7 +130,7 @@ export default function AdminUsersPage(): React.JSX.Element {
                 {user.name ?? user.email}
               </div>
               <div className="truncate text-xs text-muted-foreground">{user.email}</div>
-              <div className="mt-1.5 flex gap-1.5">
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
                 <Badge tone={ROLE_TONE[user.role]}>{user.role}</Badge>
                 <Badge tone={STATUS_TONE[user.status]}>{user.status}</Badge>
               </div>
@@ -142,10 +142,10 @@ export default function AdminUsersPage(): React.JSX.Element {
       {/* Desktop / tablet-landscape: real table */}
       {users.length > 0 && (
         <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
-          <table className="w-full">
+          <table className="w-full table-fixed">
             <thead>
               <tr className="border-b border-border bg-gray-50 text-left text-xs font-medium text-muted-foreground">
-                <th className="px-6 py-3">Utilisatrice</th>
+                <th className="w-1/2 px-6 py-3">Utilisatrice</th>
                 <th className="px-4 py-3">Rôle</th>
                 <th className="px-4 py-3">Statut</th>
                 <th className="px-4 py-3">Inscription</th>
@@ -199,7 +199,7 @@ export default function AdminUsersPage(): React.JSX.Element {
         <button
           type="button"
           onClick={() => void load(false)}
-          className="self-center rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy sm:w-auto sm:self-center"
         >
           Charger plus
         </button>

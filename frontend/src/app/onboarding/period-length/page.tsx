@@ -32,7 +32,7 @@ export default function OnboardingPeriodLengthPage(): React.JSX.Element {
     <OnboardingLayout step={5} backHref="/onboarding/last-period">
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="font-headings text-xl font-bold text-navy">
+          <h1 className="font-headings text-xl font-bold leading-tight text-navy md:text-2xl">
             Combien de temps durent tes règles ?
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
@@ -46,7 +46,7 @@ export default function OnboardingPeriodLengthPage(): React.JSX.Element {
               type="button"
               onClick={() => setSelected(opt.value)}
               className={cn(
-                'rounded-full border px-4 py-3 text-sm font-medium',
+                'min-h-11 rounded-full border px-4 py-3 text-sm font-medium',
                 selected === opt.value
                   ? 'border-primary bg-primary-soft text-primary'
                   : 'border-border bg-white text-navy hover:bg-gray-50',
@@ -56,7 +56,7 @@ export default function OnboardingPeriodLengthPage(): React.JSX.Element {
             </button>
           ))}
         </div>
-        <Button onClick={onContinue} className="w-full">
+        <Button onClick={onContinue} className="min-h-12 w-full">
           Continuer
         </Button>
       </div>

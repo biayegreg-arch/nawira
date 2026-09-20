@@ -29,7 +29,7 @@ export function PeriodTodayCard({
   todayFlowLogged,
 }: PeriodTodayCardProps): React.JSX.Element {
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
+    <div className="rounded-lg border border-border bg-white p-4 sm:p-6">
       <div className="mb-5 flex items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-soft text-rose">
           <Droplet size={18} />
@@ -42,11 +42,11 @@ export function PeriodTodayCard({
           <span className="mb-2 block text-sm font-medium text-navy">
             As-tu tes règles aujourd&rsquo;hui ?
           </span>
-          <div className="flex gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => flow === 'NONE' && onFlowChange('MEDIUM')}
-              className={`flex-1 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 active:scale-[0.97] ${
+              className={`min-h-11 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 active:scale-[0.97] ${
                 flow !== 'NONE'
                   ? 'border-primary bg-primary-soft text-primary'
                   : 'border-border bg-white text-navy hover:bg-gray-50'
@@ -57,7 +57,7 @@ export function PeriodTodayCard({
             <button
               type="button"
               onClick={() => onFlowChange('NONE')}
-              className={`flex-1 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 active:scale-[0.97] ${
+              className={`min-h-11 rounded-md border px-4 py-2.5 text-sm font-medium transition-all duration-150 active:scale-[0.97] ${
                 flow === 'NONE'
                   ? 'border-gray-300 bg-gray-50 text-body'
                   : 'border-border bg-white text-navy hover:bg-gray-50'

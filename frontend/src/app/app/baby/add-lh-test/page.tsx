@@ -177,7 +177,7 @@ export default function AddLhTestPage(): React.JSX.Element | null {
 
   if (error) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8 lg:max-w-none">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Impossible de charger tes données. Réessaie plus tard.
         </div>
@@ -187,7 +187,7 @@ export default function AddLhTestPage(): React.JSX.Element | null {
 
   if (cycles === null) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8 lg:max-w-none">
         <div className="h-96 animate-pulse rounded-xl bg-gray-100" />
       </div>
     );
@@ -209,12 +209,12 @@ export default function AddLhTestPage(): React.JSX.Element | null {
   }
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8 lg:max-w-none">
       {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <ProjetBebeBreadcrumb current="Ajouter un test LH" />
       <div className="mb-6">
-        <h1 className="mb-1 flex items-center gap-3 text-2xl font-bold text-navy">
-          <span className="text-3xl">🩺</span>
+        <h1 className="mb-1 flex items-center gap-3 text-2xl font-bold leading-tight text-navy md:text-3xl">
+          <span className="text-2xl md:text-3xl">🩺</span>
           Ajouter un test LH
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -223,14 +223,14 @@ export default function AddLhTestPage(): React.JSX.Element | null {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_288px] lg:items-start">
-        <div className="flex flex-col gap-5">
-          <div className="rounded-xl border border-border bg-white p-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_288px] lg:items-start">
+        <div className="flex min-w-0 flex-col gap-5">
+          <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-soft text-amber">
                 <Info size={18} />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h2 className="mb-1 text-base font-bold text-navy">
                   Qu&rsquo;est-ce qu&rsquo;un test LH ?
                 </h2>
@@ -242,7 +242,7 @@ export default function AddLhTestPage(): React.JSX.Element | null {
             </div>
           </div>
 
-          <div className="flex flex-col gap-5 rounded-xl border border-border bg-white p-6">
+          <div className="flex flex-col gap-5 rounded-xl border border-border bg-white p-4 sm:p-6">
             <h2 className="flex items-center gap-2 text-base font-bold text-navy">
               <ClipboardCheck size={18} className="text-primary" />
               Résultat du test
@@ -256,14 +256,14 @@ export default function AddLhTestPage(): React.JSX.Element | null {
                     key={option.value}
                     type="button"
                     onClick={() => setSelected(option.value)}
-                    className={`flex w-full items-center gap-4 rounded-lg border-2 p-4 text-left transition-all duration-150 active:scale-[0.98] ${
+                    className={`flex min-h-14 w-full items-center gap-3 rounded-lg border-2 p-3 text-left sm:gap-4 sm:p-4 transition-all duration-150 active:scale-[0.98] ${
                       isSelected ? `border-primary ${option.bg}` : 'border-border bg-gray-50'
                     }`}
                   >
                     <span className="shrink-0 text-2xl">{option.icon}</span>
-                    <div className="flex-1">
+                    <div className="min-w-0 flex-1 break-words">
                       <div className="text-sm font-semibold text-navy">{option.label}</div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">{option.desc}</div>
+                      <div className="mt-0.5 text-sm text-muted-foreground">{option.desc}</div>
                     </div>
                     <div
                       className={`h-5 w-5 shrink-0 rounded-full border-2 ${
@@ -276,11 +276,11 @@ export default function AddLhTestPage(): React.JSX.Element | null {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row">
             <button
               type="button"
               onClick={() => router.push('/app/baby')}
-              className="flex-1 rounded-lg border border-border bg-gray-50 px-4 py-3 text-sm font-semibold text-navy transition-transform duration-150 active:scale-[0.97]"
+              className="min-h-12 flex-1 rounded-lg border border-border bg-gray-50 px-4 py-3 text-sm font-semibold text-navy transition-transform duration-150 active:scale-[0.97]"
             >
               Annuler
             </button>
@@ -288,20 +288,20 @@ export default function AddLhTestPage(): React.JSX.Element | null {
               type="button"
               onClick={handleSave}
               disabled={!selected || saving}
-              className="flex-1 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white transition-transform duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
+              className="min-h-12 flex-1 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white transition-transform duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
             >
               {saving ? 'Enregistrement…' : 'Enregistrer le test'}
             </button>
           </div>
         </div>
 
-        <div className="flex flex-col gap-5">
-          <div className="rounded-xl border border-border bg-white p-5">
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-navy">
+        <div className="flex min-w-0 flex-col gap-5">
+          <div className="rounded-xl border border-border bg-white p-4 sm:p-5">
+            <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-navy">
               <Calendar size={14} className="text-rose" />
               Ton cycle aujourd&rsquo;hui
             </h3>
-            <div className="flex flex-col gap-2 text-xs">
+            <div className="flex flex-col gap-2 text-sm">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Jour du cycle</span>
                 <span className="font-semibold text-navy">
@@ -324,28 +324,28 @@ export default function AddLhTestPage(): React.JSX.Element | null {
           </div>
 
           {selected && (
-            <div className="animate-fade-in-up rounded-xl border border-border bg-amber-soft p-5">
+            <div className="animate-fade-in-up rounded-xl border border-border bg-amber-soft p-4 sm:p-5">
               <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-navy">
                 <Lightbulb size={14} className="text-amber" />
                 Interprétation
               </h3>
-              <p className="text-xs leading-relaxed text-muted-foreground">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 {INTERPRETATION[selected]}
               </p>
             </div>
           )}
 
-          <div className="rounded-xl border border-border bg-white p-5">
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-navy">
+          <div className="rounded-xl border border-border bg-white p-4 sm:p-5">
+            <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-navy">
               <History size={14} className="text-primary" />
               Tests LH récents
             </h3>
             {recentEntries.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Aucun test précédent enregistré.</p>
+              <p className="text-sm text-muted-foreground">Aucun test précédent enregistré.</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {recentEntries.map((entry) => (
-                  <div key={entry.date} className="flex items-center justify-between py-1 text-xs">
+                  <div key={entry.date} className="flex items-center justify-between py-1 text-sm">
                     <span className="text-muted-foreground">{shortDate(entry.date)}</span>
                     <span className="font-medium text-navy">
                       {RESULT_LABELS[entry.lhResult] ?? entry.lhResult}
@@ -356,12 +356,12 @@ export default function AddLhTestPage(): React.JSX.Element | null {
             )}
           </div>
 
-          <div className="rounded-xl border border-border bg-green-soft p-5">
-            <h3 className="mb-2 flex items-center gap-1 text-xs font-bold text-navy">
+          <div className="rounded-xl border border-border bg-green-soft p-4 sm:p-5">
+            <h3 className="mb-2 flex items-center gap-1 text-sm font-bold text-navy">
               <Info size={12} className="text-green" />
               Pourquoi tracer les tests LH ?
             </h3>
-            <p className="text-xs leading-relaxed text-muted-foreground">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               Coupler NAWIRA avec des tests LH peut améliorer la précision de l&rsquo;identification
               de ta fenêtre fertile.
             </p>

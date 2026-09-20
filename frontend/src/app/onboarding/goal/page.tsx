@@ -47,7 +47,9 @@ export default function OnboardingGoalPage(): React.JSX.Element {
     <OnboardingLayout step={3} backHref="/onboarding/birth-date">
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="font-headings text-xl font-bold text-navy">Quel est ton objectif ?</h1>
+          <h1 className="font-headings text-xl font-bold leading-tight text-navy md:text-2xl">
+            Quel est ton objectif ?
+          </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Tu pourras changer d&rsquo;avis plus tard.
           </p>
@@ -63,7 +65,7 @@ export default function OnboardingGoalPage(): React.JSX.Element {
             />
           ))}
         </div>
-        <Button onClick={onContinue} disabled={!goal} className="w-full">
+        <Button onClick={onContinue} disabled={!goal} className="min-h-12 w-full">
           Continuer
         </Button>
       </div>
