@@ -30,27 +30,30 @@ export function RecordDetailModal({
       role="presentation"
     >
       <div
-        className="animate-scale-in flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-border bg-white shadow-lg"
+        className="animate-scale-in flex max-h-[85dvh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-border bg-white shadow-lg"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-labelledby="record-detail-title"
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-border bg-background p-5">
-          <h2 id="record-detail-title" className="text-base font-bold text-navy">
+        <div className="flex shrink-0 items-center justify-between border-b border-border bg-background p-4 sm:p-5">
+          <h2
+            id="record-detail-title"
+            className="min-w-0 break-words text-base font-bold text-navy"
+          >
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fermer"
-            className="flex h-9 w-9 items-center justify-center rounded-md bg-gray-50 text-muted-foreground"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-gray-50 text-muted-foreground"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="flex flex-col gap-4 overflow-y-auto p-5">
+        <div className="flex flex-col gap-4 overflow-y-auto p-4 sm:p-5">
           <dl className="grid grid-cols-1 gap-3 text-xs sm:grid-cols-2">
             {fields.map((f) => (
               <div key={f.label} className="min-w-0">
@@ -65,7 +68,7 @@ export function RecordDetailModal({
           {raw && (
             <div>
               <div className="mb-1.5 text-xs font-medium text-navy">{raw.label}</div>
-              <pre className="max-h-64 overflow-auto rounded-lg bg-gray-50 p-3 text-[11px] leading-relaxed text-body">
+              <pre className="max-h-64 overflow-auto rounded-lg bg-gray-50 p-3 text-xs leading-relaxed text-body">
                 {JSON.stringify(raw.value, null, 2)}
               </pre>
             </div>
