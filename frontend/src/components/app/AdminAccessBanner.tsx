@@ -12,7 +12,7 @@ export function AdminAccessBanner(): React.JSX.Element {
       href="/admin"
       className="mb-4 flex items-center justify-between gap-3 rounded-xl bg-navy px-5 py-3.5 text-white"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3">
         <ShieldCheck size={18} />
         <span className="text-sm font-semibold">Espace Admin</span>
       </div>

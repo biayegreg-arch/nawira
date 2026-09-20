@@ -10,27 +10,27 @@ export function SyncStatusIndicator(): React.JSX.Element | null {
 
   if (status === 'offline') {
     return (
-      <span className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-soft px-3 py-1.5 text-xs font-medium text-amber">
+      <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-amber-200 bg-amber-soft px-3 py-1.5 text-xs font-medium text-amber">
         <WifiOff size={13} />
-        Hors ligne
+        <span className="sr-only sm:not-sr-only">Hors ligne</span>
       </span>
     );
   }
 
   if (status === 'syncing') {
     return (
-      <span className="flex items-center gap-1.5 rounded-full border border-border bg-gray-50 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+      <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-gray-50 px-3 py-1.5 text-xs font-medium text-muted-foreground">
         <RefreshCw size={13} className="animate-spin" />
-        Synchronisation…
+        <span className="sr-only sm:not-sr-only">Synchronisation…</span>
       </span>
     );
   }
 
   if (status === 'synced') {
     return (
-      <span className="flex items-center gap-1.5 rounded-full border border-green-200 bg-green-soft px-3 py-1.5 text-xs font-medium text-green">
+      <span className="flex shrink-0 items-center gap-1.5 rounded-full border border-green-200 bg-green-soft px-3 py-1.5 text-xs font-medium text-green">
         <Check size={13} />
-        Synchronisé
+        <span className="sr-only sm:not-sr-only">Synchronisé</span>
       </span>
     );
   }
@@ -39,7 +39,8 @@ export function SyncStatusIndicator(): React.JSX.Element | null {
     <button
       type="button"
       onClick={retryNow}
-      className="flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700"
+      aria-label="Échec de synchronisation, réessayer"
+      className="flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700"
     >
       <AlertCircle size={13} />
       Échec de synchronisation

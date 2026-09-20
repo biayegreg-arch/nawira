@@ -31,13 +31,13 @@ function ResultsList({
     );
   }
   return (
-    <div className="max-h-96 overflow-y-auto py-2">
+    <div className="max-h-[60dvh] overflow-y-auto py-2 sm:max-h-96">
       {GROUP_ORDER.map((group) => {
         const items = results.filter((r) => r.group === group);
         if (items.length === 0) return null;
         return (
           <div key={group}>
-            <div className="px-4 pt-2 pb-1 text-[11px] font-semibold tracking-wider text-muted-light uppercase">
+            <div className="px-4 pt-2 pb-1 text-xs font-semibold tracking-wider text-muted-light uppercase">
               {group}
             </div>
             {items.map((item) => (
@@ -45,9 +45,9 @@ function ResultsList({
                 key={`${item.group}-${item.href}-${item.title}`}
                 type="button"
                 onClick={() => onSelect(item.href)}
-                className="flex w-full flex-col items-start px-4 py-2 text-left hover:bg-gray-50"
+                className="flex min-h-11 w-full flex-col items-start px-4 py-2 text-left hover:bg-gray-50"
               >
-                <span className="text-sm font-medium text-navy">{item.title}</span>
+                <span className="break-words text-sm font-medium text-navy">{item.title}</span>
                 {item.subtitle && (
                   <span className="text-xs text-muted-foreground">{item.subtitle}</span>
                 )}
@@ -109,14 +109,14 @@ export function GlobalSearch({ compact = false }: { compact?: boolean }): React.
           type="button"
           onClick={openAndFocus}
           aria-label="Rechercher"
-          className="p-2 text-navy"
+          className="flex h-11 w-11 shrink-0 items-center justify-center text-navy"
         >
           <Search size={20} />
         </button>
         {open && (
-          <div className="animate-scale-in fixed inset-x-3 top-16 z-30 rounded-xl border border-border bg-white shadow-lg">
+          <div className="animate-scale-in fixed inset-x-4 top-16 z-30 rounded-xl border border-border bg-white shadow-lg">
             <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-              <Search size={16} className="text-muted-light" />
+              <Search size={16} className="shrink-0 text-muted-light" />
               <input
                 ref={inputRef}
                 type="text"
@@ -124,7 +124,7 @@ export function GlobalSearch({ compact = false }: { compact?: boolean }): React.
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
                 placeholder="Rechercher une information, un article…"
-                className="w-full text-sm text-navy outline-none placeholder:text-muted-light"
+                className="min-w-0 w-full text-base text-navy outline-none placeholder:text-muted-light"
               />
             </div>
             <ResultsList results={results} query={query} onSelect={select} />
@@ -152,7 +152,7 @@ export function GlobalSearch({ compact = false }: { compact?: boolean }): React.
           }}
           onKeyDown={onKeyDown}
           placeholder="Rechercher une information, un article…"
-          className="w-full bg-transparent text-sm text-navy outline-none placeholder:text-muted-light"
+          className="min-w-0 w-full bg-transparent text-base text-navy outline-none placeholder:text-muted-light md:text-sm"
         />
       </div>
       {open && (

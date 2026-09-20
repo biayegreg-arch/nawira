@@ -82,7 +82,7 @@ export function AppSidebar(): React.JSX.Element {
           </div>
           <div className="text-center">
             <div className="text-xl font-bold tracking-widest text-white">NAWIRA</div>
-            <div className="mt-0.5 text-[10px] leading-tight text-white/65">
+            <div className="mt-0.5 text-xs leading-tight text-white/65">
               Comprends ton corps.
               <br />
               Vis ta vie sereinement.
@@ -110,7 +110,7 @@ export function AppSidebar(): React.JSX.Element {
           );
         })}
 
-        <div className="mt-4 mb-1 px-3 text-[11px] font-semibold tracking-wider text-white/45 uppercase">
+        <div className="mt-4 mb-1 px-3 text-xs font-semibold tracking-wider text-white/45 uppercase">
           Mon compte
         </div>
         {accountItems.map((item) => {
@@ -132,7 +132,7 @@ export function AppSidebar(): React.JSX.Element {
         })}
         {isAdmin && (
           <>
-            <div className="mt-4 mb-1 px-3 text-[11px] font-semibold tracking-wider text-white/45 uppercase">
+            <div className="mt-4 mb-1 px-3 text-xs font-semibold tracking-wider text-white/45 uppercase">
               Administration
             </div>
             <Link

@@ -102,27 +102,27 @@ export function NotificationBell(): React.JSX.Element {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative p-2 text-navy"
+        className="relative flex h-11 w-11 shrink-0 items-center justify-center text-navy"
         aria-label="Notifications"
         aria-expanded={open}
       >
         <Bell size={20} />
         {count > 0 && (
-          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose px-1 text-[10px] font-semibold text-white">
+          <span className="absolute right-0.5 top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose px-1 text-xs font-semibold text-white">
             {count > 9 ? '9+' : count}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="animate-scale-in absolute right-0 top-full z-20 mt-2 w-80 rounded-xl border border-border bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="animate-scale-in fixed inset-x-4 top-16 z-20 rounded-xl border border-border bg-white shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80">
+          <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
             <h3 className="text-sm font-bold text-navy">Notifications</h3>
             {count > 0 && (
               <button
                 type="button"
                 onClick={() => void markRead('all')}
-                className="flex items-center gap-1 text-xs font-medium text-primary"
+                className="flex min-h-11 shrink-0 items-center gap-1 text-xs font-medium text-primary"
               >
                 <CheckCheck size={12} />
                 Tout marquer comme lu
@@ -130,7 +130,7 @@ export function NotificationBell(): React.JSX.Element {
             )}
           </div>
 
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[60dvh] overflow-y-auto sm:max-h-96">
             {error && (
               <p className="p-4 text-center text-sm text-red-700">
                 Impossible de charger tes notifications.
@@ -166,7 +166,9 @@ export function NotificationBell(): React.JSX.Element {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-navy">{item.title}</span>
+                        <span className="min-w-0 break-words text-sm font-semibold text-navy">
+                          {item.title}
+                        </span>
                         {unread && <span className="h-2 w-2 shrink-0 rounded-full bg-rose" />}
                       </div>
                       <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
