@@ -74,6 +74,14 @@ export default function SupportTicketThreadPage(): React.JSX.Element {
     }
   }
 
+  if (error && !data) {
+    return (
+      <div className="p-4 lg:p-8">
+        <p className="text-sm text-danger">{error}</p>
+      </div>
+    );
+  }
+
   if (!data) return <div className="p-4 lg:p-8 text-sm text-muted-foreground">Chargement…</div>;
 
   return (
