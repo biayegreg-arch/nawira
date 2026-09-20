@@ -53,7 +53,7 @@ beforeEach(() => {
 });
 
 describe('GET /api/admin/me [Wave 1]', () => {
-  it('GET returns role + capability list for ADMIN (9-item exact list)', async () => {
+  it('GET returns role + capability list for ADMIN (7-item exact list)', async () => {
     mockRequireAdmin.mockResolvedValueOnce(adminCtx);
     const res = await GET(makeGet());
     expect(res.status).toBe(200);
@@ -66,18 +66,16 @@ describe('GET /api/admin/me [Wave 1]', () => {
     expect(body.can).toEqual([
       'users:read',
       'users:status:suspend',
-      'orders:read',
-      'withdrawals:read',
       'audit-log:read',
       'outbox:read',
       'email-queue:read',
       'rate-limits:read',
       'pricing:read',
     ]);
-    expect(body.can).toHaveLength(9);
+    expect(body.can).toHaveLength(7);
   });
 
-  it('GET returns broader capability list for SUPERADMIN including users:role and withdrawals:cancel', async () => {
+  it('GET returns broader capability list for SUPERADMIN including users:role and users:delete', async () => {
     mockRequireAdmin.mockResolvedValueOnce(superadminCtx);
     const res = await GET(makeGet());
     expect(res.status).toBe(200);
@@ -88,16 +86,15 @@ describe('GET /api/admin/me [Wave 1]', () => {
       role: 'SUPERADMIN',
     });
     expect(body.can).toContain('users:role');
-    expect(body.can).toContain('withdrawals:cancel');
     expect(body.can).toContain('users:status:restore');
     expect(body.can).toContain('users:delete');
     expect(body.can).toContain('users:plan');
     expect(body.can).toContain('pricing:read');
     expect(body.can).toContain('pricing:write');
-    expect(body.can).toHaveLength(15);
+    expect(body.can).toHaveLength(12);
   });
 
-  it('SUPERADMIN list is the exact 15-item set required by D-ADMIN-04', async () => {
+  it('SUPERADMIN list is the exact 12-item set required by D-ADMIN-04', async () => {
     mockRequireAdmin.mockResolvedValueOnce(superadminCtx);
     const res = await GET(makeGet());
     const body = await res.json();
@@ -108,9 +105,6 @@ describe('GET /api/admin/me [Wave 1]', () => {
       'users:status:restore',
       'users:delete',
       'users:plan',
-      'orders:read',
-      'withdrawals:read',
-      'withdrawals:cancel',
       'audit-log:read',
       'outbox:read',
       'email-queue:read',
@@ -162,7 +156,6 @@ describe('GET /api/admin/me [Wave 1]', () => {
     const body = await res.json();
     expect(body.can).not.toContain('users:role');
     expect(body.can).not.toContain('users:status:restore');
-    expect(body.can).not.toContain('withdrawals:cancel');
     expect(body.can).not.toContain('users:delete');
   });
 });
@@ -177,12 +170,11 @@ describe('source invariants', () => {
     expect(src).toContain('withRequestContext');
   });
 
-  it("each SUPERADMIN-only capability ('users:role', 'users:status:restore', 'users:delete', 'withdrawals:cancel', 'users:plan', 'pricing:write') appears exactly once in the code (not counting comments)", () => {
+  it("each SUPERADMIN-only capability ('users:role', 'users:status:restore', 'users:delete', 'users:plan', 'pricing:write') appears exactly once in the code (not counting comments)", () => {
     const raw = fs.readFileSync(path.join(__dirname, 'route.ts'), 'utf8');
     const code = raw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
     const occurrences = (s: string) => (code.match(new RegExp(`'${s}'`, 'g')) ?? []).length;
     expect(occurrences('users:role')).toBe(1);
-    expect(occurrences('withdrawals:cancel')).toBe(1);
     expect(occurrences('users:status:restore')).toBe(1);
     expect(occurrences('users:delete')).toBe(1);
     expect(occurrences('users:plan')).toBe(1);

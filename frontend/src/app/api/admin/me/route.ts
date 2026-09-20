@@ -2,8 +2,8 @@
 //
 // Returns the authenticated admin's role + a static capability list keyed
 // by role. Front-ends use the `can` array to render conditional UI
-// (e.g. show the "Cancel Withdrawal" button only when 'withdrawals:cancel'
-// is present). The list is informational ONLY — every mutating route
+// (e.g. show the "Modifier le rôle" control only when 'users:role' is
+// present). The list is informational ONLY — every mutating route
 // re-checks role server-side via `requireAdmin('SUPERADMIN')` etc., so a
 // client that lies about its capabilities cannot escalate.
 //
@@ -14,12 +14,15 @@
 // here too, so a polling UI cannot burn the back-office budget.
 //
 // CAPABILITY LIST CONTRACT (D-ADMIN-04 — locked):
-//   ADMIN sees 9 capabilities: users:read, users:status:suspend,
-//     orders:read, withdrawals:read, audit-log:read, outbox:read,
-//     email-queue:read, rate-limits:read, pricing:read.
-//   SUPERADMIN sees 15: same 9 (minus pricing:read counted once) + users:role
-//     + users:status:restore + users:delete + users:plan +
-//     withdrawals:cancel + pricing:write.
+//   ADMIN sees 7 capabilities: users:read, users:status:suspend,
+//     audit-log:read, outbox:read, email-queue:read, rate-limits:read,
+//     pricing:read.
+//   SUPERADMIN sees 12: same 7 (minus pricing:read counted once) + users:role
+//     + users:status:restore + users:delete + users:plan + pricing:write.
+//
+// orders:read / withdrawals:read / withdrawals:cancel removed 2026-09-20 —
+// the underlying routes were pruned (payments-bictorys, withdrawals; see
+// PRUNING.md). A capability with no backing route is a dead front-end hint.
 //
 // Front-end teams can pivot off this shape; changing the list is a
 // breaking change to the back-office UI.
@@ -35,8 +38,6 @@ const CAPABILITIES_BY_ROLE: Record<'ADMIN' | 'SUPERADMIN', readonly string[]> = 
   ADMIN: [
     'users:read',
     'users:status:suspend',
-    'orders:read',
-    'withdrawals:read',
     'audit-log:read',
     'outbox:read',
     'email-queue:read',
@@ -50,9 +51,6 @@ const CAPABILITIES_BY_ROLE: Record<'ADMIN' | 'SUPERADMIN', readonly string[]> = 
     'users:status:restore',
     'users:delete',
     'users:plan',
-    'orders:read',
-    'withdrawals:read',
-    'withdrawals:cancel',
     'audit-log:read',
     'outbox:read',
     'email-queue:read',
