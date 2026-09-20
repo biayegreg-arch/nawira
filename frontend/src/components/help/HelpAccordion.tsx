@@ -9,18 +9,18 @@ export function HelpAccordion({ category }: { category: HelpCategory }): React.J
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="rounded-xl border border-border bg-white p-6">
+    <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
       <div className="mb-4 flex items-center gap-3">
         <div
           className={cn(
-            'flex h-8 w-8 items-center justify-center rounded-lg',
+            'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
             category.bgClass,
             category.colorClass,
           )}
         >
           <category.icon size={16} />
         </div>
-        <h3 className="text-base font-bold text-navy">{category.title}</h3>
+        <h3 className="min-w-0 text-base font-bold text-navy">{category.title}</h3>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -32,9 +32,11 @@ export function HelpAccordion({ category }: { category: HelpCategory }): React.J
                 type="button"
                 onClick={() => setOpenIndex(open ? null : i)}
                 aria-expanded={open}
-                className="flex w-full items-center justify-between gap-3 rounded-lg p-3 text-left transition-colors duration-150 hover:bg-gray-100"
+                className="flex min-h-11 w-full items-center justify-between gap-3 rounded-lg p-3 text-left transition-colors duration-150 hover:bg-gray-100"
               >
-                <span className="text-sm font-medium text-navy">{item.q}</span>
+                <span className="min-w-0 flex-1 break-words text-sm font-medium text-navy">
+                  {item.q}
+                </span>
                 <ChevronDown
                   size={16}
                   className={cn(
@@ -44,7 +46,7 @@ export function HelpAccordion({ category }: { category: HelpCategory }): React.J
                 />
               </button>
               {open && (
-                <p className="animate-fade-in-up border-t border-border px-3 pt-2 pb-3 text-sm text-muted-foreground">
+                <p className="animate-fade-in-up break-words border-t border-border px-3 pt-2 pb-3 text-sm text-muted-foreground">
                   {item.a}
                 </p>
               )}

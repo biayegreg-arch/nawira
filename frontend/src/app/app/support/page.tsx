@@ -67,9 +67,9 @@ export default function MySupportTicketsPage(): React.JSX.Element {
   }
 
   return (
-    <div className="p-4 lg:p-8">
-      <h1 className="mb-6 text-2xl font-bold text-navy">Mes demandes</h1>
-      {error && <p className="text-sm text-danger">{error}</p>}
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8">
+      <h1 className="mb-6 text-2xl font-bold leading-tight text-navy md:text-3xl">Mes demandes</h1>
+      {error && <p className="break-words text-sm text-danger">{error}</p>}
       {tickets === null ? (
         <p className="text-sm text-muted-foreground">Chargement…</p>
       ) : tickets.length === 0 ? (
@@ -80,10 +80,14 @@ export default function MySupportTicketsPage(): React.JSX.Element {
             <Link
               key={t.id}
               href={`/app/support/${t.id}`}
-              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-white p-4 transition-colors hover:bg-gray-50"
+              className="flex items-center justify-between min-h-11 gap-3 rounded-lg border border-border bg-white p-4 transition-colors hover:bg-gray-50"
             >
-              <span className="truncate text-sm font-medium text-navy">{t.subject}</span>
-              <Badge tone={STATUS_TONE[t.status]}>{STATUS_LABEL[t.status]}</Badge>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-navy">
+                {t.subject}
+              </span>
+              <Badge tone={STATUS_TONE[t.status]} className="shrink-0">
+                {STATUS_LABEL[t.status]}
+              </Badge>
             </Link>
           ))}
         </div>
@@ -94,7 +98,7 @@ export default function MySupportTicketsPage(): React.JSX.Element {
           type="button"
           onClick={() => void loadMore()}
           disabled={loadingMore}
-          className="mx-auto mt-4 block rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50"
+          className="mx-auto mt-4 block min-h-11 w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy disabled:opacity-50 sm:w-auto"
         >
           {loadingMore ? 'Chargement…' : 'Charger plus'}
         </button>
