@@ -95,14 +95,19 @@ export default function AdminSupportTicketPage(): React.JSX.Element {
   if (!data) return <Skeleton className="h-40 w-full" />;
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-navy">{data.ticket.subject}</h1>
-          <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{revealedEmail ?? data.ticket.userEmailMasked}</span>
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="break-words text-xl font-bold leading-tight text-navy md:text-2xl">
+            {data.ticket.subject}
+          </h1>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+            <span className="break-all">{revealedEmail ?? data.ticket.userEmailMasked}</span>
             {!revealedEmail && (
-              <button onClick={() => void reveal()} className="text-primary underline">
+              <button
+                onClick={() => void reveal()}
+                className="inline-flex min-h-11 items-center text-primary underline"
+              >
                 Révéler
               </button>
             )}
@@ -111,7 +116,7 @@ export default function AdminSupportTicketPage(): React.JSX.Element {
         <select
           value={data.ticket.status}
           onChange={(e) => void changeStatus(e.target.value as TicketDetail['ticket']['status'])}
-          className="rounded-lg border border-border bg-white px-3 py-2 text-sm text-navy"
+          className="min-h-11 w-full shrink-0 rounded-lg border border-border bg-white px-3 py-2 text-base text-navy sm:w-auto md:text-sm"
         >
           {(Object.keys(STATUS_LABEL) as TicketDetail['ticket']['status'][]).map((s) => (
             <option key={s} value={s}>
@@ -132,7 +137,7 @@ export default function AdminSupportTicketPage(): React.JSX.Element {
                 {m.role === 'ADMIN' ? 'Équipe' : 'Utilisatrice'}
               </Badge>
             </div>
-            <p className="whitespace-pre-wrap text-navy">{m.body}</p>
+            <p className="whitespace-pre-wrap break-words text-navy">{m.body}</p>
           </div>
         ))}
       </div>
@@ -144,12 +149,12 @@ export default function AdminSupportTicketPage(): React.JSX.Element {
             onChange={(e) => setReply(e.target.value)}
             rows={4}
             placeholder="Écrire une réponse…"
-            className="rounded-lg border border-border bg-white p-3 text-sm text-navy outline-none"
+            className="w-full rounded-lg border border-border bg-white p-3 text-base text-navy outline-none focus:border-primary md:text-sm"
           />
           <button
             onClick={() => void sendReply()}
             disabled={sending || !reply.trim()}
-            className="self-end rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+            className="min-h-11 w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:w-auto sm:self-end"
           >
             {sending ? 'Envoi…' : 'Répondre'}
           </button>

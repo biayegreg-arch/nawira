@@ -85,11 +85,11 @@ export default function AdminOutboxPage(): React.JSX.Element {
 
   return (
     <div className="flex flex-col gap-5">
-      <form onSubmit={onSubmit} className="flex flex-wrap gap-2">
+      <form onSubmit={onSubmit} className="flex flex-col gap-2 sm:flex-row">
         <select
           value={status}
           onChange={(e) => onStatusChange(e.target.value)}
-          className="rounded-lg border border-border bg-white px-3.5 py-3 text-sm text-navy outline-none focus:border-primary"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-3.5 py-3 text-base text-navy outline-none focus:border-primary sm:w-auto md:text-sm"
         >
           <option value="">Tous les statuts</option>
           {STATUS_OPTIONS.map((s) => (
@@ -102,11 +102,11 @@ export default function AdminOutboxPage(): React.JSX.Element {
           value={kind}
           onChange={(e) => setKind(e.target.value)}
           placeholder="Type (ex: notification.payment_received)"
-          className="min-w-0 flex-1 rounded-lg border border-border bg-white px-3.5 py-3 text-sm text-navy outline-none focus:border-primary"
+          className="min-h-11 w-full min-w-0 rounded-lg border border-border bg-white px-3.5 py-3 text-base text-navy outline-none focus:border-primary sm:flex-1 md:text-sm"
         />
         <button
           type="submit"
-          className="rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white"
+          className="min-h-11 w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-white sm:w-auto"
         >
           Filtrer
         </button>
@@ -149,7 +149,7 @@ export default function AdminOutboxPage(): React.JSX.Element {
         <button
           type="button"
           onClick={() => void load(false)}
-          className="self-center rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy"
+          className="min-h-11 w-full rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-medium text-navy sm:w-auto sm:self-center"
         >
           Charger plus
         </button>

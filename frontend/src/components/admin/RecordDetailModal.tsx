@@ -58,7 +58,7 @@ export function RecordDetailModal({
             {fields.map((f) => (
               <div key={f.label} className="min-w-0">
                 <dt className="text-muted-foreground">{f.label}</dt>
-                <dd className="truncate font-medium text-navy" title={String(f.value ?? '')}>
+                <dd className="break-words font-medium text-navy" title={String(f.value ?? '')}>
                   {f.value ?? '—'}
                 </dd>
               </div>
@@ -68,7 +68,7 @@ export function RecordDetailModal({
           {raw && (
             <div>
               <div className="mb-1.5 text-xs font-medium text-navy">{raw.label}</div>
-              <pre className="max-h-64 overflow-auto rounded-lg bg-gray-50 p-3 text-xs leading-relaxed text-body">
+              <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-gray-50 p-3 text-xs leading-relaxed text-body">
                 {JSON.stringify(raw.value, null, 2)}
               </pre>
             </div>

@@ -83,9 +83,9 @@ export default function AdminRateLimitsPage(): React.JSX.Element {
       {!loading && !note && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {buckets.map((b) => (
-            <div key={b.bucket} className="rounded-xl border border-border bg-card p-5">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-semibold text-navy">{b.bucket}</div>
+            <div key={b.bucket} className="rounded-xl border border-border bg-card p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 text-sm font-semibold text-navy">{b.bucket}</div>
                 <Badge tone={b.totalKeys > 0 ? 'primary' : 'neutral'}>
                   {b.totalKeys} clé{b.totalKeys > 1 ? 's' : ''}
                 </Badge>
@@ -101,7 +101,7 @@ export default function AdminRateLimitsPage(): React.JSX.Element {
                   {b.top10.map((entry) => (
                     <div
                       key={entry.key}
-                      className="flex items-center justify-between gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs"
+                      className="flex flex-col gap-0.5 rounded-lg bg-gray-50 px-3 py-2 text-xs sm:flex-row sm:items-center sm:justify-between sm:gap-2"
                     >
                       <span className="min-w-0 truncate font-medium text-navy" title={entry.key}>
                         {entry.key}
