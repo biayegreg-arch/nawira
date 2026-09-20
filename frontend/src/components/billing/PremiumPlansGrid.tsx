@@ -58,13 +58,32 @@ export function PremiumPlansGrid({
               ))}
             </div>
 
-            <button
-              type="button"
-              disabled
-              className="w-full cursor-not-allowed rounded-md border border-border bg-white px-4 py-2.5 text-sm font-semibold text-muted-foreground"
-            >
-              {plan.key === currentPlan ? 'Plan actuel' : 'Bientôt disponible'}
-            </button>
+            {plan.key === currentPlan ? (
+              <button
+                type="button"
+                disabled
+                className="w-full cursor-not-allowed rounded-md border border-border bg-white px-4 py-2.5 text-sm font-semibold text-muted-foreground"
+              >
+                Plan actuel
+              </button>
+            ) : plan.key === 'FREE' ? (
+              <button
+                type="button"
+                disabled
+                className="w-full cursor-not-allowed rounded-md border border-border bg-white px-4 py-2.5 text-sm font-semibold text-muted-foreground"
+              >
+                Inclus par défaut
+              </button>
+            ) : (
+              <a
+                href={`mailto:support@nawira.app?subject=${encodeURIComponent(
+                  `Demande de passage au plan ${plan.name}`,
+                )}`}
+                className="block w-full rounded-md bg-primary px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+              >
+                Demander ce plan
+              </a>
+            )}
           </div>
         ))}
       </div>

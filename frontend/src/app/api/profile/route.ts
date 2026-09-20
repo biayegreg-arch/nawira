@@ -82,6 +82,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           trackedConcerns: profile.trackedConcerns,
           notificationLevel: profile.notificationLevel,
           plan: profile.plan,
+          planExpiresAt: profile.planExpiresAt ? profile.planExpiresAt.toISOString() : null,
           createdAt: profile.createdAt.toISOString(),
         },
         stats: {

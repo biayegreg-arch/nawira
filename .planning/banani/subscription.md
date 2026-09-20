@@ -70,3 +70,41 @@ Reuses existing project tokens (`primary`/`primary-soft`, `green`/`green-soft`, 
 - [ ] FAQ reworded (no fake "Pro" plan, no live-trial claim)
 - [ ] 375/768/1280px check
 - [ ] pnpm typecheck/lint/test/build
+
+## Delta vs Banani source — admin-driven plan reconciliation pass (2026-09-20)
+
+Re-fetched the same Banani screen (`Subscription.jsx`, unchanged since 2026-09-08) at the user's
+request. Between the original build and this pass, a separate concurrent session shipped a real
+admin-side plan mechanism: `Profile.planExpiresAt`, admin grant/revoke via
+`PATCH /api/admin/users/[id]/plan`, admin-editable pricing (`PricingPlan`,
+`GET/PATCH /api/admin/pricing-plans`), and `GET /api/pricing` already wired into this page's price
+display. What was still stale: the page's own copy and CTAs still framed paid plans as "coming
+soon" self-checkout, which is no longer accurate — Bictorys/payments were pruned entirely from the
+project (2026-09-20), so a real self-service purchase flow will never exist in this form. The real,
+current mechanism is admin-mediated.
+
+- **`PremiumPlansGrid`**: dead `disabled` "Bientôt disponible" button → real `mailto:support@nawira.app`
+  link ("Demander ce plan") for any plan that isn't the user's current one and isn't Free. Free stays
+  a disabled "Inclus par défaut" (nothing to request). Current plan stays disabled "Plan actuel".
+- **`CurrentPlanCard`**: new `planExpiresAt` prop — shows "Actif jusqu'au {date}" when the user has a
+  non-Free plan with a real expiry (surfaces the cron-driven expiration nawira-98 shipped). Reworded
+  the launch-phase note: dropped the "offres payantes ne sont pas encore actives" framing (implies a
+  future self-checkout launch) for an honest "attribué manuellement par l'équipe NAWIRA sur demande".
+- **`GET /api/profile`**: now also returns `profile.planExpiresAt` (was `plan` only) — this route,
+  not the admin one, is what `/app/billing` actually reads.
+- **FAQ**: reworded to answer "how do I actually upgrade" honestly (contact support) instead of
+  implying a self-service flow is coming.
+- **Admin nav + `/admin/pricing` page title**: "Tarifs" → "Abonnement" (user request, unrelated to
+  data model — the route path `/admin/pricing` is unchanged, only the visible label).
+
+## Implementation checklist (this pass)
+- [x] `GET /api/profile` returns `planExpiresAt`
+- [x] `CurrentPlanCard` — real expiry date + honest admin-mediated copy
+- [x] `PremiumPlansGrid` — real mailto CTA replacing the dead disabled button
+- [x] `/app/billing/page.tsx` — FAQ reworded, `planExpiresAt` threaded through
+- [x] Admin nav + `/admin/pricing` label renamed to "Abonnement"
+- [x] pnpm typecheck/lint/build green; `GET /api/profile` test extended and passing
+- [ ] Full 375/768/1280px visual re-check — **not done this pass**: port 3000 was already bound by
+      another session's dev server; curl-verified both changed routes return 200 (no render crash)
+      against that shared server, but no pixel-level comparison was performed. Flag if a full visual
+      pass is wanted.

@@ -11,12 +11,12 @@ import type { BillingPlan } from '@/components/billing/plans-data';
 
 const FAQS: Array<{ q: string; a: string }> = [
   {
-    q: 'Puis-je changer de plan à tout moment ?',
-    a: 'Les offres payantes ne sont pas encore actives. Quand elles le seront, tu pourras changer ou annuler ton abonnement librement, sans engagement.',
+    q: 'Comment passer à un plan payant ?',
+    a: 'NAWIRA n’a pas encore de paiement en ligne intégré. Clique sur « Demander ce plan » pour contacter l’équipe NAWIRA, qui active ton plan manuellement.',
   },
   {
-    q: 'Est-ce que j’aurai une période d’essai ?',
-    a: 'C’est prévu pour le lancement des offres payantes, mais elles ne sont pas encore disponibles — reviens bientôt pour plus de détails.',
+    q: 'Puis-je changer ou annuler mon plan ?',
+    a: 'Oui, écris à support@nawira.app à tout moment — l’équipe ajuste ou retire ton plan sans frais.',
   },
   {
     q: 'Qu’est-ce qui est inclus dans le plan Projet Bébé ?',
@@ -25,7 +25,7 @@ const FAQS: Array<{ q: string; a: string }> = [
 ];
 
 interface ProfileResponse {
-  profile: { plan: BillingPlan['key'] };
+  profile: { plan: BillingPlan['key']; planExpiresAt: string | null };
 }
 
 interface PricingResponse {
@@ -35,6 +35,7 @@ interface PricingResponse {
 export default function BillingPage(): React.JSX.Element | null {
   const user = useUser();
   const [plan, setPlan] = useState<BillingPlan['key'] | null>(null);
+  const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null);
   const [prices, setPrices] = useState<Partial<Record<'PLUS' | 'BABY', number>>>({});
   const [error, setError] = useState(false);
 
@@ -43,6 +44,7 @@ export default function BillingPage(): React.JSX.Element | null {
     try {
       const profileRes = await api<ProfileResponse>('/api/profile');
       setPlan(profileRes.profile.plan);
+      setPlanExpiresAt(profileRes.profile.planExpiresAt);
       track('paywall_viewed', { paywall_id: 'billing_page', plan: 'PLUS' });
     } catch {
       setError(true);
@@ -90,12 +92,12 @@ export default function BillingPage(): React.JSX.Element | null {
           Abonnement
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Gère ton plan et découvre les offres à venir.
+          Gère ton plan et découvre les offres NAWIRA.
         </p>
       </div>
 
       <div className="animate-fade-in-up mb-8 max-w-3xl">
-        <CurrentPlanCard plan={plan} />
+        <CurrentPlanCard plan={plan} planExpiresAt={planExpiresAt} />
       </div>
 
       <div className="animate-fade-in-up mb-8" style={staggerDelay(1)}>

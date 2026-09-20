@@ -48,6 +48,7 @@ describe('GET /api/profile', () => {
       trackedConcerns: ['PAIN', 'MOOD'],
       notificationLevel: 'NORMAL',
       plan: 'PLUS',
+      planExpiresAt: new Date('2026-12-31T00:00:00.000Z'),
       createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
     } as never);
     // 12 period-event days, 5 daily-log days, one of which (2026-01-01)
@@ -73,6 +74,7 @@ describe('GET /api/profile', () => {
     expect(body.profile.goal).toBe('UNDERSTAND_CYCLE');
     expect(body.profile.trackedConcerns).toEqual(['PAIN', 'MOOD']);
     expect(body.profile.plan).toBe('PLUS');
+    expect(body.profile.planExpiresAt).toBe('2026-12-31T00:00:00.000Z');
     expect(body.stats.daysTracked).toBe(16);
     expect(body.stats.cyclesCompleted).toBe(3);
     expect(body.stats.monthsActive).toBeGreaterThanOrEqual(2);
