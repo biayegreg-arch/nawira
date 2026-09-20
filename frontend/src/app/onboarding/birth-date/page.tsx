@@ -27,7 +27,9 @@ export default function OnboardingBirthDatePage(): React.JSX.Element {
     <OnboardingLayout step={2} backHref="/onboarding/welcome">
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="font-headings text-xl font-bold text-navy">Ta date de naissance</h1>
+          <h1 className="font-headings text-xl font-bold leading-tight text-navy md:text-2xl">
+            Ta date de naissance
+          </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             NAWIRA est réservé aux personnes de 18 ans et plus.
           </p>
@@ -46,7 +48,7 @@ export default function OnboardingBirthDatePage(): React.JSX.Element {
             NAWIRA n&rsquo;est pas encore disponible pour les moins de 18 ans.
           </p>
         )}
-        <Button onClick={onContinue} disabled={!isOfAge} className="w-full">
+        <Button onClick={onContinue} disabled={!isOfAge} className="min-h-12 w-full">
           Continuer
         </Button>
       </div>

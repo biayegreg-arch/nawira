@@ -22,7 +22,9 @@ export default function OnboardingWelcomePage(): React.JSX.Element {
           <Activity className="h-8 w-8 text-primary" />
         </span>
         <div>
-          <h1 className="font-headings text-2xl font-bold text-navy">Bienvenue sur NAWIRA</h1>
+          <h1 className="font-headings text-2xl font-bold leading-tight text-navy md:text-3xl">
+            Bienvenue sur NAWIRA
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Comprends ton cycle. Apprends à connaître ton corps.
           </p>

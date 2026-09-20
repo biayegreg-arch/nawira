@@ -37,7 +37,9 @@ export default function OnboardingConcernsPage(): React.JSX.Element {
     <OnboardingLayout step={7} backHref="/onboarding/cycle-length">
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="font-headings text-xl font-bold text-navy">Que veux-tu suivre ?</h1>
+          <h1 className="font-headings text-xl font-bold leading-tight text-navy md:text-2xl">
+            Que veux-tu suivre ?
+          </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Choisis tout ce qui t&rsquo;intéresse.
           </p>
@@ -49,7 +51,7 @@ export default function OnboardingConcernsPage(): React.JSX.Element {
               type="button"
               onClick={() => toggle(c.key)}
               className={cn(
-                'rounded-full border px-4 py-3 text-sm font-medium',
+                'min-h-11 rounded-full border px-4 py-3 text-sm font-medium',
                 selected.includes(c.key)
                   ? 'border-primary bg-primary-soft text-primary'
                   : 'border-border bg-white text-navy hover:bg-gray-50',
@@ -59,7 +61,7 @@ export default function OnboardingConcernsPage(): React.JSX.Element {
             </button>
           ))}
         </div>
-        <Button onClick={onContinue} className="w-full">
+        <Button onClick={onContinue} className="min-h-12 w-full">
           Continuer
         </Button>
       </div>

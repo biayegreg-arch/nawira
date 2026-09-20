@@ -44,7 +44,9 @@ export default function OnboardingReadyPage(): React.JSX.Element {
           <PartyPopper className="h-8 w-8 text-green" />
         </span>
         <div>
-          <h1 className="font-headings text-2xl font-bold text-navy">Ton profil est prêt !</h1>
+          <h1 className="font-headings text-2xl font-bold leading-tight text-navy md:text-3xl">
+            Ton profil est prêt !
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Enregistre tes prochaines règles pour voir apparaître tes premières estimations de cycle
             et de fenêtre fertile.

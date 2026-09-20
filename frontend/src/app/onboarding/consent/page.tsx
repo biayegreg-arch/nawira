@@ -25,7 +25,7 @@ function ToggleRow({
 }: ToggleRowProps): React.JSX.Element {
   return (
     <div className="flex items-start justify-between gap-4 rounded-xl border border-border bg-white p-4">
-      <div>
+      <div className="min-w-0 break-words">
         <p className="font-medium text-navy">{label}</p>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
@@ -36,7 +36,7 @@ function ToggleRow({
         disabled={locked}
         onClick={() => onChange?.(!checked)}
         className={cn(
-          'relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-60',
+          "relative h-7 w-12 shrink-0 rounded-full before:absolute before:-inset-2 before:content-[''] transition-colors disabled:opacity-60",
           checked ? 'bg-primary' : 'bg-border',
         )}
       >
@@ -107,7 +107,9 @@ export default function OnboardingConsentPage(): React.JSX.Element {
     <OnboardingLayout step={9} backHref={backHref}>
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="font-headings text-xl font-bold text-navy">Ta confidentialité</h1>
+          <h1 className="font-headings text-xl font-bold leading-tight text-navy md:text-2xl">
+            Ta confidentialité
+          </h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Voici comment NAWIRA utilise tes données. Tu peux changer d&rsquo;avis à tout moment.
           </p>
@@ -149,7 +151,7 @@ export default function OnboardingConsentPage(): React.JSX.Element {
             {error}
           </p>
         )}
-        <Button onClick={onAccept} disabled={submitting} className="w-full">
+        <Button onClick={onAccept} disabled={submitting} className="min-h-12 w-full">
           {submitting ? 'Enregistrement…' : 'Accepter'}
         </Button>
       </div>
