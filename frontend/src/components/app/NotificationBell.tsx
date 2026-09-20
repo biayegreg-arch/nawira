@@ -1,9 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Bell, PartyPopper, Wallet, CreditCard, CheckCheck } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Bell, PartyPopper, Wallet, CreditCard, CheckCheck, LifeBuoy } from 'lucide-react';
 import { api } from '@/lib/api';
 import { timeAgo } from '@/lib/time-ago';
+import { notificationHref } from '@/lib/notification-target';
 
 interface NotificationItem {
   id: string;
@@ -12,15 +14,18 @@ interface NotificationItem {
   body: string;
   readAt: string | null;
   createdAt: string;
+  data?: unknown;
 }
 
 const TYPE_ICONS: Record<string, typeof Bell> = {
   WELCOME: PartyPopper,
   PAYMENT_RECEIVED: CreditCard,
   WITHDRAWAL_REQUESTED: Wallet,
+  SUPPORT_TICKET_REPLIED: LifeBuoy,
 };
 
 export function NotificationBell(): React.JSX.Element {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [count, setCount] = useState(0);
   const [items, setItems] = useState<NotificationItem[] | null>(null);
@@ -95,6 +100,11 @@ export function NotificationBell(): React.JSX.Element {
 
   const handleItemClick = (item: NotificationItem): void => {
     if (!item.readAt) void markRead([item.id]);
+    const href = notificationHref(item.type, item.data);
+    if (href) {
+      setOpen(false);
+      router.push(href);
+    }
   };
 
   return (
