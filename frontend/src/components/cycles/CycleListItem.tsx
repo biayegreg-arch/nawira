@@ -15,8 +15,8 @@ export function CycleListItem({
 }: CycleListItemProps): React.JSX.Element {
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-white px-4 py-3 transition-shadow duration-200 hover:shadow-sm">
-      <div>
-        <div className="text-sm font-medium text-navy">
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium break-words text-navy">
           {formatFrenchDate(startDate)} — {endDate ? formatFrenchDate(endDate) : 'en cours'}
         </div>
         <div className="mt-0.5 text-xs text-muted-foreground">

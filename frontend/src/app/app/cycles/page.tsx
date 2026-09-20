@@ -61,7 +61,7 @@ export default function CyclesHistoryPage(): React.JSX.Element | null {
 
   if (error) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Impossible de charger ton historique. Réessaie plus tard.
         </div>
@@ -71,7 +71,7 @@ export default function CyclesHistoryPage(): React.JSX.Element | null {
 
   if (cycles === null) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="h-64 animate-pulse rounded-xl bg-gray-100" />
       </div>
     );
@@ -80,10 +80,10 @@ export default function CyclesHistoryPage(): React.JSX.Element | null {
   const completedCount = cycles.filter((c) => c.endDate !== null).length;
 
   return (
-    <div className="mx-auto max-w-3xl p-4 lg:p-8">
+    <div className="mx-auto w-full max-w-3xl p-4 sm:p-6 lg:p-8">
       {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
-      <div className="mb-6 flex items-center gap-3 text-sm">
-        <Link href="/app/today" className="flex items-center gap-2 text-muted-foreground">
+      <div className="mb-4 flex flex-wrap items-center gap-x-3 text-sm">
+        <Link href="/app/today" className="flex min-h-11 items-center gap-2 text-muted-foreground">
           <ArrowLeft size={16} />
           Tableau de bord
         </Link>
@@ -91,13 +91,13 @@ export default function CyclesHistoryPage(): React.JSX.Element | null {
         <span className="font-medium text-navy">Historique des cycles</span>
       </div>
 
-      <h1 className="mb-6 flex items-center gap-2 text-2xl font-bold text-navy">
+      <h1 className="mb-6 flex items-center gap-2 text-2xl leading-tight font-bold text-navy md:text-3xl">
         <span>🔄</span>
         Mon historique de cycles
       </h1>
 
       {cycles.length === 0 ? (
-        <div className="rounded-xl border border-border bg-white p-6 text-sm text-muted-foreground">
+        <div className="rounded-xl border border-border bg-white p-4 text-sm text-muted-foreground sm:p-6">
           Tu n&rsquo;as pas encore de cycle enregistré. Enregistre tes règles sur l&rsquo;écran
           Accueil pour commencer.
         </div>
@@ -111,9 +111,9 @@ export default function CyclesHistoryPage(): React.JSX.Element | null {
             ))}
           </div>
 
-          <div className="animate-fade-in-up rounded-xl border border-border bg-white p-6">
+          <div className="animate-fade-in-up rounded-xl border border-border bg-white p-4 sm:p-6">
             <h2 className="mb-4 text-base font-bold text-navy">Pourquoi cette estimation ?</h2>
-            <div className="flex flex-col gap-2 text-xs text-muted-foreground">
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground">
               <div className="flex items-start gap-2">
                 <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-green" />
                 <span>Tu enregistres tes règles régulièrement.</span>
