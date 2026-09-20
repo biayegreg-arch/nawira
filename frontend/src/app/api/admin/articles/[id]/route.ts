@@ -116,7 +116,10 @@ export async function PATCH(
       );
     }
 
-    const firstPublish = existing.status === 'DRAFT' && parsed.data.status === 'PUBLISHED';
+    const firstPublish =
+      existing.status === 'DRAFT' &&
+      existing.publishedAt === null &&
+      parsed.data.status === 'PUBLISHED';
 
     try {
       const updated = await prisma.article.update({

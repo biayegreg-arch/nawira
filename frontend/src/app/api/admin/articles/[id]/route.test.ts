@@ -123,6 +123,33 @@ describe('PATCH /api/admin/articles/[id]', () => {
     expect(call?.data).not.toHaveProperty('publishedAt');
   });
 
+  it('does not reset publishedAt on a republish (PUBLISHED -> DRAFT -> PUBLISHED again)', async () => {
+    const originalPublishedAt = new Date('2026-01-01T00:00:00.000Z');
+    // Article was published on 2026-01-01, later unpublished back to DRAFT
+    // (publishedAt correctly preserved through that transition), and is now
+    // being republished. existing.status === 'DRAFT' is true here, so the
+    // naive "existing.status === DRAFT && target === PUBLISHED" guard would
+    // wrongly treat this as a first publish and stomp the original date.
+    prismaMock.article.findUnique.mockResolvedValue({
+      id: 'a1',
+      status: 'DRAFT',
+      publishedAt: originalPublishedAt,
+    } as never);
+    prismaMock.article.update.mockResolvedValue({
+      id: 'a1',
+      title: 'T',
+      slug: 't',
+      body: 'B',
+      status: 'PUBLISHED',
+      publishedAt: originalPublishedAt,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as never);
+    await PATCH(makePatch('a1', { status: 'PUBLISHED' }), ctxWith('a1'));
+    const call = prismaMock.article.update.mock.calls[0]?.[0];
+    expect(call?.data).not.toHaveProperty('publishedAt');
+  });
+
   it('returns 409 SLUG_TAKEN on a unique-constraint violation', async () => {
     prismaMock.article.findUnique.mockResolvedValue({
       id: 'a1',
