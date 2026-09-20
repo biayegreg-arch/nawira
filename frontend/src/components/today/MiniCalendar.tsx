@@ -14,9 +14,12 @@ export function MiniCalendar({ dayTypes }: MiniCalendarProps): React.JSX.Element
 
   return (
     <div className="rounded-xl border border-border bg-white p-5">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between">
         <h2 className="text-base font-semibold text-navy">Mon calendrier</h2>
-        <Link href="/app/calendar" className="text-xs font-medium text-primary">
+        <Link
+          href="/app/calendar"
+          className="inline-flex min-h-11 items-center text-xs font-medium text-primary"
+        >
           Voir tout
         </Link>
       </div>

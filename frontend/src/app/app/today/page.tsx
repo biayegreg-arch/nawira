@@ -170,7 +170,7 @@ export default function TodayPage(): React.JSX.Element | null {
 
   if (error) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Impossible de charger tes données. Réessaie plus tard.
         </div>
@@ -180,7 +180,7 @@ export default function TodayPage(): React.JSX.Element | null {
 
   if (cycles === null || todayLog === null) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="h-48 animate-pulse rounded-xl bg-gray-100" />
       </div>
     );
@@ -205,14 +205,16 @@ export default function TodayPage(): React.JSX.Element | null {
   const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="mx-auto w-full max-w-3xl p-4 sm:p-6 lg:max-w-none lg:p-8">
       {isAdmin && <AdminAccessBanner />}
       {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <div
-        className="animate-fade-in-up mb-6 rounded-xl p-6"
+        className="animate-fade-in-up mb-6 rounded-xl p-5 sm:p-6"
         style={{ background: 'linear-gradient(135deg, #F8F5FD 0%, #FDF5F9 100%)' }}
       >
-        <h1 className="mb-1 text-2xl font-bold text-navy">Bonjour {greetingName(user.email)} 👋</h1>
+        <h1 className="mb-1 text-2xl leading-tight font-bold text-navy md:text-3xl">
+          Bonjour {greetingName(user.email)} 👋
+        </h1>
         <p className="text-sm text-body">
           Aujourd&rsquo;hui est une belle journée pour prendre soin de toi.
         </p>
@@ -221,16 +223,16 @@ export default function TodayPage(): React.JSX.Element | null {
         </p>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_280px_280px]">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px_280px]">
         <div className="animate-fade-in-up flex flex-col gap-5" style={staggerDelay(1)}>
-          <div className="flex flex-col items-center gap-4 rounded-lg border border-border bg-white p-6 sm:flex-row sm:items-start">
+          <div className="flex flex-col items-center gap-4 rounded-lg border border-border bg-white p-4 sm:flex-row sm:p-6 sm:items-start">
             <CycleRing
               currentDay={currentDay}
               estimatedLength={estimatedLength}
               fertileStartDay={fertileStartDay}
               fertileEndDay={fertileEndDay}
             />
-            <div className="flex w-full flex-1 flex-col items-center gap-3 sm:items-start">
+            <div className="flex w-full min-w-0 flex-1 flex-col items-center gap-3 sm:items-start">
               <PeriodLogCta todayLogged={todayLogged} onLog={handleLog} loading={logging} />
             </div>
           </div>
