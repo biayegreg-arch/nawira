@@ -7,6 +7,8 @@ function formatFcfa(amount: number): string {
   return `${new Intl.NumberFormat('fr-FR').format(amount)} FCFA`;
 }
 
+const PLAN_RANK: Record<BillingPlan['key'], number> = { FREE: 0, PLUS: 1, BABY: 2 };
+
 interface PremiumPlansGridProps {
   currentPlan: BillingPlan['key'];
   prices: Partial<Record<'PLUS' | 'BABY', number>>;
@@ -66,13 +68,15 @@ export function PremiumPlansGrid({
               >
                 Plan actuel
               </button>
-            ) : plan.key === 'FREE' ? (
+            ) : PLAN_RANK[plan.key] < PLAN_RANK[currentPlan] ? (
+              // Already on a higher tier: nothing to request. (A downgrade is
+              // an admin action, not a self-service one.)
               <button
                 type="button"
                 disabled
                 className="w-full cursor-not-allowed rounded-md border border-border bg-white px-4 py-2.5 text-sm font-semibold text-muted-foreground"
               >
-                Inclus par défaut
+                {plan.key === 'FREE' ? 'Inclus par défaut' : 'Inclus dans ton plan'}
               </button>
             ) : (
               <a

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -124,20 +124,25 @@ export default function AdminAnalyticsPage(): React.JSX.Element {
   const [data, setData] = useState<OverviewResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (windowDays: number) => {
-    setError(null);
-    try {
-      const res = await api<OverviewResponse>(`/api/admin/analytics/overview?days=${windowDays}`);
-      setData(res);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.');
-    }
-  }, []);
-
   useEffect(() => {
+    // `cancelled` guards against a stale response: switching 7j → 90j quickly
+    // must never let the slower earlier request overwrite the newer window.
+    let cancelled = false;
     setData(null);
-    void load(days);
-  }, [days, load]);
+    setError(null);
+    api<OverviewResponse>(`/api/admin/analytics/overview?days=${days}`)
+      .then((res) => {
+        if (!cancelled) setData(res);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.');
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [days]);
 
   return (
     <div className="p-4 lg:p-8">

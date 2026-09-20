@@ -48,6 +48,16 @@ export async function trackEvent(
         select: { id: true },
       });
       if (!consent) return;
+    } else {
+      // Consent-exempt onboarding events have no Consent row to bounce off,
+      // so a still-valid access token (up to 15 min) could otherwise record
+      // an event for an account that was just deleted. Only these 2 events
+      // pay this extra query, once per user.
+      const deleted = await db.user.findFirst({
+        where: { id: userId, status: 'DELETED' },
+        select: { id: true },
+      });
+      if (deleted) return;
     }
 
     await db.analyticsEvent.create({

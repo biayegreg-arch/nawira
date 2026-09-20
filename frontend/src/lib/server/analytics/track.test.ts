@@ -17,6 +17,18 @@ describe('trackEvent', () => {
     });
   });
 
+  it('drops a consent-exempt event for an account already marked DELETED', async () => {
+    prismaMock.user.findFirst.mockResolvedValue({ id: 'u1' } as never);
+
+    await trackEvent(prismaMock, 'u1', 'onboarding_started', { source: 'organic' });
+
+    expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
+      where: { id: 'u1', status: 'DELETED' },
+      select: { id: true },
+    });
+    expect(prismaMock.analyticsEvent.create).not.toHaveBeenCalled();
+  });
+
   it('drops a consent-gated event when no ANALYTICS consent exists', async () => {
     prismaMock.consent.findFirst.mockResolvedValue(null);
 
