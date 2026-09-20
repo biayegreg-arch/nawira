@@ -178,10 +178,10 @@ export default function AssistantPage(): React.JSX.Element | null {
   if (!user) return null;
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="px-4 py-6 sm:px-6 lg:p-8">
       <div className="mb-6">
-        <h1 className="flex items-center gap-3 text-xl font-bold text-navy lg:text-2xl">
-          <span className="text-2xl lg:text-3xl">🌸</span>
+        <h1 className="flex items-center gap-3 text-2xl font-bold leading-tight text-navy md:text-3xl">
+          <span className="text-2xl md:text-3xl">🌸</span>
           Assistant NAWIRA
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -193,7 +193,7 @@ export default function AssistantPage(): React.JSX.Element | null {
         <TopicsChipRow onTopicClick={setPrefillText} />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[1fr_280px]">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,1fr)_280px]">
         <ChatPanel
           messages={messages}
           onSend={handleSend}

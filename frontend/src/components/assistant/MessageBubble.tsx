@@ -19,8 +19,8 @@ export function MessageBubble({
   if (isUser) {
     return (
       <div className="animate-fade-in-up flex justify-end gap-3">
-        <div className="max-w-[85%] sm:max-w-sm lg:max-w-md">
-          <div className="inline-block rounded-lg bg-primary p-4 text-sm text-white">
+        <div className="min-w-0 max-w-[85%] sm:max-w-sm lg:max-w-md">
+          <div className="inline-block max-w-full break-words rounded-lg bg-primary p-3 text-sm text-white sm:p-4">
             {message.content}
           </div>
           <div className="mt-1 text-right text-xs text-muted-foreground">{message.timestamp}</div>
@@ -34,9 +34,9 @@ export function MessageBubble({
       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary-soft">
         <span>🌸</span>
       </div>
-      <div className="max-w-[85%] flex-1 sm:max-w-sm lg:max-w-md">
-        <div className="inline-block rounded-lg bg-primary-soft p-4">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed text-navy">
+      <div className="min-w-0 max-w-[85%] flex-1 sm:max-w-sm lg:max-w-md">
+        <div className="inline-block max-w-full rounded-lg bg-primary-soft p-3 sm:p-4">
+          <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-navy">
             {message.content}
             {streaming && (
               <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse bg-navy align-middle" />

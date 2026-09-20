@@ -69,7 +69,7 @@ export function ChatPanel({
   const disabled = sending || quotaExceeded;
 
   return (
-    <div className="flex flex-col font-body">
+    <div className="flex min-w-0 flex-col font-body">
       <div className="space-y-4">
         <MessageBubble message={WELCOME_MESSAGE} />
 
@@ -78,8 +78,8 @@ export function ChatPanel({
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary-soft">
               <span>💡</span>
             </div>
-            <div className="max-w-[85%] flex-1 sm:max-w-sm lg:max-w-md">
-              <div className="inline-block rounded-lg bg-primary-soft p-4">
+            <div className="min-w-0 max-w-[85%] flex-1 sm:max-w-sm lg:max-w-md">
+              <div className="inline-block max-w-full rounded-lg bg-primary-soft p-3 sm:p-4">
                 <p className="mb-3 text-sm font-medium text-navy">
                   Voici ce que tu peux me demander :
                 </p>
@@ -90,7 +90,7 @@ export function ChatPanel({
                       type="button"
                       onClick={() => onSend(q)}
                       disabled={disabled}
-                      className="min-h-12 w-full rounded-md border border-border bg-white p-2 text-left text-xs font-medium text-primary transition-all duration-150 hover:bg-gray-50 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
+                      className="min-h-12 w-full break-words rounded-md border border-border bg-white p-2 text-left text-sm font-medium text-primary transition-all duration-150 hover:bg-gray-50 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
                     >
                       {q}
                     </button>
@@ -107,14 +107,14 @@ export function ChatPanel({
         <div ref={bottomRef} />
       </div>
 
-      <div className="mt-6">
+      <div className="sticky bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-30 mt-4 bg-background pb-2 lg:bottom-0 lg:mt-6">
         {quotaExceeded ? (
           <div className="rounded-lg border border-amber bg-amber-soft p-4 text-center text-sm font-medium text-navy">
             Tu as atteint ta limite de 10 messages aujourd’hui. Reviens demain !
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="border-t border-border pt-4">
-            <div className="flex items-end gap-3">
+            <div className="flex items-end gap-2 sm:gap-3">
               <button
                 type="button"
                 disabled
@@ -124,14 +124,14 @@ export function ChatPanel({
               >
                 <Plus size={18} />
               </button>
-              <div className="flex flex-1 items-center rounded-md border border-border bg-gray-50 px-4 py-3">
+              <div className="flex min-h-12 min-w-0 flex-1 items-center rounded-md border border-border bg-gray-50 px-4 py-2">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Pose-moi une question..."
                   disabled={disabled}
-                  className="flex-1 bg-transparent text-sm text-navy outline-none placeholder:text-muted-light"
+                  className="min-w-0 flex-1 bg-transparent text-base text-navy outline-none placeholder:text-muted-light md:text-sm"
                 />
               </div>
               <button
