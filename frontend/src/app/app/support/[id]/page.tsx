@@ -17,7 +17,6 @@ interface TicketThread {
     role: 'USER' | 'ADMIN';
     body: string;
     createdAt: string;
-    authorEmail: string;
   }[];
 }
 

@@ -49,7 +49,7 @@ describe('GET /api/support-tickets/[id]', () => {
     );
   });
 
-  it('returns the ticket + message thread with author emails', async () => {
+  it('returns the ticket + message thread without author emails', async () => {
     prismaMock.supportTicket.findFirst.mockResolvedValue({
       id: 't1',
       subject: 'Aide',
@@ -61,7 +61,6 @@ describe('GET /api/support-tickets/[id]', () => {
           role: 'USER',
           body: 'Bonjour',
           createdAt: new Date('2026-09-20T00:00:00.000Z'),
-          author: { email: 'u@test.local' },
         },
       ],
     } as never);
@@ -73,7 +72,8 @@ describe('GET /api/support-tickets/[id]', () => {
       id: 'm1',
       role: 'USER',
       body: 'Bonjour',
-      authorEmail: 'u@test.local',
     });
+    expect(body.messages[0]).not.toHaveProperty('authorEmail');
+    expect(JSON.stringify(body)).not.toContain('u@test.local');
   });
 });
