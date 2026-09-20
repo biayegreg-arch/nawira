@@ -43,7 +43,7 @@ export default function AdminLayout({
 
   if (!checked || !identity) {
     return (
-      <div className="flex" style={{ minHeight: '100vh' }}>
+      <div className="flex min-h-dvh">
         <div className="hidden w-64 shrink-0 flex-col gap-2 bg-gradient-to-b from-sidebar-from to-sidebar-to p-4 lg:flex">
           <Skeleton className="mx-auto mb-6 mt-4 h-14 w-14 rounded-xl bg-white/15" />
           {Array.from({ length: 8 }).map((_, i) => (
@@ -55,7 +55,7 @@ export default function AdminLayout({
             <Skeleton className="h-5 w-32" />
             <Skeleton className="h-9 w-9 rounded-full" />
           </div>
-          <main className="flex flex-1 flex-col gap-6 bg-background p-4 lg:p-8">
+          <main className="flex flex-1 flex-col gap-6 bg-background p-4 sm:p-6 lg:p-8">
             <Skeleton className="h-4 w-56" />
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -70,7 +70,7 @@ export default function AdminLayout({
 
   return (
     <AdminContext.Provider value={identity}>
-      <div className="flex" style={{ minHeight: '100vh' }}>
+      <div className="flex min-h-dvh">
         <div className="hidden lg:flex">
           <AdminSidebar email={identity.email} role={identity.role} />
         </div>
@@ -79,7 +79,7 @@ export default function AdminLayout({
           <div className="lg:hidden">
             <AdminMobileNav />
           </div>
-          <main className="flex-1 bg-background p-4 lg:p-8">{children}</main>
+          <main className="min-w-0 flex-1 bg-background p-4 sm:p-6 lg:p-8">{children}</main>
         </div>
       </div>
     </AdminContext.Provider>

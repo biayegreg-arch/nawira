@@ -17,14 +17,14 @@ export function ServiceWorkerUpdateBanner({
     <div
       role="status"
       aria-live="polite"
-      className="fixed bottom-4 left-1/2 z-[200] flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center gap-3 rounded-2xl border border-border bg-white px-4 py-3 shadow-lg"
+      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-[200] flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-center gap-3 rounded-2xl border border-border bg-white px-4 py-2 lg:bottom-4 shadow-lg"
     >
       <RefreshCw size={18} className="shrink-0 text-primary" />
-      <p className="flex-1 text-sm text-navy">Nouvelle version disponible.</p>
+      <p className="min-w-0 flex-1 text-sm text-navy">Nouvelle version disponible.</p>
       <button
         type="button"
         onClick={onReload}
-        className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white"
+        className="min-h-11 shrink-0 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
       >
         Recharger
       </button>
@@ -32,7 +32,7 @@ export function ServiceWorkerUpdateBanner({
         type="button"
         onClick={() => setDismissed(true)}
         aria-label="Fermer"
-        className="shrink-0 text-muted-foreground"
+        className="flex h-11 w-11 shrink-0 items-center justify-center text-muted-foreground"
       >
         <X size={16} />
       </button>

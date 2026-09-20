@@ -23,7 +23,7 @@ export function MobileBottomNav(): React.JSX.Element {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 border-t border-border bg-background px-4 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background px-4 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2">
       <div className="mx-auto flex max-w-screen-sm justify-around">
         {navItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -31,7 +31,7 @@ export function MobileBottomNav(): React.JSX.Element {
             <Link
               key={item.href}
               href={item.href}
-              className="flex min-w-11 flex-col items-center gap-1 py-1"
+              className="flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 py-1"
               aria-current={active ? 'page' : undefined}
             >
               <item.icon size={22} className={active ? 'text-primary' : 'text-muted-light'} />

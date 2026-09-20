@@ -32,7 +32,7 @@ export function ChipGroup({
             onClick={() => onToggle(opt.value)}
             aria-pressed={active}
             className={cn(
-              'rounded-full border px-4 py-3 text-sm font-medium transition-all duration-150 active:scale-95',
+              'min-h-11 rounded-full border px-4 py-3 text-sm font-medium transition-all duration-150 active:scale-95',
               active
                 ? 'border-primary bg-primary-soft text-primary'
                 : 'border-border bg-white text-navy hover:bg-gray-50',

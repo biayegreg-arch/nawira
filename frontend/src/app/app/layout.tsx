@@ -22,13 +22,15 @@ export default function AppLayout({ children }: { children: ReactNode }): React.
 
   return (
     <SyncStatusProvider>
-      <div className="flex" style={{ minHeight: '100vh' }}>
+      <div className="flex min-h-dvh">
         <div className="hidden lg:flex">
           <AppSidebar />
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
           <AppTopBar />
-          <main className="flex-1 bg-background pb-20 lg:pb-0">{children}</main>
+          <main className="min-w-0 flex-1 bg-background pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
+            {children}
+          </main>
         </div>
         <div className="lg:hidden">
           <MobileBottomNav />
