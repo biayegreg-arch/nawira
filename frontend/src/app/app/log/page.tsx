@@ -223,7 +223,7 @@ export default function LogPage(): React.JSX.Element | null {
 
   if (error) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Impossible de charger tes données. Réessaie plus tard.
         </div>
@@ -233,7 +233,7 @@ export default function LogPage(): React.JSX.Element | null {
 
   if (initialValues === null) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="h-64 animate-pulse rounded-xl bg-gray-100" />
       </div>
     );
@@ -249,11 +249,13 @@ export default function LogPage(): React.JSX.Element | null {
   const phase = derivePhase(todayFlowLogged, prediction, today);
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="mx-auto w-full max-w-2xl p-4 sm:p-6 lg:max-w-none lg:p-8">
       {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="mb-1 text-2xl font-bold text-navy">Ajouter des données</h1>
+        <div className="min-w-0">
+          <h1 className="mb-1 text-2xl leading-tight font-bold text-navy md:text-3xl">
+            Ajouter des données
+          </h1>
           <p className="text-sm text-muted-foreground">
             Aujourd&rsquo;hui
             {currentDay !== null && (
@@ -266,7 +268,7 @@ export default function LogPage(): React.JSX.Element | null {
         </div>
       </div>
 
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
         <div
           className="animate-fade-in-up flex min-w-0 flex-1 flex-col gap-6 lg:max-w-2xl"
           style={staggerDelay(1)}

@@ -101,14 +101,14 @@ function SectionCard({
   children: React.ReactNode;
 }): React.JSX.Element {
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
+    <div className="rounded-lg border border-border bg-white p-4 sm:p-6">
       <div className="mb-5 flex items-center gap-3">
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${iconBg} ${iconColor}`}
         >
           <Icon size={18} />
         </div>
-        <h2 className="text-base font-bold text-navy">{title}</h2>
+        <h2 className="min-w-0 text-base font-bold text-navy">{title}</h2>
       </div>
       {children}
     </div>
@@ -215,7 +215,7 @@ export function DailyLogForm({
             selectedValues={sleepQuality ? [sleepQuality] : []}
             onToggle={toggleSingle(sleepQuality, setSleepQuality)}
           />
-          <label className="flex max-w-[160px] flex-col gap-1.5 text-sm">
+          <label className="flex w-full flex-col gap-1.5 text-sm sm:max-w-[200px]">
             <span className="font-medium text-navy">Heures de sommeil (optionnel)</span>
             <input
               type="number"
@@ -225,7 +225,7 @@ export function DailyLogForm({
               value={sleepHours}
               onChange={(e) => setSleepHours(e.target.value)}
               placeholder="Ex : 7.5"
-              className="rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              className="rounded-lg border border-border px-3.5 py-3 text-base text-navy outline-none md:text-sm focus:border-primary focus:ring-1 focus:ring-primary"
             />
           </label>
         </div>
@@ -247,7 +247,7 @@ export function DailyLogForm({
               step={1}
               value={painLevel ?? 0}
               onChange={(e) => setPainLevel(Number(e.target.value))}
-              className="w-full accent-primary"
+              className="h-11 w-full accent-primary"
               aria-label="Intensité de la douleur, de 0 à 10"
             />
           </div>
@@ -259,7 +259,7 @@ export function DailyLogForm({
               onChange={(e) => setPainLocation(e.target.value)}
               placeholder="Ex : bas du dos, ventre…"
               maxLength={100}
-              className="rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              className="rounded-lg border border-border px-3.5 py-3 text-base text-navy outline-none md:text-sm focus:border-primary focus:ring-1 focus:ring-primary"
             />
           </label>
         </div>
@@ -271,14 +271,14 @@ export function DailyLogForm({
         iconColor="text-amber"
         title="Température basale"
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <input
             type="number"
             step="0.1"
             value={temperatureValue}
             onChange={(e) => setTemperatureValue(e.target.value)}
             placeholder="Ex : 36.8"
-            className="w-28 rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="w-28 rounded-lg border border-border px-3.5 py-3 text-base text-navy outline-none md:text-sm focus:border-primary focus:ring-1 focus:ring-primary"
           />
           <ChipGroup
             options={UNIT_OPTIONS}
@@ -299,7 +299,7 @@ export function DailyLogForm({
             onChange={(e) => setNote(e.target.value.slice(0, NOTE_MAX_LENGTH))}
             rows={4}
             placeholder="Un détail à te rappeler aujourd'hui…"
-            className="resize-none rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="w-full resize-none rounded-lg border border-border px-3.5 py-3 text-base text-navy outline-none md:text-sm focus:border-primary focus:ring-1 focus:ring-primary"
           />
           <span className="self-end text-xs text-muted-foreground">
             {note.length}/{NOTE_MAX_LENGTH}
@@ -307,7 +307,7 @@ export function DailyLogForm({
         </label>
       </SectionCard>
 
-      <Button type="submit" disabled={saving} className="w-full sm:w-auto">
+      <Button type="submit" disabled={saving} className="min-h-12 w-full sm:w-auto">
         {saving ? 'Enregistrement…' : 'Enregistrer mes données'}
       </Button>
     </form>

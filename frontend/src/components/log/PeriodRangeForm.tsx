@@ -75,14 +75,14 @@ export function PeriodRangeForm({ onSubmit }: PeriodRangeFormProps): React.JSX.E
     >
       <div className="flex items-center gap-2">
         <CalendarRange size={18} className="text-primary" />
-        <h3 className="text-sm font-bold text-navy">Ajouter des règles passées</h3>
+        <h3 className="text-base font-bold text-navy">Ajouter des règles passées</h3>
       </div>
       <p className="text-xs text-muted-foreground">
         Tu as raté quelques jours ? Indique quand tes dernières règles ont commencé et fini — chaque
         jour de la période sera enregistré d&rsquo;un coup.
       </p>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Field
           label="Début"
           type="date"
@@ -108,7 +108,7 @@ export function PeriodRangeForm({ onSubmit }: PeriodRangeFormProps): React.JSX.E
 
       {validationError && <p className="text-xs text-red-700">{validationError}</p>}
 
-      <Button type="submit" variant="secondary" disabled={saving} className="w-full">
+      <Button type="submit" variant="secondary" disabled={saving} className="min-h-12 w-full">
         {saving ? 'Enregistrement…' : 'Ajouter cette période'}
       </Button>
     </form>
