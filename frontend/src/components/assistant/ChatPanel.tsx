@@ -131,7 +131,7 @@ export function ChatPanel({
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Pose-moi une question..."
                   disabled={disabled}
-                  className="min-w-0 flex-1 bg-transparent text-base text-navy outline-none placeholder:text-muted-light md:text-sm"
+                  className="min-h-11 min-w-0 flex-1 bg-transparent text-base text-navy outline-none placeholder:text-muted-light md:text-sm"
                 />
               </div>
               <button

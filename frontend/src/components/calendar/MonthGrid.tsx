@@ -50,8 +50,7 @@ export function MonthGrid({
   for (let i = 0; i < firstDayOfWeek; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
-  const cellSize =
-    size === 'compact' ? 'h-7 w-7 text-xs' : 'aspect-square w-full max-w-10 text-sm sm:max-w-11';
+  const cellSize = size === 'compact' ? 'h-7 w-7 text-xs' : 'aspect-square w-full max-w-11 text-sm';
 
   return (
     <div>
@@ -82,7 +81,10 @@ export function MonthGrid({
                   cellSize,
                   type ? TYPE_STYLES[type] : 'text-navy',
                   clickable
-                    ? 'cursor-pointer ring-primary before:absolute before:-inset-1 before:content-[""] hover:ring-2 active:scale-90'
+                    ? cn(
+                        'cursor-pointer ring-primary before:absolute before:content-[""] hover:ring-2 active:scale-90',
+                        size === 'compact' ? 'before:-inset-2' : 'before:-inset-1',
+                      )
                     : 'cursor-default',
                 )}
               >

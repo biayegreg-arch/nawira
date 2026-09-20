@@ -36,7 +36,7 @@ export function LandingFooter(): React.JSX.Element {
                   <li key={item.label}>
                     <a
                       href={item.href}
-                      className="inline-flex min-h-11 items-center text-sm text-muted-foreground"
+                      className="inline-flex min-h-11 min-w-11 items-center text-sm text-muted-foreground"
                     >
                       {item.label}
                     </a>

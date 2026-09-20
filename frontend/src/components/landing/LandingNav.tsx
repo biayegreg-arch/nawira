@@ -28,7 +28,11 @@ export function LandingNav(): React.JSX.Element {
         {/* Desktop nav links */}
         <div className="hidden items-center gap-8 lg:flex">
           {navLinks.map((item) => (
-            <a key={item.label} href={item.href} className="text-sm font-medium text-body">
+            <a
+              key={item.label}
+              href={item.href}
+              className="inline-flex min-h-11 min-w-11 items-center text-sm font-medium text-body"
+            >
               {item.label}
             </a>
           ))}

@@ -14,7 +14,7 @@ export function LandingHero(): React.JSX.Element {
             La santé féminine plus simple au quotidien
           </p>
 
-          <h1 className="mb-3 font-headings text-3xl font-bold leading-tight text-navy md:text-5xl">
+          <h1 className="mb-3 font-headings text-[1.75rem] font-bold leading-tight text-navy sm:text-4xl md:text-5xl">
             Comprends <em className="italic">ton corps.</em>
           </h1>
           <h2 className="mb-6 font-headings text-2xl font-bold italic leading-tight text-primary md:text-4xl">

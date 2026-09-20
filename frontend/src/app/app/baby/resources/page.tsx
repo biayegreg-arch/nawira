@@ -50,7 +50,7 @@ export default function ProjetBebeResourcesPage(): React.JSX.Element {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Rechercher un article…"
-                className="min-w-0 w-full text-base text-navy outline-none placeholder:text-muted-foreground md:text-sm"
+                className="min-h-11 min-w-0 w-full text-base text-navy outline-none placeholder:text-muted-foreground md:text-sm"
               />
             </div>
             <div className="flex flex-wrap gap-2">

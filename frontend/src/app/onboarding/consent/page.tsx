@@ -43,7 +43,7 @@ function ToggleRow({
         <span
           className={cn(
             'absolute top-0.5 h-6 w-6 rounded-full bg-white transition-transform',
-            checked ? 'translate-x-5' : 'translate-x-0.5',
+            checked ? 'translate-x-[1.375rem]' : 'translate-x-0.5',
           )}
         />
       </button>
