@@ -39,6 +39,12 @@ describe('GET /api/admin/support-tickets', () => {
     expect(res.status).toBe(403);
   });
 
+  it('returns 400 VALIDATION_FAILED for an unknown ?status', async () => {
+    const res = await GET(makeGet('?status=BOGUS'));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('VALIDATION_FAILED');
+  });
+
   it('masks the reporting user email in every row, never returning the raw address', async () => {
     prismaMock.supportTicket.findMany.mockResolvedValue([
       {

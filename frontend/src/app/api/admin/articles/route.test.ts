@@ -55,6 +55,12 @@ describe('GET /api/admin/articles', () => {
     expect(res.status).toBe(403);
   });
 
+  it('returns 400 VALIDATION_FAILED for an unknown ?status', async () => {
+    const res = await GET(makeGet('?status=BOGUS'));
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('VALIDATION_FAILED');
+  });
+
   it('returns items + nextCursor shape', async () => {
     prismaMock.article.findMany.mockResolvedValue([]);
     const res = await GET(makeGet());

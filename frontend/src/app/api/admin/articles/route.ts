@@ -32,6 +32,8 @@ function isUniqueViolation(err: unknown): boolean {
   return typeof err === 'object' && err !== null && (err as { code?: string }).code === 'P2002';
 }
 
+const VALID_STATUSES: string[] = ['DRAFT', 'PUBLISHED'];
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const ctx = makeRequestContext(req.headers);
   return withRequestContext(ctx, async () => {
@@ -44,6 +46,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const url = req.nextUrl;
     const limit = clampLimit(url.searchParams.get('limit'));
     const status = url.searchParams.get('status');
+    if (status && !VALID_STATUSES.includes(status)) {
+      return NextResponse.json(
+        { error: 'VALIDATION_FAILED', message: 'Invalid status filter' },
+        { status: 400, headers: { 'x-request-id': ctx.requestId } },
+      );
+    }
     const cursor = decodeCursor(url.searchParams.get('cursor'));
     const baseWhere = status ? { status } : {};
     const where = cursor ? { AND: [baseWhere, cursorWhere(cursor)] } : baseWhere;

@@ -12,6 +12,8 @@ import { enforceAdminRateLimit } from '@/lib/server/middleware/rate-limit-by-use
 import { maskEmail } from '@/lib/server/support/mask-email';
 import { makeRequestContext, withRequestContext } from '@/lib/server/observability/request-context';
 
+const VALID_STATUSES: string[] = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
+
 export async function GET(req: NextRequest): Promise<NextResponse> {
   const ctx = makeRequestContext(req.headers);
   return withRequestContext(ctx, async () => {
@@ -24,6 +26,12 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const url = req.nextUrl;
     const limit = clampLimit(url.searchParams.get('limit'));
     const status = url.searchParams.get('status');
+    if (status && !VALID_STATUSES.includes(status)) {
+      return NextResponse.json(
+        { error: 'VALIDATION_FAILED', message: 'Invalid status filter' },
+        { status: 400, headers: { 'x-request-id': ctx.requestId } },
+      );
+    }
     const cursor = decodeCursor(url.searchParams.get('cursor'));
     const baseWhere = status ? { status } : {};
     const where = cursor ? { AND: [baseWhere, cursorWhere(cursor)] } : baseWhere;
