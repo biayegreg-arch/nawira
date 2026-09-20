@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Mail } from 'lucide-react';
 import { api, ApiError } from '@/lib/api';
@@ -60,6 +61,9 @@ export function ContactSupportCard(): React.JSX.Element {
         >
           {sending ? 'Envoi…' : 'Envoyer'}
         </button>
+        <Link href="/app/support" className="self-start text-sm font-medium text-primary">
+          Mes demandes
+        </Link>
       </div>
     </div>
   );
