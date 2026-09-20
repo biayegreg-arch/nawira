@@ -66,7 +66,7 @@ interface DimensionRowProps {
 function DimensionRow({ label, value, emptyText }: DimensionRowProps): React.JSX.Element {
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-1 flex items-center justify-between gap-2">
         <span className="text-sm font-medium text-navy">{label}</span>
         {value && <span className="text-sm font-bold text-navy">{value.label}</span>}
       </div>
@@ -129,16 +129,16 @@ export function CycleScoreCard({
   );
 
   return (
-    <div className="rounded-xl border border-border bg-white p-6">
+    <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
       <div className="mb-5">
-        <h2 className="flex items-center gap-2 text-xl font-bold text-navy">
+        <h2 className="flex items-center gap-2 text-lg font-bold text-navy md:text-xl">
           <span className="text-2xl">✨</span>
           Cycle Score
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">Analyse globale de ton cycle</p>
       </div>
 
-      <div className="mb-6 flex items-center gap-6">
+      <div className="mb-6 flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
         <div className="relative h-28 w-28 shrink-0">
           <svg viewBox="0 0 128 128" className="h-full w-full">
             <circle
@@ -166,7 +166,7 @@ export function CycleScoreCard({
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
             {headlineScore !== null ? (
               <>
-                <div className="text-2xl font-bold text-navy">
+                <div className="text-3xl leading-none font-bold text-navy">
                   <AnimatedNumber value={headlineScore} />
                 </div>
                 <div className="text-xs text-muted-foreground">/100</div>
@@ -176,7 +176,7 @@ export function CycleScoreCard({
             )}
           </div>
         </div>
-        <div className="flex-1">
+        <div className="w-full min-w-0 flex-1">
           <p className="mb-3 text-xs text-muted-foreground">{headlineLabel}</p>
           <div className="flex flex-col gap-4">
             <DimensionRow
@@ -205,7 +205,7 @@ export function CycleScoreCard({
                 ) : (
                   <AlertCircle size={16} className="mt-0.5 shrink-0 text-amber" />
                 )}
-                <p className="text-xs text-muted-foreground">{insight.text}</p>
+                <p className="text-sm text-muted-foreground">{insight.text}</p>
               </div>
             ))}
           </div>

@@ -142,9 +142,9 @@ export function AnalyticsRecommendations({
   const shown = tips.slice(0, 3);
 
   return (
-    <div className="rounded-xl border border-border bg-white p-6">
-      <h2 className="mb-5 flex items-center gap-2 text-lg font-bold text-navy">
-        <Lightbulb size={18} className="text-amber" />
+    <div className="rounded-xl border border-border bg-white p-4 sm:p-6">
+      <h2 className="mb-5 flex items-center gap-2 text-base font-bold md:text-lg text-navy">
+        <Lightbulb size={18} className="shrink-0 text-amber" />
         Recommandations personnalisées
       </h2>
       <div className="flex flex-col gap-4">
@@ -152,9 +152,9 @@ export function AnalyticsRecommendations({
           <div key={tip.title} className={`rounded-lg border border-border p-4 ${tip.bgClassName}`}>
             <div className="flex items-start gap-3">
               <tip.icon size={18} className={`mt-0.5 shrink-0 ${tip.iconClassName}`} />
-              <div>
+              <div className="min-w-0">
                 <div className="mb-1 text-sm font-semibold text-navy">{tip.title}</div>
-                <p className="text-xs text-muted-foreground">{tip.body}</p>
+                <p className="text-sm text-muted-foreground">{tip.body}</p>
               </div>
             </div>
           </div>

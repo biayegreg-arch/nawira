@@ -112,7 +112,7 @@ export default function InsightsPage(): React.JSX.Element | null {
 
   if (error) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Impossible de charger tes analyses. Réessaie plus tard.
         </div>
@@ -122,7 +122,7 @@ export default function InsightsPage(): React.JSX.Element | null {
 
   if (result === null) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="h-64 animate-pulse rounded-xl bg-gray-100" />
       </div>
     );
@@ -142,16 +142,16 @@ export default function InsightsPage(): React.JSX.Element | null {
   const nothingToShow = result.insights.length === 0 && result.cycleScoreToday === null;
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="mx-auto w-full max-w-3xl p-4 sm:p-6 lg:max-w-none lg:p-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-navy">Analyses</h1>
+        <h1 className="text-2xl leading-tight font-bold text-navy md:text-3xl">Analyses</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Découvre tes tendances et reçois des recommandations personnalisées
         </p>
       </div>
 
       {nothingToShow ? (
-        <div className="rounded-xl border border-border bg-white p-8 text-center">
+        <div className="rounded-xl border border-border bg-white p-6 text-center sm:p-8">
           <BarChart2 size={32} className="mx-auto mb-3 text-muted-foreground" />
           <h2 className="mb-2 text-base font-bold text-navy">Pas encore assez de données</h2>
           <p className="mb-5 text-sm text-muted-foreground">
@@ -159,7 +159,7 @@ export default function InsightsPage(): React.JSX.Element | null {
           </p>
           <Link
             href="/app/log"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white"
+            className="inline-flex min-h-12 items-center justify-center rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-white"
           >
             Enregistrer aujourd&rsquo;hui
           </Link>
@@ -194,11 +194,11 @@ export default function InsightsPage(): React.JSX.Element | null {
           </div>
 
           <div
-            className="animate-fade-in-up mt-6 rounded-lg border border-primary bg-primary-faint p-6"
+            className="animate-fade-in-up mt-6 rounded-lg border border-primary bg-primary-faint p-4 sm:p-6"
             style={staggerDelay(4)}
           >
             <div className="flex items-start justify-between gap-4">
-              <div>
+              <div className="min-w-0">
                 <h3 className="mb-2 flex items-center gap-2 text-base font-bold text-navy">
                   <span>👑</span>
                   Analyses avancées disponibles
@@ -209,12 +209,12 @@ export default function InsightsPage(): React.JSX.Element | null {
                 </p>
                 <Link
                   href="/app/billing"
-                  className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white"
+                  className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white"
                 >
                   Essayer gratuitement
                 </Link>
               </div>
-              <span className="shrink-0 text-4xl">✨</span>
+              <span className="hidden shrink-0 text-4xl sm:block">✨</span>
             </div>
           </div>
         </>
