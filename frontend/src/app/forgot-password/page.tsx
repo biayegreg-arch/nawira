@@ -44,7 +44,10 @@ export default function ForgotPasswordPage(): React.JSX.Element {
         </p>
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Tu as déjà ton code ?{' '}
-          <Link href="/reset-password" className="font-medium text-primary">
+          <Link
+            href="/reset-password"
+            className="inline-flex min-h-11 items-center font-medium text-primary"
+          >
             Réinitialiser mon mot de passe
           </Link>
         </p>
@@ -79,7 +82,7 @@ export default function ForgotPasswordPage(): React.JSX.Element {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Tu te souviens de ton mot de passe ?{' '}
-        <Link href="/login" className="font-medium text-primary">
+        <Link href="/login" className="inline-flex min-h-11 items-center font-medium text-primary">
           Se connecter
         </Link>
       </p>

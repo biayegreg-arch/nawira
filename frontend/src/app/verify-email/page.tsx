@@ -146,14 +146,14 @@ function VerifyEmailForm(): React.JSX.Element {
           type="button"
           onClick={() => void onResend()}
           disabled={resending}
-          className="font-medium text-primary disabled:opacity-50"
+          className="inline-flex min-h-11 items-center font-medium text-primary disabled:opacity-50"
         >
           {resending ? 'Envoi…' : 'Renvoyer le code'}
         </button>
       </p>
       <p className="mt-2 text-center text-xs text-muted-foreground">
         Email incorrect ?{' '}
-        <Link href="/signup" className="font-medium text-primary">
+        <Link href="/signup" className="inline-flex min-h-11 items-center font-medium text-primary">
           Recommencer l&rsquo;inscription
         </Link>
       </p>

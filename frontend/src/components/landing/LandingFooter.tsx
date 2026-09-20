@@ -13,7 +13,7 @@ export function LandingFooter(): React.JSX.Element {
   return (
     <footer className="w-full border-t border-border">
       <div className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-12 lg:py-12">
-        <div className="flex flex-col gap-10 sm:flex-row sm:flex-wrap sm:gap-16">
+        <div className="flex flex-col gap-8 sm:flex-row sm:flex-wrap sm:gap-16">
           {/* Brand */}
           <div className="max-w-xs flex-shrink-0">
             <div className="mb-3 flex items-center gap-2">
@@ -31,10 +31,13 @@ export function LandingFooter(): React.JSX.Element {
           {Object.entries(linkGroups).map(([category, items]) => (
             <div key={category} className="flex-1">
               <h4 className="mb-4 text-sm font-semibold text-navy">{category}</h4>
-              <ul className="space-y-2">
+              <ul>
                 {items.map((item) => (
                   <li key={item.label}>
-                    <a href={item.href} className="text-sm text-muted-foreground">
+                    <a
+                      href={item.href}
+                      className="inline-flex min-h-11 items-center text-sm text-muted-foreground"
+                    >
                       {item.label}
                     </a>
                   </li>

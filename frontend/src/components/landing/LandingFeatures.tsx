@@ -71,10 +71,10 @@ export function LandingFeatures(): React.JSX.Element {
       <div className="mx-auto max-w-screen-xl">
         <div className="mb-10 flex flex-col gap-8 lg:mb-16 lg:flex-row lg:items-start lg:gap-16">
           <div className="max-w-sm flex-shrink-0">
-            <h2 className="mb-4 font-headings text-3xl font-bold leading-tight text-navy lg:text-4xl">
+            <h2 className="mb-4 font-headings text-2xl font-bold leading-tight text-navy md:text-3xl lg:text-4xl">
               Des outils puissants pour une vie plus sereine
             </h2>
-            <p className="text-base leading-relaxed text-muted-foreground">
+            <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
               NAWIRA combine technologie et expertise pour t&rsquo;offrir une expérience simple,
               claire et adaptée à tes besoins.
             </p>
@@ -89,7 +89,9 @@ export function LandingFeatures(): React.JSX.Element {
                   <f.icon size={18} className={f.iconClass} />
                 </div>
                 <div className="text-sm font-semibold text-navy">{f.label}</div>
-                <div className="text-xs leading-snug text-muted-foreground">{f.desc}</div>
+                <div className="text-xs leading-snug text-muted-foreground md:text-sm">
+                  {f.desc}
+                </div>
               </div>
             ))}
           </div>

@@ -19,7 +19,7 @@ export function LandingSocialProof(): React.JSX.Element {
 
       <div className="relative mx-auto max-w-screen-xl px-4 py-14 sm:px-6 lg:flex lg:items-center lg:gap-16 lg:px-12 lg:py-20">
         <div className="max-w-xs">
-          <h2 className="font-headings text-3xl font-bold leading-tight text-white lg:text-4xl">
+          <h2 className="font-headings text-2xl font-bold leading-tight text-white md:text-3xl lg:text-4xl">
             Plus qu&rsquo;une application.
             <br />
             Une alliée pour ta vie.

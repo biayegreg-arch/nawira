@@ -9,26 +9,31 @@ export function LandingHero(): React.JSX.Element {
     <section className="relative w-full overflow-hidden bg-surface">
       <div className="mx-auto flex max-w-screen-xl flex-col gap-8 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:gap-16 lg:px-12 lg:py-20">
         {/* Text content */}
-        <div className="max-w-lg">
+        <div className="min-w-0 max-w-lg">
           <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-primary">
             La santé féminine plus simple au quotidien
           </p>
 
-          <h1 className="mb-3 font-headings text-4xl font-bold leading-tight text-navy sm:text-5xl">
+          <h1 className="mb-3 font-headings text-3xl font-bold leading-tight text-navy md:text-5xl">
             Comprends <em className="italic">ton corps.</em>
           </h1>
-          <h2 className="mb-6 font-headings text-3xl font-bold italic leading-tight text-primary sm:text-4xl">
+          <h2 className="mb-6 font-headings text-2xl font-bold italic leading-tight text-primary md:text-4xl">
             Vis ta vie sereinement.
           </h2>
 
-          <p className="mb-8 max-w-md text-base leading-relaxed text-body">
+          <p className="mb-8 max-w-md text-sm leading-relaxed text-body md:text-base">
             NAWIRA t&rsquo;accompagne à chaque étape de ta vie : cycle menstruel, projet bébé,
             grossesse, post-partum et ménopause. Des informations fiables, des outils simples et un
             accompagnement bienveillant, pensés pour les femmes africaines.
           </p>
 
           <div className="mb-8">
-            <LinkButton href="/signup" variant="primary" size="lg" className="w-full sm:w-auto">
+            <LinkButton
+              href="/signup"
+              variant="primary"
+              size="lg"
+              className="h-12 w-full sm:w-auto"
+            >
               Commencer gratuitement
             </LinkButton>
           </div>

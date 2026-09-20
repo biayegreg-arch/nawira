@@ -18,9 +18,9 @@ const MOOD_EMOJIS = ['😄', '🙂', '😕', '😟', '😢'];
 
 export function LandingAppMockup(): React.JSX.Element {
   return (
-    <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-end lg:justify-center">
+    <div className="flex min-w-0 flex-col items-center gap-8 lg:flex-row lg:items-end lg:justify-center">
       {/* Mobile mockup */}
-      <div className="w-64 flex-shrink-0 overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
+      <div className="w-64 max-w-full flex-shrink-0 overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
         <div className="bg-primary p-4">
           <div className="mb-1 text-xs font-bold text-white">NAWIRA</div>
           <div className="text-xs text-white/80">Bonjour Aminata 👋</div>
@@ -49,7 +49,7 @@ export function LandingAppMockup(): React.JSX.Element {
       </div>
 
       {/* Desktop mockup */}
-      <div className="w-full max-w-2xl flex-1 overflow-hidden rounded-xl border border-border bg-white shadow-sm">
+      <div className="w-full min-w-0 max-w-2xl flex-1 overflow-hidden rounded-xl border border-border bg-white shadow-sm">
         <div className="flex items-center gap-2 border-b border-border bg-gray-50 px-4 py-2">
           <div className="h-3 w-3 rounded-full bg-rose" />
           <div className="h-3 w-3 rounded-full bg-amber" />
@@ -69,7 +69,7 @@ export function LandingAppMockup(): React.JSX.Element {
           </div>
           <div className="flex-1 space-y-3 p-4">
             <div className="text-sm font-bold text-navy">Bonjour Aminata 👋</div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-lg bg-green-soft p-3">
                 <div className="text-xs font-semibold text-green">Fenêtre fertile</div>
                 <div className="mt-1 text-xs text-muted-foreground">En cours</div>

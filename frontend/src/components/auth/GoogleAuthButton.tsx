@@ -19,7 +19,7 @@ export function GoogleAuthButton({
     <a
       href={`/api/auth/oauth/google/start?next=${encodeURIComponent(next)}`}
       className={cn(
-        'inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-white px-5 py-3 text-sm font-semibold text-navy transition-colors hover:bg-gray-50',
+        'inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-white min-h-12 px-5 py-3 text-sm font-semibold text-navy transition-colors hover:bg-gray-50',
         className,
       )}
     >

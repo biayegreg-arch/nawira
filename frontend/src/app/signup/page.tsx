@@ -91,7 +91,7 @@ export default function SignupPage(): React.JSX.Element {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Déjà un compte ?{' '}
-        <Link href="/login" className="font-medium text-primary">
+        <Link href="/login" className="inline-flex min-h-11 items-center font-medium text-primary">
           Se connecter
         </Link>
       </p>

@@ -16,9 +16,9 @@ export function LandingNav(): React.JSX.Element {
 
   return (
     <nav className="w-full border-b border-border bg-white">
-      <div className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-4 sm:px-6 lg:px-12">
+      <div className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-3 sm:px-6 lg:px-12">
         {/* Logo */}
-        <a href="/" className="flex items-center gap-2">
+        <a href="/" className="flex min-h-11 items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
             <Activity className="h-4 w-4 text-white" />
           </span>
@@ -65,7 +65,7 @@ export function LandingNav(): React.JSX.Element {
                 key={item.label}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-50"
+                className="flex min-h-11 items-center rounded-lg px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-50"
               >
                 {item.label}
               </a>
