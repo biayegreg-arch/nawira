@@ -51,13 +51,20 @@ function makePost(id: string, body: unknown): [NextRequest, { params: Promise<{ 
   ];
 }
 
+const tx = {
+  supportTicketMessage: { create: vi.fn() },
+  supportTicket: { update: vi.fn() },
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
+  tx.supportTicketMessage.create.mockReset();
+  tx.supportTicket.update.mockReset();
   mockRequireAdmin.mockResolvedValue(adminCtx as never);
   mockRateLimit.mockResolvedValue(null);
   mockVerifyCsrf.mockReturnValue(null);
   prismaMock.$transaction.mockImplementation(async (cb: unknown) =>
-    (cb as (tx: unknown) => unknown)(prismaMock),
+    (cb as (t: unknown) => unknown)(tx),
   );
 });
 
@@ -91,27 +98,29 @@ describe('POST /api/admin/support-tickets/[id]/messages', () => {
       userId: 'user_1',
       user: { email: 'u@test.local' },
     } as never);
-    prismaMock.supportTicketMessage.create.mockResolvedValue({
+    tx.supportTicketMessage.create.mockResolvedValue({
       id: 'm2',
       body: 'Voici la solution',
       createdAt: new Date('2026-09-20T00:00:00.000Z'),
     } as never);
-    prismaMock.supportTicket.update.mockResolvedValue({} as never);
+    tx.supportTicket.update.mockResolvedValue({} as never);
 
     const res = await POST(...makePost('t1', { message: 'Voici la solution' }));
 
     expect(res.status).toBe(201);
     const body = await res.json();
     expect(body.status).toBe('IN_PROGRESS');
-    expect(prismaMock.supportTicketMessage.create).toHaveBeenCalledWith({
+    expect(tx.supportTicketMessage.create).toHaveBeenCalledWith({
       data: { ticketId: 't1', authorId: 'admin_1', role: 'ADMIN', body: 'Voici la solution' },
     });
-    expect(prismaMock.supportTicket.update).toHaveBeenCalledWith({
+    expect(tx.supportTicket.update).toHaveBeenCalledWith({
       where: { id: 't1' },
       data: { status: 'IN_PROGRESS' },
     });
+    expect(prismaMock.supportTicketMessage.create).not.toHaveBeenCalled();
+    expect(prismaMock.supportTicket.update).not.toHaveBeenCalled();
     expect(mockLogAdminAction).toHaveBeenCalledWith(
-      expect.anything(),
+      tx,
       expect.objectContaining({
         actorId: 'admin_1',
         action: 'support_ticket.reply',
@@ -120,14 +129,14 @@ describe('POST /api/admin/support-tickets/[id]/messages', () => {
       }),
     );
     expect(mockEnqueueOutbox).toHaveBeenCalledWith(
-      expect.anything(),
+      tx,
       expect.objectContaining({
         kind: 'email.support_ticket_reply',
         payload: expect.objectContaining({ to: 'u@test.local', ticketId: 't1' }),
       }),
     );
     expect(mockCreateNotification).toHaveBeenCalledWith(
-      expect.anything(),
+      tx,
       expect.objectContaining({
         userId: 'user_1',
         type: 'SUPPORT_TICKET_REPLIED',
@@ -143,7 +152,7 @@ describe('POST /api/admin/support-tickets/[id]/messages', () => {
       userId: 'user_1',
       user: { email: 'u@test.local' },
     } as never);
-    prismaMock.supportTicketMessage.create.mockResolvedValue({
+    tx.supportTicketMessage.create.mockResolvedValue({
       id: 'm3',
       body: 'Suite',
       createdAt: new Date(),
@@ -152,7 +161,7 @@ describe('POST /api/admin/support-tickets/[id]/messages', () => {
     const res = await POST(...makePost('t1', { message: 'Suite' }));
 
     expect(res.status).toBe(201);
-    expect(prismaMock.supportTicket.update).not.toHaveBeenCalled();
+    expect(tx.supportTicket.update).not.toHaveBeenCalled();
   });
 
   it('does NOT re-transition status when the ticket is RESOLVED (admin can still reply)', async () => {
@@ -162,7 +171,7 @@ describe('POST /api/admin/support-tickets/[id]/messages', () => {
       userId: 'user_1',
       user: { email: 'u@test.local' },
     } as never);
-    prismaMock.supportTicketMessage.create.mockResolvedValue({
+    tx.supportTicketMessage.create.mockResolvedValue({
       id: 'm4',
       body: 'Reouvert',
       createdAt: new Date(),
@@ -171,6 +180,6 @@ describe('POST /api/admin/support-tickets/[id]/messages', () => {
     const res = await POST(...makePost('t1', { message: 'Reouvert' }));
 
     expect(res.status).toBe(201);
-    expect(prismaMock.supportTicket.update).not.toHaveBeenCalled();
+    expect(tx.supportTicket.update).not.toHaveBeenCalled();
   });
 });
