@@ -165,14 +165,14 @@ export default function AdminOverviewPage(): React.JSX.Element {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-navy sm:text-2xl">
+        <div className="min-w-0">
+          <h1 className="flex items-center gap-2 text-2xl font-bold leading-tight text-navy md:text-3xl">
             <Shield className="h-[22px] w-[22px] text-primary" aria-hidden="true" />
             Administration NAWIRA
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Vue d&rsquo;ensemble — {todayLabel} · Connecté en tant que{' '}
-            <span className="font-medium text-navy">{admin.email}</span>{' '}
+            <span className="break-all font-medium text-navy">{admin.email}</span>{' '}
             <Badge tone={admin.role === 'SUPERADMIN' ? 'warning' : 'primary'} className="ml-1">
               {admin.role}
             </Badge>
@@ -181,7 +181,7 @@ export default function AdminOverviewPage(): React.JSX.Element {
         {canManagePricing && (
           <Link
             href="/admin/pricing"
-            className="flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white sm:self-start"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white sm:self-start"
           >
             <Settings className="h-3.5 w-3.5" aria-hidden="true" />
             Paramètres globaux
@@ -190,9 +190,9 @@ export default function AdminOverviewPage(): React.JSX.Element {
       </div>
 
       {/* KPI cards */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
         {kpis.map((kpi) => (
-          <div key={kpi.key} className="rounded-xl border border-border bg-white p-5">
+          <div key={kpi.key} className="rounded-xl border border-border bg-white p-4 sm:p-5">
             <div
               className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg"
               style={{ background: kpi.bg }}
@@ -220,28 +220,28 @@ export default function AdminOverviewPage(): React.JSX.Element {
       </div>
 
       {/* Middle section: users preview + revenue placeholders */}
-      <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
         {/* Users preview table */}
         <div className="overflow-hidden rounded-xl border border-border bg-white">
-          <div className="flex flex-col gap-3 border-b border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <h2 className="flex items-center gap-2 text-base font-bold text-navy">
               <Users className="h-4 w-4 text-primary" aria-hidden="true" />
               Gestion des utilisatrices
             </h2>
-            <form onSubmit={onSearchSubmit} className="flex items-center gap-2">
-              <div className="flex items-center gap-2 rounded-lg border border-border bg-gray-50 px-3 py-1.5">
+            <form onSubmit={onSearchSubmit} className="flex w-full items-center gap-2 sm:w-auto">
+              <div className="flex w-full items-center gap-2 rounded-lg border border-border bg-gray-50 px-3 sm:w-auto">
                 <Search className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="Rechercher…"
-                  className="w-28 bg-transparent text-xs text-navy outline-none sm:w-40"
+                  className="min-h-11 w-full min-w-0 bg-transparent text-base text-navy outline-none sm:w-40 md:text-sm"
                 />
               </div>
             </form>
           </div>
 
-          {usersError && <div className="px-6 py-4 text-sm text-danger">{usersError}</div>}
+          {usersError && <div className="px-4 py-4 text-sm text-danger sm:px-6">{usersError}</div>}
 
           {usersLoading && (
             <div className="flex flex-col gap-3 p-4">
@@ -258,7 +258,7 @@ export default function AdminOverviewPage(): React.JSX.Element {
           )}
 
           {!usersLoading && !usersError && users.length === 0 && (
-            <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+            <div className="px-4 py-8 text-center text-sm sm:px-6 text-muted-foreground">
               Aucune utilisatrice trouvée.
             </div>
           )}
@@ -285,10 +285,10 @@ export default function AdminOverviewPage(): React.JSX.Element {
               </div>
 
               {/* Desktop: table */}
-              <table className="hidden w-full md:table">
+              <table className="hidden w-full table-fixed md:table">
                 <thead>
                   <tr className="border-b border-border bg-gray-50 text-left text-xs font-medium text-muted-foreground">
-                    <th className="px-6 py-3">Utilisatrice</th>
+                    <th className="w-1/2 px-6 py-3">Utilisatrice</th>
                     <th className="px-4 py-3">Plan</th>
                     <th className="px-4 py-3">Statut</th>
                     <th className="px-4 py-3">Inscription</th>
@@ -329,7 +329,7 @@ export default function AdminOverviewPage(): React.JSX.Element {
             </>
           )}
 
-          <div className="flex items-center justify-between border-t border-border px-6 py-3">
+          <div className="flex items-center justify-between gap-3 border-t border-border px-4 py-1 sm:px-6">
             <span className="text-xs text-muted-foreground">
               {total !== null
                 ? `Affichage 1–${users.length} sur ${total.toLocaleString('fr-FR')}`
@@ -337,7 +337,7 @@ export default function AdminOverviewPage(): React.JSX.Element {
             </span>
             <Link
               href="/admin/users"
-              className="flex items-center gap-1.5 text-xs font-semibold text-primary"
+              className="flex min-h-11 shrink-0 items-center gap-1.5 text-xs font-semibold text-primary"
             >
               Voir tout
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -348,7 +348,7 @@ export default function AdminOverviewPage(): React.JSX.Element {
         {/* Revenue panel (placeholder — no recurring-billing model) */}
         <div className="flex flex-col gap-5">
           <div className="rounded-xl border border-border bg-white p-5">
-            <div className="mb-1 flex items-center justify-between">
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-x-2">
               <h2 className="flex items-center gap-2 text-base font-bold text-navy">
                 <TrendingUp className="h-4 w-4 text-green" aria-hidden="true" />
                 Revenus mensuels (MRR)
@@ -384,7 +384,7 @@ export default function AdminOverviewPage(): React.JSX.Element {
       {/* Moderation + platform settings (placeholders — no backing model) */}
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="overflow-hidden rounded-xl border border-border bg-white">
-          <div className="border-b border-border px-6 py-4">
+          <div className="border-b border-border px-4 py-4 sm:px-6">
             <h2 className="flex items-center gap-2 text-base font-bold text-navy">
               <Flag className="h-4 w-4 text-danger" aria-hidden="true" />
               Modération &amp; signalements
@@ -399,7 +399,7 @@ export default function AdminOverviewPage(): React.JSX.Element {
         </div>
 
         <div className="overflow-hidden rounded-xl border border-border bg-white">
-          <div className="border-b border-border px-6 py-4">
+          <div className="border-b border-border px-4 py-4 sm:px-6">
             <h2 className="flex items-center gap-2 text-base font-bold text-navy">
               <Settings className="h-4 w-4 text-primary" aria-hidden="true" />
               Paramètres de la plateforme
