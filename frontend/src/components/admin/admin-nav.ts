@@ -6,6 +6,8 @@ import {
   Mail,
   Gauge,
   Tag,
+  FileText,
+  LifeBuoy,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -29,4 +31,6 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: '/admin/email-queue', label: 'File emails', icon: Mail, available: true },
   { href: '/admin/rate-limits', label: 'Limites de débit', icon: Gauge, available: true },
   { href: '/admin/pricing', label: 'Tarifs', icon: Tag, available: true },
+  { href: '/admin/articles', label: 'Articles', icon: FileText, available: true },
+  { href: '/admin/support', label: 'Support', icon: LifeBuoy, available: true },
 ];
