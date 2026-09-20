@@ -9,12 +9,18 @@ vi.mock('@/lib/server/auth', () => ({
   verifyCsrf: vi.fn(() => null),
 }));
 
+vi.mock('@/lib/server/support/rate-limit', () => ({
+  enforceSupportRateLimit: vi.fn(async () => null),
+}));
+
 import { requireAuth } from '@/lib/server/middleware';
 import { verifyCsrf } from '@/lib/server/auth';
+import { enforceSupportRateLimit } from '@/lib/server/support/rate-limit';
 import { POST, GET } from './route';
 
 const mockRequireAuth = vi.mocked(requireAuth);
 const mockVerifyCsrf = vi.mocked(verifyCsrf);
+const mockLimit = vi.mocked(enforceSupportRateLimit);
 
 const userCtx = { user: { sub: 'user_1', email: 'u@test.local' } };
 
@@ -34,6 +40,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockRequireAuth.mockResolvedValue(userCtx as never);
   mockVerifyCsrf.mockReturnValue(null);
+  mockLimit.mockResolvedValue(null);
 });
 
 describe('POST /api/support-tickets', () => {
@@ -122,5 +129,19 @@ describe('GET /api/support-tickets', () => {
     const body = await res.json();
     expect(body).toHaveProperty('items');
     expect(body).toHaveProperty('nextCursor');
+  });
+});
+
+describe('rate limiting (create)', () => {
+  it('returns 429 TOO_MANY_REQUESTS and does no DB work when limited', async () => {
+    mockLimit.mockResolvedValueOnce(
+      NextResponse.json({ error: 'TOO_MANY_REQUESTS' }, { status: 429 }),
+    );
+    const res = await POST(makePost({ subject: 'x', message: 'y' }));
+    expect(res.status).toBe(429);
+    expect((await res.json()).error).toBe('TOO_MANY_REQUESTS');
+    expect(mockLimit).toHaveBeenCalledWith('user_1', 'create');
+    expect(prismaMock.supportTicket.findFirst).not.toHaveBeenCalled();
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
   });
 });

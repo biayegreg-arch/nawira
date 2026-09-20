@@ -8,6 +8,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { verifyCsrf } from '@/lib/server/auth';
 import { requireAuth } from '@/lib/server/middleware';
+import { enforceSupportRateLimit } from '@/lib/server/support/rate-limit';
 import { prisma } from '@/lib/server/prisma';
 import { makeRequestContext, withRequestContext } from '@/lib/server/observability/request-context';
 
@@ -24,6 +25,9 @@ export async function POST(
 
     const auth = await requireAuth();
     if (auth instanceof NextResponse) return auth;
+
+    const limited = await enforceSupportRateLimit(auth.user.sub, 'reply');
+    if (limited) return limited;
 
     const { id } = await routeCtx.params;
     const parsed = Body.safeParse(await req.json().catch(() => null));
