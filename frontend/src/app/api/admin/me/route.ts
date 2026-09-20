@@ -14,10 +14,10 @@
 // here too, so a polling UI cannot burn the back-office budget.
 //
 // CAPABILITY LIST CONTRACT (D-ADMIN-04 — locked):
-//   ADMIN sees 7 capabilities: users:read, users:status:suspend,
+//   ADMIN sees 8 capabilities: users:read, users:status:suspend,
 //     audit-log:read, outbox:read, email-queue:read, rate-limits:read,
-//     pricing:read.
-//   SUPERADMIN sees 12: same 7 (minus pricing:read counted once) + users:role
+//     pricing:read, analytics:read.
+//   SUPERADMIN sees 13: same 8 (minus pricing:read counted once) + users:role
 //     + users:status:restore + users:delete + users:plan + pricing:write.
 //
 // orders:read / withdrawals:read / withdrawals:cancel removed 2026-09-20 —
@@ -43,6 +43,7 @@ const CAPABILITIES_BY_ROLE: Record<'ADMIN' | 'SUPERADMIN', readonly string[]> = 
     'email-queue:read',
     'rate-limits:read',
     'pricing:read',
+    'analytics:read',
   ],
   SUPERADMIN: [
     'users:read',
@@ -57,6 +58,7 @@ const CAPABILITIES_BY_ROLE: Record<'ADMIN' | 'SUPERADMIN', readonly string[]> = 
     'rate-limits:read',
     'pricing:read',
     'pricing:write',
+    'analytics:read',
   ],
 } as const;
 

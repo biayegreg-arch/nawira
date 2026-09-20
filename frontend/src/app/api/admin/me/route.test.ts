@@ -53,7 +53,7 @@ beforeEach(() => {
 });
 
 describe('GET /api/admin/me [Wave 1]', () => {
-  it('GET returns role + capability list for ADMIN (7-item exact list)', async () => {
+  it('GET returns role + capability list for ADMIN (8-item exact list)', async () => {
     mockRequireAdmin.mockResolvedValueOnce(adminCtx);
     const res = await GET(makeGet());
     expect(res.status).toBe(200);
@@ -71,8 +71,9 @@ describe('GET /api/admin/me [Wave 1]', () => {
       'email-queue:read',
       'rate-limits:read',
       'pricing:read',
+      'analytics:read',
     ]);
-    expect(body.can).toHaveLength(7);
+    expect(body.can).toHaveLength(8);
   });
 
   it('GET returns broader capability list for SUPERADMIN including users:role and users:delete', async () => {
@@ -91,10 +92,11 @@ describe('GET /api/admin/me [Wave 1]', () => {
     expect(body.can).toContain('users:plan');
     expect(body.can).toContain('pricing:read');
     expect(body.can).toContain('pricing:write');
-    expect(body.can).toHaveLength(12);
+    expect(body.can).toContain('analytics:read');
+    expect(body.can).toHaveLength(13);
   });
 
-  it('SUPERADMIN list is the exact 12-item set required by D-ADMIN-04', async () => {
+  it('SUPERADMIN list is the exact 13-item set required by D-ADMIN-04', async () => {
     mockRequireAdmin.mockResolvedValueOnce(superadminCtx);
     const res = await GET(makeGet());
     const body = await res.json();
@@ -111,6 +113,7 @@ describe('GET /api/admin/me [Wave 1]', () => {
       'rate-limits:read',
       'pricing:read',
       'pricing:write',
+      'analytics:read',
     ]);
   });
 
