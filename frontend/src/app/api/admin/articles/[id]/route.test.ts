@@ -18,6 +18,7 @@ vi.mock('@/lib/server/admin/audit', () => ({
 import { requireAdmin } from '@/lib/server/middleware';
 import { enforceAdminRateLimit } from '@/lib/server/middleware/rate-limit-by-userid';
 import { verifyCsrf } from '@/lib/server/auth';
+import { logAdminAction } from '@/lib/server/admin/audit';
 import { GET, PATCH, DELETE } from './route';
 
 const mockRequireAdmin = vi.mocked(requireAdmin);
@@ -166,11 +167,19 @@ describe('PATCH /api/admin/articles/[id]', () => {
 
 describe('DELETE /api/admin/articles/[id]', () => {
   it('deletes the article and returns 200', async () => {
-    prismaMock.article.findUnique.mockResolvedValue({ id: 'a1' } as never);
+    prismaMock.article.findUnique.mockResolvedValue({ id: 'a1', title: 'T', slug: 't' } as never);
     prismaMock.article.delete.mockResolvedValue({} as never);
     const res = await DELETE(makeDelete('a1'), ctxWith('a1'));
     expect(res.status).toBe(200);
     expect(prismaMock.article.delete).toHaveBeenCalledWith({ where: { id: 'a1' } });
+    expect(vi.mocked(logAdminAction)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: 'article.delete',
+        targetId: 'a1',
+        metadata: { title: 'T', slug: 't' },
+      }),
+    );
   });
 
   it('returns 404 ARTICLE_NOT_FOUND for a missing article', async () => {

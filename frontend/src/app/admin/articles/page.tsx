@@ -45,13 +45,16 @@ export default function AdminArticlesPage(): React.JSX.Element {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
       const res = await api<ArticleListResponse>('/api/admin/articles?limit=50');
       setArticles(res.items);
       setCursor(res.nextCursor);
+      setError(null);
     } catch (err) {
+      setError(errorMessage(err));
       toast(errorMessage(err), 'error');
     }
   }, [toast]);
@@ -104,6 +107,7 @@ export default function AdminArticlesPage(): React.JSX.Element {
   }
 
   async function remove(a: ArticleRow): Promise<void> {
+    if (!window.confirm('Supprimer définitivement cet article ?')) return;
     try {
       await api(`/api/admin/articles/${a.id}`, { method: 'DELETE' });
       await load();
@@ -111,6 +115,8 @@ export default function AdminArticlesPage(): React.JSX.Element {
       toast(errorMessage(err), 'error');
     }
   }
+
+  if (error && articles === null) return <p className="text-sm text-danger">{error}</p>;
 
   return (
     <div className="flex flex-col gap-5">

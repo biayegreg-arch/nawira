@@ -170,7 +170,10 @@ export async function DELETE(
     if (limited) return limited;
 
     const { id } = await routeCtx.params;
-    const existing = await prisma.article.findUnique({ where: { id }, select: { id: true } });
+    const existing = await prisma.article.findUnique({
+      where: { id },
+      select: { id: true, title: true, slug: true },
+    });
     if (!existing) {
       return NextResponse.json(
         { error: 'ARTICLE_NOT_FOUND', message: 'Article not found' },
@@ -184,6 +187,7 @@ export async function DELETE(
       action: 'article.delete',
       targetType: 'Article',
       targetId: id,
+      metadata: { title: existing.title, slug: existing.slug },
     });
 
     return NextResponse.json({ ok: true }, { headers: { 'x-request-id': ctx.requestId } });
