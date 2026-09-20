@@ -9,6 +9,7 @@ import { fetchCached } from '@/lib/offline/read-cache';
 import { track } from '@/lib/analytics';
 import { greetingName, staggerDelay } from '@/lib/utils';
 import { buildDayTypes, todayIso } from '@/lib/calendar-day-types';
+import { AdminAccessBanner } from '@/components/app/AdminAccessBanner';
 import { OfflineDataBanner } from '@/components/app/OfflineDataBanner';
 import { CycleRing } from '@/components/today/CycleRing';
 import { PeriodLogCta } from '@/components/today/PeriodLogCta';
@@ -201,9 +202,11 @@ export default function TodayPage(): React.JSX.Element | null {
       ? daysBetween(mostRecent.startDate, prediction.fertileWindowEnd) + 1
       : null;
   const dayTypes = buildDayTypes(cycles, prediction, today);
+  const isAdmin = user.role === 'ADMIN' || user.role === 'SUPERADMIN';
 
   return (
     <div className="p-4 lg:p-8">
+      {isAdmin && <AdminAccessBanner />}
       {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <div
         className="animate-fade-in-up mb-6 rounded-xl p-6"
