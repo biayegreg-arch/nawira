@@ -19,10 +19,10 @@ const DOT_STYLES: Record<CalendarDayType, string> = {
 
 export function CalendarLegend(): React.JSX.Element {
   return (
-    <div className="flex flex-wrap items-center gap-4">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
       {ITEMS.map((item) => (
         <div key={item.type} className="flex items-center gap-1.5">
-          <div className={cn('h-3 w-3 rounded-full', DOT_STYLES[item.type])} />
+          <div className={cn('h-3 w-3 shrink-0 rounded-full', DOT_STYLES[item.type])} />
           <span className="text-xs text-muted-foreground">{item.label}</span>
         </div>
       ))}

@@ -50,35 +50,39 @@ export function MonthGrid({
   for (let i = 0; i < firstDayOfWeek; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
 
-  const cellSize = size === 'compact' ? 'h-7 w-7' : 'h-9 w-9';
+  const cellSize =
+    size === 'compact' ? 'h-7 w-7 text-xs' : 'aspect-square w-full max-w-10 text-sm sm:max-w-11';
 
   return (
     <div>
       <div className="grid grid-cols-7">
         {DAY_LABELS.map((label) => (
-          <div key={label} className="py-1 text-center text-xs font-medium text-muted-light">
+          <div
+            key={label}
+            className="min-w-0 py-1 text-center text-xs font-medium text-muted-light"
+          >
             {label}
           </div>
         ))}
       </div>
       <div className={cn('grid grid-cols-7', size === 'compact' ? 'gap-y-1' : 'gap-y-2')}>
         {cells.map((day, i) => {
-          if (day === null) return <div key={`empty-${i}`} />;
+          if (day === null) return <div key={`empty-${i}`} className="min-w-0" />;
           const iso = toIsoDate(year, month, day);
           const type = dayTypes[iso];
           const clickable = type === 'today' && onDayClick;
           return (
-            <div key={iso} className="flex items-center justify-center">
+            <div key={iso} className="flex min-w-0 items-center justify-center">
               <button
                 type="button"
                 disabled={!clickable}
                 onClick={() => onDayClick?.(iso, type)}
                 className={cn(
-                  'flex items-center justify-center rounded-full text-xs transition-all duration-150',
+                  'relative flex items-center justify-center rounded-full transition-all duration-150',
                   cellSize,
                   type ? TYPE_STYLES[type] : 'text-navy',
                   clickable
-                    ? 'cursor-pointer ring-primary hover:ring-2 active:scale-90'
+                    ? 'cursor-pointer ring-primary before:absolute before:-inset-1 before:content-[""] hover:ring-2 active:scale-90'
                     : 'cursor-default',
                 )}
               >
