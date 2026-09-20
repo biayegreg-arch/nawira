@@ -4,6 +4,7 @@ import {
   journalReminder,
   weeklySummaryReady,
   fertilityWindowApproaching,
+  supportTicketReplied,
 } from './templates';
 
 describe('periodReminder', () => {
@@ -80,5 +81,19 @@ describe('fertilityWindowApproaching', () => {
     const result = fertilityWindowApproaching('user_1', 'DISCREET', new Date('2026-09-02'));
     expect(result.title).toBe('NAWIRA');
     expect(result.body).toBe('Un rappel Projet Bébé est disponible.');
+  });
+});
+
+describe('supportTicketReplied', () => {
+  it('returns a CreateNotificationInput keyed by messageId for dedup', () => {
+    const input = supportTicketReplied('user_1', 'ticket_1', 'msg_1');
+    expect(input).toMatchObject({
+      userId: 'user_1',
+      type: 'SUPPORT_TICKET_REPLIED',
+      dedupeKey: 'support-ticket-reply:msg_1',
+      data: { ticketId: 'ticket_1' },
+    });
+    expect(input.title.length).toBeGreaterThan(0);
+    expect(input.body.length).toBeGreaterThan(0);
   });
 });

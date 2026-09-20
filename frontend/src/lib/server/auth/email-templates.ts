@@ -98,3 +98,12 @@ export function resetPasswordEmail(args: ResetPasswordEmailArgs): EmailTemplate 
     text: `Your password reset code is ${args.code}. It expires ${ttl}. If you did not request this, ignore this email.`,
   };
 }
+
+export function supportTicketReplyEmail(args: { ticketId: string }): EmailTemplate {
+  const id = htmlEscape(args.ticketId);
+  return {
+    subject: 'Réponse à votre demande de support NAWIRA',
+    html: `<p>Bonjour,</p><p>Un membre de notre équipe a répondu à votre demande de support.</p><p><a href="https://nawira.app/app/support/${id}">Voir la réponse</a></p>`,
+    text: `Un membre de notre équipe a répondu à votre demande de support. Voir la réponse : https://nawira.app/app/support/${args.ticketId}`,
+  };
+}

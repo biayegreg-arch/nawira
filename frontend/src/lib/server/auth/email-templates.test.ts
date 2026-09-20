@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { verificationEmail, resetPasswordEmail } from './email-templates';
+import { verificationEmail, resetPasswordEmail, supportTicketReplyEmail } from './email-templates';
 
 describe('verificationEmail', () => {
   it('returns { subject, html, text } all non-empty', () => {
@@ -82,5 +82,14 @@ describe('resetPasswordEmail', () => {
     const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
     const t = resetPasswordEmail({ code: 'WXYZ9876', email: 'a@b.com', expiresAt });
     expect(t.text).toMatch(/in 1[45] minutes/);
+  });
+});
+
+describe('supportTicketReplyEmail', () => {
+  it('renders a subject and a link to the ticket thread', () => {
+    const tpl = supportTicketReplyEmail({ ticketId: 'ticket_123' });
+    expect(tpl.subject).toBe('Réponse à votre demande de support NAWIRA');
+    expect(tpl.html).toContain('/app/support/ticket_123');
+    expect(tpl.text).toContain('/app/support/ticket_123');
   });
 });
