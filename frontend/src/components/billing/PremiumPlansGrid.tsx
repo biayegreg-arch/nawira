@@ -18,13 +18,13 @@ export function PremiumPlansGrid({
 }: PremiumPlansGridProps): React.JSX.Element {
   return (
     <div>
-      <h2 className="mb-5 text-lg font-bold text-navy">Nos plans</h2>
+      <h2 className="mb-5 text-lg font-bold text-navy md:text-xl">Nos plans</h2>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {BILLING_PLANS.map((plan, i) => (
           <div
             key={plan.key}
-            className={`animate-fade-in-up relative flex flex-col rounded-lg border p-6 transition-shadow duration-200 hover:shadow-md ${
+            className={`animate-fade-in-up relative flex flex-col rounded-lg border p-4 sm:p-6 transition-shadow duration-200 hover:shadow-md ${
               plan.highlighted ? 'border-primary bg-primary-soft' : 'border-border bg-gray-50'
             }`}
             style={staggerDelay(i)}
@@ -36,7 +36,7 @@ export function PremiumPlansGrid({
             )}
 
             <h3 className="text-base font-bold text-navy">{plan.name}</h3>
-            <p className="mb-3 text-xs text-muted-foreground">{plan.promise}</p>
+            <p className="mb-3 text-sm text-muted-foreground">{plan.promise}</p>
 
             <div className="mb-4 border-b border-border pb-4">
               <div className="flex items-baseline">
@@ -61,7 +61,7 @@ export function PremiumPlansGrid({
             <button
               type="button"
               disabled
-              className="w-full cursor-not-allowed rounded-md border border-border bg-white px-4 py-2.5 text-sm font-semibold text-muted-foreground"
+              className="min-h-11 w-full cursor-not-allowed rounded-md border border-border bg-white px-4 py-2.5 text-sm font-semibold text-muted-foreground"
             >
               {plan.key === currentPlan ? 'Plan actuel' : 'Bientôt disponible'}
             </button>

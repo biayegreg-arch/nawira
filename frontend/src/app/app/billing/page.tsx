@@ -66,7 +66,7 @@ export default function BillingPage(): React.JSX.Element | null {
 
   if (error) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="px-4 py-6 sm:px-6 lg:p-8">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Impossible de charger ton abonnement. Réessaie plus tard.
         </div>
@@ -76,17 +76,17 @@ export default function BillingPage(): React.JSX.Element | null {
 
   if (plan === null) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="px-4 py-6 sm:px-6 lg:p-8">
         <div className="h-48 animate-pulse rounded-xl bg-gray-100" />
       </div>
     );
   }
 
   return (
-    <div className="p-4 lg:p-8">
-      <div className="mb-8">
-        <h1 className="flex items-center gap-3 text-2xl font-bold text-navy">
-          <span className="text-3xl">💳</span>
+    <div className="px-4 py-6 sm:px-6 lg:p-8">
+      <div className="mb-6 md:mb-8">
+        <h1 className="flex items-center gap-3 text-2xl font-bold leading-tight text-navy md:text-3xl">
+          <span className="text-2xl md:text-3xl">💳</span>
           Abonnement
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -103,10 +103,10 @@ export default function BillingPage(): React.JSX.Element | null {
       </div>
 
       <div
-        className="animate-fade-in-up rounded-lg border border-border bg-primary-soft p-6"
+        className="animate-fade-in-up rounded-lg border border-border bg-primary-soft p-4 sm:p-6"
         style={staggerDelay(2)}
       >
-        <h3 className="mb-4 text-base font-bold text-navy">Questions fréquentes</h3>
+        <h3 className="mb-4 text-base font-bold md:text-lg text-navy">Questions fréquentes</h3>
         <div className="flex flex-col gap-4">
           {FAQS.map((faq) => (
             <div key={faq.q}>
