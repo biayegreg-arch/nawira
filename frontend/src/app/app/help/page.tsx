@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, Mail, Info } from 'lucide-react';
+import { Search, Info } from 'lucide-react';
 import { HELP_CATEGORIES } from '@/lib/help-content';
 import { HelpAccordion } from '@/components/help/HelpAccordion';
+import { ContactSupportCard } from '@/components/help/ContactSupportCard';
 import { staggerDelay } from '@/lib/utils';
 
 export default function HelpCenterPage(): React.JSX.Element {
@@ -62,21 +63,7 @@ export default function HelpCenterPage(): React.JSX.Element {
         </div>
 
         <div className="animate-fade-in-up flex flex-col gap-6" style={staggerDelay(1)}>
-          <div className="rounded-xl border border-border bg-white p-6">
-            <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-navy">
-              <Mail size={18} className="text-primary" />
-              Contacte notre équipe
-            </h2>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Tu n&rsquo;as pas trouvé la réponse ? Écris-nous, on te répond par email.
-            </p>
-            <a
-              href="mailto:support@nawira.app"
-              className="flex items-center justify-between rounded-lg border border-border bg-gray-50 p-3 transition-all duration-150 hover:bg-gray-100 active:scale-[0.98]"
-            >
-              <span className="text-sm font-medium text-navy">support@nawira.app</span>
-            </a>
-          </div>
+          <ContactSupportCard />
 
           <div className="rounded-xl border border-border bg-green-soft p-4">
             <div className="flex gap-3">
