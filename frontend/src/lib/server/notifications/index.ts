@@ -19,6 +19,11 @@ export interface CreateNotificationInput {
   dedupeKey: string;
 }
 
+/** Structural subset so callers can pass either `prisma` or a `tx` from
+ * `prisma.$transaction(async (tx) => ...)` — mirrors the `AuditClient` /
+ * `OutboxTxClient` pattern in audit.ts / outbox/index.ts. */
+export type NotificationClient = Pick<PrismaClient, 'notification'>;
+
 /**
  * Returns the created Notification row, or `null` if the dedupeKey already
  * exists (silently deduplicated).
@@ -26,7 +31,7 @@ export interface CreateNotificationInput {
  * Other Prisma errors are re-thrown so callers can decide whether to retry.
  */
 export async function createNotification(
-  prisma: PrismaClient,
+  prisma: NotificationClient,
   input: CreateNotificationInput,
 ): Promise<Notification | null> {
   try {
