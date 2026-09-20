@@ -1,8 +1,6 @@
 import {
   LayoutDashboard,
   Users,
-  ShoppingCart,
-  Wallet,
   ScrollText,
   Inbox,
   Mail,
@@ -19,11 +17,13 @@ export interface AdminNavItem {
   available: boolean;
 }
 
+// Commandes/Retraits (Orders/Withdrawals) removed 2026-09-20 — unused
+// scaffolding from the starter template, no real NAWIRA feature ever
+// created an Order or a Withdrawal. See PRUNING.md + .planning/features.json
+// (payments-bictorys, withdrawals, webhooks-bictorys pruned together).
 export const ADMIN_NAV: AdminNavItem[] = [
   { href: '/admin', label: "Vue d'ensemble", icon: LayoutDashboard, available: true },
   { href: '/admin/users', label: 'Utilisatrices', icon: Users, available: true },
-  { href: '/admin/orders', label: 'Commandes', icon: ShoppingCart, available: true },
-  { href: '/admin/withdrawals', label: 'Retraits', icon: Wallet, available: true },
   { href: '/admin/audit-log', label: "Journal d'audit", icon: ScrollText, available: true },
   { href: '/admin/outbox', label: 'File de sortie', icon: Inbox, available: true },
   { href: '/admin/email-queue', label: 'File emails', icon: Mail, available: true },

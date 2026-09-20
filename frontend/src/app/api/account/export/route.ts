@@ -54,8 +54,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       insights,
       notifications,
       notificationPreferences,
-      orders,
-      withdrawals,
       assistantConversations,
     ] = await Promise.all([
       prisma.user.findUnique({
@@ -77,38 +75,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       prisma.insight.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
       prisma.notification.findMany({ where: { userId }, orderBy: { createdAt: 'desc' } }),
       prisma.notificationPreferences.findUnique({ where: { userId } }),
-      prisma.order.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          amount: true,
-          currency: true,
-          status: true,
-          paymentMethod: true,
-          customerEmail: true,
-          customerPhone: true,
-          customerName: true,
-          expiresAt: true,
-          paidAt: true,
-          createdAt: true,
-        },
-      }),
-      prisma.withdrawal.findMany({
-        where: { userId },
-        orderBy: { requestedAt: 'desc' },
-        select: {
-          id: true,
-          amount: true,
-          currency: true,
-          status: true,
-          destination: true,
-          failureReason: true,
-          requestedAt: true,
-          processedAt: true,
-          completedAt: true,
-        },
-      }),
       activeAssistantConsent
         ? prisma.assistantConversation.findMany({
             where: { userId },
@@ -132,8 +98,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       insights,
       notifications,
       notificationPreferences,
-      orders,
-      withdrawals,
       assistantConversations,
     };
 

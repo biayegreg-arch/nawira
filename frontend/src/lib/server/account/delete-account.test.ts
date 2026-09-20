@@ -9,10 +9,6 @@ beforeEach(() => {
     }
     return Promise.resolve(cb);
   });
-  prismaMock.withdrawal.findFirst.mockResolvedValue(null);
-  prismaMock.withdrawal.findMany.mockResolvedValue([]);
-  prismaMock.withdrawal.update.mockResolvedValue({} as never);
-  prismaMock.order.updateMany.mockResolvedValue({ count: 0 } as never);
   prismaMock.user.update.mockResolvedValue({} as never);
   prismaMock.accountActivity.create.mockResolvedValue({} as never);
   for (const model of [
@@ -38,33 +34,6 @@ beforeEach(() => {
 });
 
 describe('deleteAccount', () => {
-  it('blocks with 409 when a PENDING withdrawal exists, before touching any other table', async () => {
-    prismaMock.withdrawal.findFirst.mockResolvedValue({ id: 'w1' } as never);
-
-    const result = await deleteAccount(prismaMock, 'u1', {});
-
-    expect(result).toMatchObject({
-      ok: false,
-      status: 409,
-      code: 'DELETION_BLOCKED_PENDING_WITHDRAWAL',
-    });
-    expect(prismaMock.$transaction).not.toHaveBeenCalled();
-    expect(prismaMock.user.update).not.toHaveBeenCalled();
-  });
-
-  it('blocks with 409 when a PROCESSING withdrawal exists', async () => {
-    prismaMock.withdrawal.findFirst.mockResolvedValue({ id: 'w2' } as never);
-
-    const result = await deleteAccount(prismaMock, 'u1', {});
-
-    expect(result.ok).toBe(false);
-    expect(prismaMock.withdrawal.findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { userId: 'u1', status: { in: ['PENDING', 'PROCESSING'] } },
-      }),
-    );
-  });
-
   it('hard-deletes every health/behavioral table for the user, scoped by userId', async () => {
     const result = await deleteAccount(prismaMock, 'u1', {});
 
@@ -91,33 +60,6 @@ describe('deleteAccount', () => {
     }
   });
 
-  it('anonymizes Order rows instead of deleting them', async () => {
-    await deleteAccount(prismaMock, 'u1', {});
-
-    expect(prismaMock.order.updateMany).toHaveBeenCalledWith({
-      where: { userId: 'u1' },
-      data: { customerEmail: null, customerPhone: null, customerName: null },
-    });
-  });
-
-  it('scrubs the phone/accountName out of each non-blocking Withdrawal.destination but keeps the method', async () => {
-    prismaMock.withdrawal.findMany.mockResolvedValue([
-      { id: 'w1', destination: { method: 'WAVE', phone: '+221700000000', accountName: 'Alice' } },
-      { id: 'w2', destination: { method: 'ORANGE_MONEY', phone: '+221711111111' } },
-    ] as never);
-
-    await deleteAccount(prismaMock, 'u1', {});
-
-    expect(prismaMock.withdrawal.update).toHaveBeenNthCalledWith(1, {
-      where: { id: 'w1' },
-      data: { destination: { method: 'WAVE', phone: null, accountName: null } },
-    });
-    expect(prismaMock.withdrawal.update).toHaveBeenNthCalledWith(2, {
-      where: { id: 'w2' },
-      data: { destination: { method: 'ORANGE_MONEY', phone: null, accountName: null } },
-    });
-  });
-
   it('scrubs the User row and marks it DELETED, bumping tokenVersion to invalidate refresh tokens', async () => {
     await deleteAccount(prismaMock, 'u1', {});
 
@@ -128,7 +70,6 @@ describe('deleteAccount', () => {
         name: null,
         avatarUrl: null,
         passwordHash: null,
-        withdrawalPinHash: null,
         status: 'DELETED',
         tokenVersion: { increment: 1 },
       },

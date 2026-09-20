@@ -11,7 +11,13 @@
 //   4. on dispatch failure with attempts >= MAX_ATTEMPTS, marks the row DEAD.
 //   5. concurrent claim losing the race (claimed.count === 0) is skipped
 //      without further work.
-import { describe, it, expect, beforeEach } from 'vitest';
+//
+// Uses `email.verification_code` as the fixture event kind — it's a
+// generic, always-present event (payments-bictorys pruned 2026-09-20,
+// taking notification.payment_received/email.payment_confirmation with
+// it), and exercises the same generic claim/lifecycle machinery this file
+// actually tests, independent of which event kind is dispatched.
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mockDeep, mockReset, type DeepMockProxy } from 'vitest-mock-extended';
 import type { PrismaClient } from '@prisma/client';
 import { drainOutbox } from './dispatcher';
@@ -23,8 +29,8 @@ beforeEach(() => mockReset(prismaMock));
 function makeRow(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
   return {
     id: 'oe_1',
-    kind: 'notification.payment_received',
-    payload: { userId: 'u_1', orderId: 'o_1', amount: 1000, currency: 'XOF' },
+    kind: 'email.verification_code',
+    payload: { to: 'u@test.local', code: 'ABCD1234', expiresAt: '2026-01-01T00:15:00Z' },
     status: 'PROCESSING',
     attempts: 1,
     scheduledAt: new Date('2026-01-01T00:00:00Z'),
@@ -34,17 +40,20 @@ function makeRow(overrides: Partial<Record<string, unknown>> = {}): Record<strin
   };
 }
 
+function makeEmailQueue(): { enqueue: ReturnType<typeof vi.fn> } {
+  return { enqueue: vi.fn().mockResolvedValue(undefined) };
+}
+
 describe('drainOutbox (TEST-02)', () => {
   it('claims a PENDING row via updateMany (PROCESSING + attempts++) before reading it', async () => {
     const row = makeRow();
+    const emailQueue = makeEmailQueue();
     prismaMock.outboxEvent.findMany.mockResolvedValue([{ id: 'oe_1' }] as never);
     prismaMock.outboxEvent.updateMany.mockResolvedValue({ count: 1 } as never);
     prismaMock.outboxEvent.findUnique.mockResolvedValue(row as never);
-    // Make the dispatch succeed (notification.payment_received → createNotification).
-    prismaMock.notification.create.mockResolvedValue({} as never);
     prismaMock.outboxEvent.update.mockResolvedValue({} as never);
 
-    await drainOutbox({ prisma: prismaMock });
+    await drainOutbox({ prisma: prismaMock, emailQueue: emailQueue as never });
 
     expect(prismaMock.outboxEvent.updateMany).toHaveBeenCalledWith({
       where: { id: 'oe_1', status: 'PENDING' },
@@ -54,15 +63,16 @@ describe('drainOutbox (TEST-02)', () => {
 
   it('marks the row SENT with sentAt + lastError=null on successful dispatch', async () => {
     const row = makeRow();
+    const emailQueue = makeEmailQueue();
     prismaMock.outboxEvent.findMany.mockResolvedValue([{ id: 'oe_1' }] as never);
     prismaMock.outboxEvent.updateMany.mockResolvedValue({ count: 1 } as never);
     prismaMock.outboxEvent.findUnique.mockResolvedValue(row as never);
-    prismaMock.notification.create.mockResolvedValue({} as never);
     prismaMock.outboxEvent.update.mockResolvedValue({} as never);
 
-    const stats = await drainOutbox({ prisma: prismaMock });
+    const stats = await drainOutbox({ prisma: prismaMock, emailQueue: emailQueue as never });
 
     expect(stats.succeeded).toBe(1);
+    expect(emailQueue.enqueue).toHaveBeenCalledTimes(1);
     const finalUpdate = prismaMock.outboxEvent.update.mock.calls[0]?.[0];
     expect(finalUpdate?.where).toEqual({ id: 'oe_1' });
     expect(finalUpdate?.data).toMatchObject({
@@ -75,23 +85,21 @@ describe('drainOutbox (TEST-02)', () => {
   it('reschedules with PENDING + future scheduledAt + lastError when attempts < MAX_ATTEMPTS', async () => {
     // attempts=1 means we are well below the 5-attempt ceiling.
     const row = makeRow({ attempts: 1 });
+    const emailQueue = makeEmailQueue();
+    emailQueue.enqueue.mockRejectedValueOnce(new Error('mailer down'));
     prismaMock.outboxEvent.findMany.mockResolvedValue([{ id: 'oe_1' }] as never);
     prismaMock.outboxEvent.updateMany.mockResolvedValue({ count: 1 } as never);
     prismaMock.outboxEvent.findUnique.mockResolvedValue(row as never);
-    // Force the dispatch path to throw — createNotification rejects.
-    prismaMock.notification.create.mockRejectedValueOnce(
-      new Error('notification provider down') as never,
-    );
     prismaMock.outboxEvent.update.mockResolvedValue({} as never);
 
-    const stats = await drainOutbox({ prisma: prismaMock });
+    const stats = await drainOutbox({ prisma: prismaMock, emailQueue: emailQueue as never });
 
     expect(stats.failed).toBe(1);
     expect(stats.dead).toBe(0);
     const finalUpdate = prismaMock.outboxEvent.update.mock.calls[0]?.[0];
     expect(finalUpdate?.data).toMatchObject({
       status: 'PENDING',
-      lastError: 'notification provider down',
+      lastError: 'mailer down',
     });
     // Backoff schedule pushes scheduledAt into the future.
     const scheduledAt = finalUpdate?.data?.scheduledAt as Date;
@@ -102,13 +110,14 @@ describe('drainOutbox (TEST-02)', () => {
   it('marks the row DEAD when attempts >= MAX_ATTEMPTS (5)', async () => {
     // attempts=5 → MAX_ATTEMPTS reached → DEAD path.
     const row = makeRow({ attempts: 5 });
+    const emailQueue = makeEmailQueue();
+    emailQueue.enqueue.mockRejectedValueOnce(new Error('still down'));
     prismaMock.outboxEvent.findMany.mockResolvedValue([{ id: 'oe_1' }] as never);
     prismaMock.outboxEvent.updateMany.mockResolvedValue({ count: 1 } as never);
     prismaMock.outboxEvent.findUnique.mockResolvedValue(row as never);
-    prismaMock.notification.create.mockRejectedValueOnce(new Error('still down') as never);
     prismaMock.outboxEvent.update.mockResolvedValue({} as never);
 
-    const stats = await drainOutbox({ prisma: prismaMock });
+    const stats = await drainOutbox({ prisma: prismaMock, emailQueue: emailQueue as never });
 
     expect(stats.dead).toBe(1);
     expect(stats.failed).toBe(0);

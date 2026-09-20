@@ -17,7 +17,6 @@ model User {
   passwordHash      String?
   emailVerifiedAt   DateTime?
   tokenVersion      Int       @default(0)
-  withdrawalPinHash String? // bcrypt hash of withdrawal PIN; null = no PIN set
   // Optional display name — populated from OAuth profile on first sign-in.
   // Email/password users can fill it later via /api/auth/me PATCH (future).
   name              String?
@@ -51,8 +50,6 @@ model User {
   fertilitySignals       FertilitySignal[]
   prediction             Prediction?
   insights               Insight[]
-  orders                 Order[]
-  withdrawals            Withdrawal[]
   oauthAccounts          OAuthAccount[]
   adminActions           AdminAction[]
   assistantConversations AssistantConversation[]
@@ -75,13 +72,13 @@ model User {
 // answer "who did what when" during incidents / compliance reviews.
 //
 // `action` is a free-form dotted string the UI groups by (e.g.
-// "withdrawal.cancel", "user.role_change", "order.refund").
+// "user.suspend", "user.role_change", "user.delete").
 // `targetType` + `targetId` reference the affected row when applicable.
 // `metadata` carries the diff or extra context as JSON.
 //
 // Retention: not pruned automatically (compliance). If your jurisdiction
-// requires deletion after N years, add a cron in backend/src/index.ts
-// modeled on the WebhookLog purge.
+// requires deletion after N years, add a cron modeled on the other
+// purge crons under frontend/src/app/api/cron/.
 // ───────────────────────────────────────────────────────────────────────
 model AdminAction {
   id         String   @id @default(cuid())
@@ -131,7 +128,7 @@ model PricingPlan {
 // ───────────────────────────────────────────────────────────────────────
 // Multi-tenancy primitives — opt-in.
 //
-// Default project surface stays user-owned (`Order.userId`, `Withdrawal.userId`).
+// Default project surface stays user-owned (e.g. `Cycle.userId`, `Profile.userId`).
 // Apps that need orgs add `organizationId String?` to their domain models
 // case by case and use `requireOrgRole()` middleware to gate access.
 //
@@ -291,90 +288,6 @@ model OutboxEvent {
   createdAt   DateTime  @default(now())
 
   @@index([status, scheduledAt])
-}
-
-// ───────────────────────────────────────────────────────────────────────
-// Phase 2 — webhook idempotency log
-// ───────────────────────────────────────────────────────────────────────
-model WebhookLog {
-  id          String    @id @default(cuid())
-  provider    String
-  externalId  String
-  eventType   String
-  payload     Json
-  processedAt DateTime?
-  createdAt   DateTime  @default(now())
-
-  @@unique([externalId, eventType])
-  @@index([provider, createdAt])
-}
-
-// ───────────────────────────────────────────────────────────────────────
-// Phase 3 — payments (Order + Withdrawal)
-//
-// `amount` is stored in the smallest unit of `currency` (no decimals).
-// For XOF (FCFA, Senegal) that's 1 = 1 FCFA. For USD adapt to cents
-// at the call site — the schema is currency-agnostic.
-// ───────────────────────────────────────────────────────────────────────
-model Order {
-  id            String  @id @default(cuid())
-  userId        String? // nullable — guest checkout supported
-  user          User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  amount        Int // gross amount, smallest unit
-  currency      String  @default("XOF") // ISO 4217
-  status        String  @default("PENDING") // PENDING | PAID | EXPIRED | FAILED | REFUNDED
-  customerEmail String?
-  customerPhone String?
-  customerName  String?
-  metadata      Json? // app-specific fields
-
-  // Stripe-grade idempotency. Required header on POST /api/orders; replay
-  // with same value returns the original Order row instead of double-charging.
-  // Nullable so existing rows pre-migration don't break the @unique constraint.
-  idempotencyKey String? @unique
-
-  // Provider reference
-  provider         String // e.g. "bictorys"
-  providerChargeId String? @unique
-  paymentUrl       String? // checkout/redirect URL returned by provider
-  paymentMethod    String? // WAVE | ORANGE_MONEY | FREE_MONEY (set on PAID by webhook)
-
-  // Optional commission (for marketplace-style apps)
-  commissionAmount Int?
-  netAmount        Int?
-
-  // Lifecycle
-  expiresAt DateTime // PENDING expiry; not cleared on PAID (history)
-  paidAt    DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@index([userId, createdAt])
-  @@index([status, expiresAt])
-  @@index([provider, providerChargeId])
-}
-
-model Withdrawal {
-  id          String @id @default(cuid())
-  userId      String
-  user        User   @relation(fields: [userId], references: [id], onDelete: Restrict)
-  amount      Int // requested amount, smallest unit
-  currency    String @default("XOF")
-  status      String @default("PENDING") // PENDING | PROCESSING | COMPLETED | FAILED | CANCELLED
-  destination Json // { method: "WAVE" | "ORANGE_MONEY" | ..., phone: "+221...", accountName?: "..." }
-
-  // Provider reference
-  provider         String // e.g. "bictorys"
-  providerPayoutId String? @unique
-  failureReason    String?
-
-  requestedAt DateTime  @default(now())
-  processedAt DateTime?
-  completedAt DateTime?
-
-  @@index([userId, requestedAt])
-  @@index([status, requestedAt])
-  @@index([provider, providerPayoutId])
 }
 
 // ───────────────────────────────────────────────────────────────────────

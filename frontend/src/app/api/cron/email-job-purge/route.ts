@@ -9,8 +9,7 @@
 // rows (they shouldn't be stuck — but if they are, leave them for the queue
 // drain to handle, not for the purger to drop).
 //
-// Mirrors the webhook-log-purge structure (D-11 + Pitfall 6 — env read at
-// handler-call time so tests can vi.stubEnv it).
+// Env read at handler-call time so tests can vi.stubEnv it (D-11 + Pitfall 6).
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30; // D-10

@@ -9,31 +9,7 @@
  * happens in the dispatcher (the JSON column is opaque to Prisma).
  */
 
-export type OutboxEvent =
-  | NotificationPaymentReceivedEvent
-  | EmailPaymentConfirmationEvent
-  | EmailVerificationCodeEvent
-  | EmailPasswordResetEvent;
-
-export interface NotificationPaymentReceivedEvent {
-  kind: 'notification.payment_received';
-  payload: {
-    userId: string;
-    orderId: string;
-    amount: number;
-    currency: string;
-  };
-}
-
-export interface EmailPaymentConfirmationEvent {
-  kind: 'email.payment_confirmation';
-  payload: {
-    to: string;
-    orderId: string;
-    amount: number;
-    currency: string;
-  };
-}
+export type OutboxEvent = EmailVerificationCodeEvent | EmailPasswordResetEvent;
 
 /**
  * Phase 1 — emitted by signup + resend-verification routes; consumed by the

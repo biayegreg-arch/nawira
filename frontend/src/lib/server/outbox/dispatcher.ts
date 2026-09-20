@@ -20,8 +20,6 @@
  * Backoff: 30s, 2m, 10m, 30m, 1h. Max 5 attempts before DEAD.
  */
 import type { PrismaClient } from '@prisma/client';
-import { createNotification } from '../notifications/index';
-import { paymentReceived } from '../notifications/templates';
 import type { EmailQueue } from '../queues/email-queue';
 import { createLogger } from '../logger';
 import type { OutboxEvent } from './types';
@@ -125,25 +123,6 @@ export async function drainOutbox(
 /** Route a single event to the correct handler. */
 async function dispatchEvent(deps: OutboxDispatcherDeps, event: OutboxEvent): Promise<void> {
   switch (event.kind) {
-    case 'notification.payment_received': {
-      const { userId, orderId, amount, currency } = event.payload;
-      await createNotification(deps.prisma, paymentReceived(userId, orderId, amount, currency));
-      return;
-    }
-    case 'email.payment_confirmation': {
-      if (!deps.emailQueue) {
-        // No mailer configured — skip silently. This event will be retried;
-        // for permanent skips, ops should mark it DEAD manually.
-        throw new Error('email queue not configured');
-      }
-      const { to, orderId, amount, currency } = event.payload;
-      await deps.emailQueue.enqueue({
-        to,
-        subject: 'Payment received',
-        html: `<p>Your order <strong>${orderId}</strong> for ${amount} ${currency} is confirmed. Thank you!</p>`,
-      });
-      return;
-    }
     case 'email.verification_code': {
       // Phase 1 — emitted by signup + resend-verification routes. Phase 5's
       // email-queue cron will render via verificationEmail() and call enqueue.

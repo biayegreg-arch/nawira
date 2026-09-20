@@ -1,6 +1,6 @@
 # izi kit
 
-Starter full-stack headless pour la stack Next.js 16 + Prisma 5 + Neon + Upstash + Cloudinary + Resend + Bictorys + Sentry. Une seule app Next.js déployable — aucun backend séparé. Les providers tiers (Cloudinary, Resend, Bictorys, Google OAuth, Sentry, Upstash) sont gated par variables d'environnement et inertes sans leurs clés ; l'app boote et `/api/auth` fonctionne avec juste `DATABASE_URL`, `JWT_SECRET`, `ENCRYPTION_KEY` et `CRON_SECRET`. Le starter ne ship que de la logique — aucun composant UI, aucune page — chaque fork designe son propre UX.
+Starter full-stack headless pour la stack Next.js 16 + Prisma 5 + Neon + Upstash + Cloudinary + Resend + Sentry. Une seule app Next.js déployable — aucun backend séparé. Les providers tiers (Cloudinary, Resend, Google OAuth, Sentry, Upstash) sont gated par variables d'environnement et inertes sans leurs clés ; l'app boote et `/api/auth` fonctionne avec juste `DATABASE_URL`, `JWT_SECRET`, `ENCRYPTION_KEY` et `CRON_SECRET`. Le starter ne ship que de la logique — aucun composant UI, aucune page — chaque fork designe son propre UX.
 
 Voir [STATUS.md](STATUS.md) pour l'historique de migration.
 
@@ -14,7 +14,7 @@ Voir [STATUS.md](STATUS.md) pour l'historique de migration.
 
 `/setup-kit` est une skill bundlée dans ce repo. Elle te guide de bout en bout : audit de ton environnement (Git, Node, pnpm, gh CLI), détection des cas piégeux (ZIP-download → blocker explicite, env file au mauvais endroit), installation des 2 plugins Claude Code manquants (superpowers + context-mode — via la palette UI de l'extension ou en fallback paste-ready CLI), création du compte Neon Postgres gratuit (la **seule** dépendance obligatoire), génération des secrets, `pnpm install`, migrations Prisma. Compte ~5-10 min, principalement à attendre les installs.
 
-Une fois `/setup-kit` terminé : **décris à Claude ce que tu veux construire**. Les 40 routes API (auth, paiements, admin, webhooks, cron, uploads) sont déjà câblées — tu n'as qu'à parler de ton produit, pas du plumbing. Si tu as un design Banani, dis « reproduis ces écrans-là » ; sinon, Claude propose une UI à partir de ta description.
+Une fois `/setup-kit` terminé : **décris à Claude ce que tu veux construire**. Les routes API (auth, admin, cron, uploads) sont déjà câblées — tu n'as qu'à parler de ton produit, pas du plumbing. Si tu as un design Banani, dis « reproduis ces écrans-là » ; sinon, Claude propose une UI à partir de ta description.
 
 Pour le détail (déploiement Vercel, surfaces optionnelles) : voir [WORKFLOW.md](WORKFLOW.md).
 
@@ -42,7 +42,7 @@ Pour obtenir `DATABASE_URL` + `DIRECT_URL` : crée un projet gratuit sur https:/
 
 - **App :** Next.js 16 (App Router) + React 19 + TypeScript — full-stack via `app/api/<resource>/route.ts` + Server Actions ; tout dans une seule app
 - **Base de données :** Prisma 5 (Postgres / Neon serverless via URL `-pooler` + `DIRECT_URL` pour les migrations)
-- **Infra (toutes optionnelles, env-gated) :** Upstash Redis (rate-limit + leader election + outbox), Cloudinary (média / uploads), Resend (email), Bictorys (paiements mobile money), Google OAuth via `arctic`
+- **Infra (toutes optionnelles, env-gated) :** Upstash Redis (rate-limit + leader election + outbox), Cloudinary (média / uploads), Resend (email), Google OAuth via `arctic`
 - **Auth :** cookie + CSRF + JWT (access 15min / refresh 7j / csrf 7j)
 - **Observabilité :** Sentry via `@sentry/nextjs` (`instrumentation.ts` + `sentry.{client,server,edge}.config.ts`) — no-op silencieux sans `SENTRY_DSN` ; `@vercel/otel` pour les traces distribuées
 - **Outils :** workspace pnpm (un seul package dans `frontend/`), Vitest, ESLint 9 flat config, Prettier, Node 20+
@@ -64,18 +64,17 @@ Groupes optionnels (set les vars pour activer ; absent = inerte) :
 |---|---|---|
 | Storage (Cloudinary) | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`, `CLOUDINARY_UPLOAD_PRESET?` | `/api/upload` renvoie 503 ; les URLs retournées sont des `secure_url` Cloudinary servies directement par leur CDN. **⚠️ Ces URLs sont publiques — quiconque a l'URL peut lire le fichier. OK pour avatars / posts publics ; pour KYC / factures, ajoute Cloudinary signed delivery ou un proxy auth.** |
 | Email (Resend) | `RESEND_API_KEY`, `EMAIL_FROM` | Les lignes en queue email s'accumulent mais ne partent jamais (drainage au cron suivant dès que la clé arrive) |
-| Paiements (Bictorys) | `BICTORYS_API_KEY`, `BICTORYS_PRIVATE_KEY`, `BICTORYS_WEBHOOK_SECRET`, `BICTORYS_MERCHANT_SECRET_CODE` | `/api/orders` et `/api/webhooks/bictorys` renvoient 404 ; circuit breaker reste CLOSED |
 | Google OAuth | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | `/api/auth/oauth/google/*` renvoient 404 |
 | Sentry | `SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_TRACES_SAMPLE_RATE?`, ... | No-op silencieux (zéro coût perf) |
 | Upstash Redis | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Fallback rate-limit en mémoire avec `logger.warn` au boot — NE PAS lancer en prod sans Upstash |
 
-Référence env complète avec toutes les flags : voir [`.env.example`](.env.example) à la racine du repo (14 sections, chaque clé documentée avec défaut + impact).
+Référence env complète avec toutes les flags : voir [`.env.example`](.env.example) à la racine du repo (13 sections, chaque clé documentée avec défaut + impact).
 
 ## Inventaire des routes
 
-40 routes sous `frontend/src/app/api/`. Toutes déclarent `export const runtime = 'nodejs'` (enforced par [`frontend/src/lib/server/observability/runtime-enforcement.test.ts`](frontend/src/lib/server/observability/runtime-enforcement.test.ts)).
+Routes sous `frontend/src/app/api/`. Toutes déclarent `export const runtime = 'nodejs'` (enforced par [`frontend/src/lib/server/observability/runtime-enforcement.test.ts`](frontend/src/lib/server/observability/runtime-enforcement.test.ts)).
 
-### Auth (`/api/auth/*`) — 10 routes
+### Auth (`/api/auth/*`) — 9 routes
 | Méthode | Path | Auth |
 |---|---|---|
 | POST | `/signup` | aucune |
@@ -87,7 +86,6 @@ Référence env complète avec toutes les flags : voir [`.env.example`](.env.exa
 | POST | `/forgot-password` | aucune |
 | POST | `/reset-password` | aucune |
 | PUT | `/change-password` | access + CSRF |
-| GET/POST/DELETE | `/withdrawal-pin` | access + CSRF |
 
 ### OAuth — 2 routes
 | Méthode | Path | Auth |
@@ -103,12 +101,6 @@ Référence env complète avec toutes les flags : voir [`.env.example`](.env.exa
 | GET | `/api/notifications/count` | access |
 | GET/PATCH | `/api/notifications/prefs` | access (+CSRF sur PATCH) |
 
-### Orders + Withdrawals — 2 routes
-| Méthode | Path | Auth |
-|---|---|---|
-| POST | `/api/orders` | optionnelle |
-| POST/GET | `/api/withdrawals` | access (+CSRF sur POST) |
-
 ### Uploads — 1 route
 | Méthode | Path | Auth |
 |---|---|---|
@@ -116,21 +108,14 @@ Référence env complète avec toutes les flags : voir [`.env.example`](.env.exa
 
 Les fichiers uploadés renvoient un `secure_url` Cloudinary servi directement par leur CDN — pas de route proxy côté Next.
 
-### Webhooks — 1 route
-| Méthode | Path | Auth |
-|---|---|---|
-| POST | `/api/webhooks/bictorys` | HMAC provider + replay window 60s |
-
-### Handlers cron — 5 routes (toutes `Authorization: Bearer ${CRON_SECRET}`)
+### Handlers cron (toutes `Authorization: Bearer ${CRON_SECRET}`)
 | Path | Schedule (`vercel.json`) |
 |---|---|
 | `/api/cron/outbox-drain` | toutes les minutes |
 | `/api/cron/email-queue-drain` | toutes les minutes |
 | `/api/cron/verification-cleanup` | toutes les heures |
-| `/api/cron/order-expiration` | toutes les 5 min |
-| `/api/cron/webhook-log-purge` | quotidien |
 
-### Admin (`/api/admin/*`) — 12 routes
+### Admin (`/api/admin/*`)
 | Méthode | Path | Auth |
 |---|---|---|
 | GET | `/me` | ADMIN |
@@ -138,9 +123,6 @@ Les fichiers uploadés renvoient un `secure_url` Cloudinary servi directement pa
 | GET | `/users/:id` | ADMIN |
 | PATCH | `/users/:id/role` | SUPERADMIN + CSRF |
 | PATCH | `/users/:id/status` | ADMIN/SUPERADMIN + CSRF |
-| GET | `/orders` | ADMIN |
-| GET | `/withdrawals` | ADMIN |
-| POST | `/withdrawals/:id/cancel` | SUPERADMIN + CSRF |
 | GET | `/audit-log` | ADMIN |
 | GET | `/outbox` | ADMIN |
 | GET | `/email-queue` | ADMIN |

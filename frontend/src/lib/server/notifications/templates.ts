@@ -32,26 +32,6 @@ export function welcomeNotification(userId: string, email: string): CreateNotifi
 }
 
 /**
- * Example: notification dispatched after a successful payment.
- * Called from the Bictorys webhook handler's `onPaid` post-commit hook.
- */
-export function paymentReceived(
-  userId: string,
-  orderId: string,
-  amount: number,
-  currency: string,
-): CreateNotificationInput {
-  return {
-    userId,
-    type: 'PAYMENT_RECEIVED',
-    title: 'Payment received',
-    body: `Order ${orderId} for ${amount} ${currency} confirmed.`,
-    data: { orderId, amount, currency },
-    dedupeKey: `payment-received:${orderId}`,
-  };
-}
-
-/**
  * Phase 8 (E9, PRD §11 N01-N04) — 4 cron-driven notification templates.
  * `level` is the caller's already-resolved 'NORMAL' | 'DISCREET' choice
  * (never 'NONE' — callers must skip sending entirely for NONE, not call

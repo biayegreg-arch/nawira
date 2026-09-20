@@ -49,8 +49,6 @@ beforeEach(() => {
   prismaMock.insight.findMany.mockResolvedValue([]);
   prismaMock.notification.findMany.mockResolvedValue([]);
   prismaMock.notificationPreferences.findUnique.mockResolvedValue(null);
-  prismaMock.order.findMany.mockResolvedValue([]);
-  prismaMock.withdrawal.findMany.mockResolvedValue([]);
   prismaMock.assistantConversation.findMany.mockResolvedValue([]);
   prismaMock.accountActivity.create.mockResolvedValue({} as never);
 });
@@ -96,8 +94,6 @@ describe('GET /api/account/export', () => {
       insights: [],
       notifications: [],
       notificationPreferences: null,
-      orders: [],
-      withdrawals: [],
       assistantConversations: [],
     });
     expect(typeof body.exportedAt).toBe('string');
@@ -128,9 +124,6 @@ describe('GET /api/account/export', () => {
       expect.objectContaining({ where: { userId: 'u1' } }),
     );
     expect(prismaMock.dailyLog.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { userId: 'u1' } }),
-    );
-    expect(prismaMock.withdrawal.findMany).toHaveBeenCalledWith(
       expect.objectContaining({ where: { userId: 'u1' } }),
     );
   });
