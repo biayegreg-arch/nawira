@@ -82,3 +82,75 @@ All French, no new `constants.ts` needed for admin strings this pass (small enou
 ## Open questions for user
 
 - None blocking — all 3 batched questions already answered. One implementation-time judgment call flagged in advance: exact sidebar gradient class name will be confirmed against `AppSidebar.tsx`'s existing implementation rather than reinvented.
+
+## Delta — 2026-09-20 revision (overview page rebuilt for visual parity)
+
+User compared the shipped `/admin` overview against Banani's `Admin.jsx` side by side
+(screenshots) and flagged a real gap: the 2026-09-19 pass correctly avoided fabricating
+data, but went further than that and collapsed Banani's whole KPI/table/chart/panel
+*structure* into a generic 7-card link grid — losing the dashboard's actual shape, not
+just its fake numbers. Re-fetched the same Banani screen via the MCP (unchanged since
+2026-09-19) and re-ran the same 2 decision points as `AskUserQuestion`s; both were
+reconfirmed identically:
+
+1. **Placeholder honnête** (not fake data, not a full backend build): render Banani's
+   exact card/panel shapes and positions; substitute honest "Bientôt disponible" content
+   only where no real data source exists. Real data wherever it does exist.
+2. **Keep the dedicated Admin shell** (`AdminSidebar`/`AdminTopBar`) rather than
+   literally matching Banani's reused consumer-app sidebar — Banani only designed this
+   one screen, not the other 8 admin sections that shell navigates to.
+
+### What changed
+
+- **`/admin` (`frontend/src/app/admin/page.tsx`) rebuilt from scratch** to reproduce
+  Banani's actual layout: 4 KPI cards, a real inline "Gestion des utilisatrices" preview
+  table (search + 6 most recent users, "Voir tout →" to the full `/admin/users` page),
+  a 2-panel revenue/MRR column, and a bottom moderation + platform-settings row —
+  instead of the previous 7-link-card grid (`SectionLinkCard.tsx`, now deleted — it had
+  no other caller).
+- **2 of the 4 KPIs are real**, backed by a new `GET /api/admin/stats` route
+  (`activeUsers`: `User.count({status:'ACTIVE'})`, `paidProfiles`:
+  `Profile.count({plan: {in:['PLUS','BABY']}})`) — the only two numbers in Banani's KPI
+  row that this schema can answer honestly. MRR and retention-rate cards show "Bientôt
+  disponible" in the value slot, same card shell/icon/position as Banani.
+- **No fabricated deltas.** Banani's KPI cards each carry a `+X%` badge; there is no
+  historical snapshot table to diff against for ANY of the 4 metrics (real or
+  placeholder), so no card shows one — an empty slot rather than an invented number.
+- **New reusable `AdminComingSoonPanel`** (`frontend/src/components/admin/`) — one
+  component for all 4 no-backend panels (MRR chart, Abonnements & revenus, Modération,
+  Paramètres plateforme), rather than 4 bespoke placeholders. Deliberately
+  non-interactive: Banani's platform-settings toggles and "Ignorer/Agir" moderation
+  buttons are NOT reproduced as clickable no-ops — a fake control that does nothing on
+  click is worse than an honest static placeholder.
+- **Header trimmed to one real action.** "Exporter rapport" (no export endpoint exists)
+  dropped rather than shipped as a dead button. "Paramètres globaux" repurposed as a
+  real link to `/admin/pricing` (the closest existing global-settings surface),
+  shown only when `can.includes('pricing:write')` (SUPERADMIN).
+- **`GET /api/admin/users` gained a `total` field** (`prisma.user.count()` run in
+  parallel with the list query, filtered by q/status/role but NOT by the pagination
+  cursor) so the preview table's "Affichage 1–6 sur {total}" is a real number, not
+  Banani's fixed "12 847". `AdminUserListResponse` type updated to match.
+- **Bonus correctness fix found while touching that route**: the old `where` shape
+  spread `cursorWhere(cursor)` directly over the q-search filter — both produce an `OR`
+  key, so the cursor's `OR` silently overwrote the search's `OR` whenever a search was
+  paginated past its first page (i.e. clicking "Charger plus" after typing a search on
+  `/admin/users` would silently drop the search filter). Fixed by nesting both under
+  `AND` instead of a flat spread; added a regression test
+  (`route.test.ts`: "GET combines a search query with cursor pagination...").
+- Real admin identity (email + role badge) kept, but trimmed from a full capability-chip
+  wall to one inline line in the header subtitle — Banani's header doesn't show
+  capability debugging info, and the chip wall wasn't part of the visual gap being
+  fixed.
+
+### Verified — 2026-09-20
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm format` all clean.
+- `pnpm test`: **944/944** passing (up from 895 — 29 in the extended
+  `admin/users/route.test.ts` incl. 2 new `total`/AND-fix tests, 3 new
+  `admin/stats/route.test.ts`), zero regressions.
+- `pnpm build` succeeds; `/admin` and `/api/admin/stats` both resolve in the route list.
+- **Not verified this pass**: no browser-automation tool was available in this session
+  (the 2026-09-19 pass had Playwright access; this one didn't) — the 375/768/1280px
+  visual/responsive check and a real logged-in click-through were NOT performed by the
+  agent. Flagged to the user to confirm visually before considering this screen fully
+  closed out.

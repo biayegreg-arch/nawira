@@ -55,7 +55,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const role = url.searchParams.get('role');
     const cursor = decodeCursor(url.searchParams.get('cursor'));
 
-    const where: Prisma.UserWhereInput = {
+    // Split from the cursor fragment: `total` must count every row matching
+    // q/status/role regardless of which page the caller is on, not just the
+    // rows remaining after the cursor. Also fixes a latent bug: both the q
+    // search filter and cursorWhere() produce an `OR` key, so a flat spread
+    // (the previous shape) silently let the cursor's OR clobber the search's
+    // OR whenever a search was paginated past its first page — nest under
+    // AND instead so the two OR clauses combine rather than collide.
+    const baseWhere: Prisma.UserWhereInput = {
       ...(q
         ? {
             OR: [
@@ -66,15 +73,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         : {}),
       ...(status ? { status } : {}),
       ...(role ? { role } : {}),
-      ...cursorWhere(cursor),
     };
+    const where: Prisma.UserWhereInput = cursor
+      ? { AND: [baseWhere, cursorWhere(cursor)] }
+      : baseWhere;
 
-    const rows = await prisma.user.findMany({
-      where,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: limit + 1,
-      select: USER_SELECT,
-    });
+    const [rows, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+        take: limit + 1,
+        select: USER_SELECT,
+      }),
+      prisma.user.count({ where: baseWhere }),
+    ]);
 
     const mapped = rows.map(({ profile, ...rest }) => ({
       ...rest,
@@ -83,8 +95,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }));
 
     const page = buildPage(mapped, limit);
-    return NextResponse.json(page, {
-      headers: { 'x-request-id': ctx.requestId },
-    });
+    return NextResponse.json(
+      { ...page, total },
+      {
+        headers: { 'x-request-id': ctx.requestId },
+      },
+    );
   });
 }

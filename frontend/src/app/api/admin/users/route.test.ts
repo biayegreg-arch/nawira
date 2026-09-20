@@ -99,6 +99,9 @@ beforeEach(() => {
   mockRateLimit.mockResolvedValue(null);
   mockVerifyCsrf.mockReturnValue(null);
   mockLogAdminAction.mockResolvedValue(undefined);
+  // Default count for the list route's `total` field — individual tests
+  // override with mockResolvedValueOnce when the exact number matters.
+  prismaMock.user.count.mockResolvedValue(0);
   // Default $transaction passthrough — runs the callback against the prismaMock.
   prismaMock.$transaction.mockImplementation((cb: unknown) => {
     if (typeof cb === 'function') {
@@ -143,7 +146,23 @@ describe('/api/admin/users [Wave 1] — list', () => {
     prismaMock.user.findMany.mockResolvedValueOnce([] as never);
     const res = await GET(makeGet('http://test/api/admin/users'));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ items: [], nextCursor: null });
+    expect(await res.json()).toEqual({ items: [], nextCursor: null, total: 0 });
+  });
+
+  it('GET returns a total count independent of the cursor page', async () => {
+    prismaMock.user.findMany.mockResolvedValueOnce([
+      userRow({ id: 'u1' }),
+      userRow({ id: 'u2' }),
+    ] as never);
+    prismaMock.user.count.mockResolvedValueOnce(12847);
+
+    const res = await GET(makeGet('http://test/api/admin/users'));
+    const body = (await res.json()) as { total: number };
+    expect(body.total).toBe(12847);
+    // count() must use the filter where-clause, never the cursor fragment
+    const countArgs = prismaMock.user.count.mock.calls[0]?.[0];
+    const countWhere = countArgs?.where as Record<string, unknown> | undefined;
+    expect(countWhere).not.toHaveProperty('OR');
   });
 
   it('GET applies q search case-insensitive on email + name', async () => {
@@ -198,8 +217,37 @@ describe('/api/admin/users [Wave 1] — list', () => {
     ] as never);
     await GET(makeGet(`http://test/api/admin/users?cursor=${encodeURIComponent(cursorVal)}`));
     const args = prismaMock.user.findMany.mock.calls[0]?.[0];
-    const where = args?.where as Record<string, unknown> | undefined;
-    expect(where?.['OR']).toBeDefined();
+    const where = args?.where as { AND?: Array<Record<string, unknown>> } | undefined;
+    expect(where?.AND?.[1]?.['OR']).toBeDefined();
+  });
+
+  it('GET combines a search query with cursor pagination instead of one clobbering the other', async () => {
+    // Regression: q and cursorWhere() both produce an `OR` key. A flat
+    // spread would let the cursor's OR silently replace the search's OR —
+    // i.e. "Charger plus" after a search would drop the search filter.
+    const cursorVal = encodeCursor({ createdAt: new Date('2026-05-02T00:00:00Z'), id: 'u2' });
+    prismaMock.user.findMany.mockResolvedValueOnce([] as never);
+    await GET(
+      makeGet(`http://test/api/admin/users?q=alpha&cursor=${encodeURIComponent(cursorVal)}`),
+    );
+    const args = prismaMock.user.findMany.mock.calls[0]?.[0];
+    const where = args?.where as { AND?: Array<Record<string, unknown>> } | undefined;
+    expect(where?.AND).toHaveLength(2);
+    // The search filter (first AND member) must still carry its own OR.
+    expect(where?.AND?.[0]?.['OR']).toEqual([
+      { email: { contains: 'alpha', mode: 'insensitive' } },
+      { name: { contains: 'alpha', mode: 'insensitive' } },
+    ]);
+    // The cursor filter (second AND member) must still carry its own OR.
+    expect(where?.AND?.[1]?.['OR']).toBeDefined();
+    // count() (for `total`) must use only the search filter, no AND/cursor.
+    const countArgs = prismaMock.user.count.mock.calls[0]?.[0];
+    const countWhere = countArgs?.where as Record<string, unknown> | undefined;
+    expect(countWhere).not.toHaveProperty('AND');
+    expect(countWhere?.['OR']).toEqual([
+      { email: { contains: 'alpha', mode: 'insensitive' } },
+      { name: { contains: 'alpha', mode: 'insensitive' } },
+    ]);
   });
 
   it('rate limits admin per-userId after 100/min — propagates 429 from helper', async () => {

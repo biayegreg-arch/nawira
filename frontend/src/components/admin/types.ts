@@ -16,4 +16,5 @@ export interface AdminUser {
 export interface AdminUserListResponse {
   items: AdminUser[];
   nextCursor: string | null;
+  total: number;
 }
