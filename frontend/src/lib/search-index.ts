@@ -70,6 +70,11 @@ const PAGES: PageEntry[] = [
     keywords: ['abonnement', 'plus', 'prix', 'paiement', 'facturation'],
   },
   { title: "Centre d'aide", href: '/app/help', keywords: ['aide', 'faq', 'support', 'question'] },
+  {
+    title: 'Mes demandes',
+    href: '/app/support',
+    keywords: ['support', 'ticket', 'demande', 'contact', 'aide'],
+  },
 ];
 
 function normalize(s: string): string {

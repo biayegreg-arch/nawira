@@ -108,3 +108,18 @@ export function fertilityWindowApproaching(
     dedupeKey: `fertility-reminder:${userId}:${isoDate(fertileWindowStart)}`,
   };
 }
+
+export function supportTicketReplied(
+  userId: string,
+  ticketId: string,
+  messageId: string,
+): CreateNotificationInput {
+  return {
+    userId,
+    type: 'SUPPORT_TICKET_REPLIED',
+    title: 'Réponse à votre demande',
+    body: 'Un membre de notre équipe a répondu à votre demande de support.',
+    dedupeKey: `support-ticket-reply:${messageId}`,
+    data: { ticketId },
+  };
+}

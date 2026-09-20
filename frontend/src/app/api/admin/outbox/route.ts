@@ -18,6 +18,7 @@ import { requireAdmin } from '@/lib/server/middleware';
 import { enforceAdminRateLimit } from '@/lib/server/middleware/rate-limit-by-userid';
 import { prisma } from '@/lib/server/prisma';
 import { buildPage, clampLimit, cursorWhere, decodeCursor } from '@/lib/server/pagination/paginate';
+import { maskEmail } from '@/lib/server/support/mask-email';
 import { makeRequestContext, withRequestContext } from '@/lib/server/observability/request-context';
 
 type OutboxStatus = 'PENDING' | 'SENT' | 'FAILED' | 'DEAD';
@@ -35,11 +36,22 @@ interface SerializedOutboxEvent {
   createdAt: string;
 }
 
+// Support-ticket reply payloads carry the raw recipient address; the admin
+// outbox viewer is not an audited reveal, so mask it here (display only).
+function maskPayload(e: OutboxEvent): unknown {
+  if (e.kind !== 'email.support_ticket_reply') return e.payload;
+  const p = e.payload;
+  if (p && typeof p === 'object' && !Array.isArray(p) && typeof p.to === 'string') {
+    return { ...p, to: maskEmail(p.to) };
+  }
+  return p;
+}
+
 function serialize(e: OutboxEvent): SerializedOutboxEvent {
   return {
     id: e.id,
     kind: e.kind,
-    payload: e.payload,
+    payload: maskPayload(e),
     status: e.status,
     attempts: e.attempts,
     lastError: e.lastError,

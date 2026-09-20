@@ -9,7 +9,10 @@
  * happens in the dispatcher (the JSON column is opaque to Prisma).
  */
 
-export type OutboxEvent = EmailVerificationCodeEvent | EmailPasswordResetEvent;
+export type OutboxEvent =
+  | EmailVerificationCodeEvent
+  | EmailPasswordResetEvent
+  | EmailSupportTicketReplyEvent;
 
 /**
  * Phase 1 — emitted by signup + resend-verification routes; consumed by the
@@ -34,6 +37,20 @@ export interface EmailPasswordResetEvent {
     to: string;
     code: string;
     expiresAt: string;
+  };
+}
+
+/**
+ * E11 — emitted by the admin support-ticket reply route; consumed by the
+ * email-queue cron (renders via supportTicketReplyEmail() from
+ * auth/email-templates.ts).
+ */
+export interface EmailSupportTicketReplyEvent {
+  kind: 'email.support_ticket_reply';
+  payload: {
+    to: string;
+    subject: string;
+    ticketId: string;
   };
 }
 

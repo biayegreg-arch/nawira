@@ -1,6 +1,6 @@
 # Banani implementation status
 
-Last updated: 2026-09-20 (Subscription — admin-driven plan reconciliation pass; admin nav "Tarifs" → "Abonnement", see delta below)
+Last updated: 2026-09-20 (E11 content CMS + support tickets shipped; Subscription admin-driven plan reconciliation pass — see deltas below)
 
 Source flow: **"Design System NAWIRA"** — Banani flow id `acguXQuGeGbU` (https://app.banani.co/flow/acguXQuGeGbU)
 Full fetch saved: 15 screens + 46 shared components, JSX/Tailwind, `screenSize: "desktop"`. Of the 15 fetched screens, 3 were duplicates of another screen and were dropped as unnecessary (user decision, 2026-09-06) — see "Duplicate screens dropped" below. 12 screens remain in scope. A later, separate fetch (2026-09-07) added 7 more screens the user created directly for the Projet Bébé flow: `ProjetBebe` (re-fetch), `ProjetBebeRessources`, `ProjetBebeCalendarV2`, `AddLHTest`, `ConceptionAdvice`, plus 2 duplicates (`ProjetBebe_next1`, `ProjetBebeDiscovery`) dropped per the same duplicate-screen policy.
@@ -161,6 +161,27 @@ _(none)_
 **Stale rows pruned 2026-09-07**: `LandingPage`, `ProjetBebe` removed from this table — both already in Done above (this table wasn't kept in sync when they shipped; `AddData`/`DashboardAujourdhui`/`Calendar` were never added here either, same gap). **Pruned again 2026-09-08**: `Subscription` (shipped, see Done above) and `FertilityCalendar` (superseded by `/app/baby/calendar`, shipped as part of the ProjetBebe 5-route expansion) removed.
 
 _(none — every Banani-sourced screen has shipped; see Done above)_
+
+## Pending — deferred future work
+
+- **Hardcoded-content → `Article` model migration (3 items, explicitly out of
+  scope for E11 per this plan's spec §0)**: E11 shipped the `Article` model
+  and its admin CRUD (see "E11 — Content CMS + support tickets" above), but
+  deliberately did NOT migrate any of the app's existing hardcoded content
+  sources onto it. Left as-is, each still a static in-repo data file /
+  component, not admin-editable:
+  1. **Help FAQ** — `/app/help`'s FAQ accordion (`frontend/src/app/app/help/
+     page.tsx`, see "HelpCenter" delta above) — real, cautious, non-diagnostic
+     copy, but hardcoded in the page component, not backed by `Article`.
+  2. **Conception tips** — `/app/baby/tips` (`conception-tips-full.ts`, see
+     "ProjetBebe" 5-route expansion delta above) — 6 hardcoded tips.
+  3. **"Projet Bébé" resources** — `/app/baby/resources`
+     (`conception-articles.ts`, same delta section) — hardcoded article
+     content with client-side search/filter.
+
+  This is a known, deliberate gap, not an oversight — migrating any of these
+  onto `Article` (so admins can edit copy without a code deploy) is real
+  future work, scoped separately whenever it's prioritized.
 
 ## Duplicate screens dropped (user decision, 2026-09-06)
 
@@ -650,3 +671,43 @@ directly against their real `/api/admin/*` routes (no source screen exists for t
   throwaway test accounts and scratch scripts afterward.
 - `contactnawira@gmail.com` confirmed SUPERADMIN in the real `/admin/users` list (per the user's
   earlier request, to let them test the back-office themselves).
+
+### E11 — Content CMS + support tickets (2026-09-20) — shipped
+
+New `Article`, `SupportTicket`, `SupportTicketMessage` Prisma models (branch
+`e11-admin-cms-support`, 19 commits). Two consumer-facing surfaces, each with
+a matching admin back-office surface:
+
+- **Support tickets**: consumer `POST`/`GET /api/support-tickets` +
+  `GET /api/support-tickets/[id]` + `POST .../messages` (thread reply),
+  replacing the old landing-page `mailto:` contact block with a real in-app
+  ticket form — `frontend/src/app/app/support/{page.tsx,[id]/page.tsx}`.
+  Admin side: `GET /api/admin/support-tickets` (queue, status filter,
+  cursor-paginated), `GET .../[id]` (detail, masked requester email by
+  default), `POST .../[id]/reveal` (PII-reveal, audited), `PATCH
+  .../[id]/status`, `POST .../[id]/messages` (admin reply — outbox +
+  notification to the ticket owner) — `frontend/src/app/admin/support/
+  {page.tsx,[id]/page.tsx}`. New `maskEmail` helper
+  (`frontend/src/lib/server/support/mask-email.ts`) keeps the queue/list
+  views PII-light; full email only after an explicit, audited reveal.
+- **Content CMS**: `Article` model (title/slug/body/category/publishedAt) +
+  full admin CRUD — `GET`/`POST /api/admin/articles`, `GET`/`PATCH`/`DELETE
+  /api/admin/articles/[id]` — `frontend/src/app/admin/articles/page.tsx`.
+  `publishedAt` is set once on first publish and never reset on a later
+  republish/edit (task 11 review fix) — matches the "first published" reader
+  expectation rather than a "last touched" timestamp.
+- Both surfaces wired into `GET /api/admin/me`'s capability list, `GET
+  /api/admin/stats`'s `openTicketCount`, and the admin/consumer nav (E11
+  continued from the 2026-09-19 admin pass above).
+- Notification dispatch for ticket replies goes through the outbox (`enqueueOutbox`
+  inside the same tx as the message write) + a new typed
+  `supportTicketReplyNotification()` template, per this repo's standing
+  outbox/notification invariants — no fire-and-forget closures, no direct
+  `prisma.notification.create`.
+- **Full pre-merge gate (Task 17, 2026-09-20)**: `pnpm format && pnpm lint
+  && pnpm typecheck && pnpm test && pnpm build` all green — 876/876 tests,
+  no flakiness this run, all new routes (`/admin/articles`, `/admin/support`,
+  `/admin/support/[id]`, `/app/support`, `/app/support/[id]`, plus every new
+  `/api/admin/articles*` and `/api/support-tickets*`/`/api/admin/support-
+  tickets*` route) resolve correctly in the build's route list.
+- **E11 (content CMS + support tickets) is now fully shipped.**

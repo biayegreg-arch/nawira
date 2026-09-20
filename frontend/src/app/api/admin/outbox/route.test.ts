@@ -157,6 +157,31 @@ describe('/api/admin/outbox [Wave 1]', () => {
     expect(args?.take).toBe(11);
   });
 
+  it('GET masks the recipient for email.support_ticket_reply and leaves other kinds untouched', async () => {
+    prismaMock.outboxEvent.findMany.mockResolvedValue([
+      seedOutbox({
+        id: 'ob-s',
+        kind: 'email.support_ticket_reply',
+        payload: { to: 'jane.doe@example.com', ticketId: 't1' },
+      }),
+      seedOutbox({
+        id: 'ob-o',
+        kind: 'email.welcome',
+        payload: { to: 'other@example.com' },
+      }),
+    ]);
+    const res = await GET(makeGet('http://localhost/api/admin/outbox'));
+    const text = await res.text();
+    expect(text).not.toContain('jane.doe@example.com');
+    const body = JSON.parse(text) as {
+      items: Array<{ id: string; payload: { to: string; ticketId?: string } }>;
+    };
+    const s = body.items.find((i) => i.id === 'ob-s');
+    expect(s?.payload.to).toBe('j*******@example.com');
+    expect(s?.payload.ticketId).toBe('t1');
+    expect(body.items.find((i) => i.id === 'ob-o')?.payload.to).toBe('other@example.com');
+  });
+
   it('GET returns 401/403 when requireAdmin bails', async () => {
     mockRequireAdmin.mockResolvedValueOnce(
       NextResponse.json(

@@ -82,6 +82,31 @@ describe('drainOutbox (TEST-02)', () => {
     expect(finalUpdate?.data?.sentAt).toBeInstanceOf(Date);
   });
 
+  it('dispatches email.support_ticket_reply via emailQueue.enqueue', async () => {
+    const row = makeRow({
+      kind: 'email.support_ticket_reply',
+      payload: {
+        to: 'u@test.local',
+        subject: 'Réponse à votre demande de support NAWIRA',
+        ticketId: 'ticket_1',
+      },
+    });
+    const emailQueue = makeEmailQueue();
+    prismaMock.outboxEvent.findMany.mockResolvedValue([{ id: 'oe_1' }] as never);
+    prismaMock.outboxEvent.updateMany.mockResolvedValue({ count: 1 } as never);
+    prismaMock.outboxEvent.findUnique.mockResolvedValue(row as never);
+    prismaMock.outboxEvent.update.mockResolvedValue({} as never);
+
+    const stats = await drainOutbox({ prisma: prismaMock, emailQueue: emailQueue as never });
+
+    expect(stats.succeeded).toBe(1);
+    expect(emailQueue.enqueue).toHaveBeenCalledWith({
+      to: 'u@test.local',
+      subject: 'Réponse à votre demande de support NAWIRA',
+      html: expect.stringContaining('ticket_1'),
+    });
+  });
+
   it('reschedules with PENDING + future scheduledAt + lastError when attempts < MAX_ATTEMPTS', async () => {
     // attempts=1 means we are well below the 5-attempt ceiling.
     const row = makeRow({ attempts: 1 });

@@ -34,19 +34,25 @@ beforeEach(() => {
 });
 
 describe('GET /api/admin/stats', () => {
-  it('returns real active-user and paid-profile counts', async () => {
+  it('returns real active-user, paid-profile, and open-ticket counts', async () => {
     prismaMock.user.count.mockResolvedValueOnce(12847);
     prismaMock.profile.count.mockResolvedValueOnce(4231);
+    prismaMock.supportTicket.count.mockResolvedValueOnce(6);
 
     const res = await GET(makeGet());
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { activeUsers: number; paidProfiles: number };
-    expect(body).toEqual({ activeUsers: 12847, paidProfiles: 4231 });
+    const body = (await res.json()) as {
+      activeUsers: number;
+      paidProfiles: number;
+      openTicketCount: number;
+    };
+    expect(body).toEqual({ activeUsers: 12847, paidProfiles: 4231, openTicketCount: 6 });
 
     expect(prismaMock.user.count).toHaveBeenCalledWith({ where: { status: 'ACTIVE' } });
     expect(prismaMock.profile.count).toHaveBeenCalledWith({
       where: { plan: { in: ['PLUS', 'BABY'] } },
     });
+    expect(prismaMock.supportTicket.count).toHaveBeenCalledWith({ where: { status: 'OPEN' } });
   });
 
   it('propagates 403 from requireAdmin (non-admin denied)', async () => {

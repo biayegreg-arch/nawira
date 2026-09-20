@@ -13,6 +13,7 @@ import {
   Settings,
   Crown,
   HelpCircle,
+  LifeBuoy,
   LogOut,
   ShieldCheck,
   type LucideIcon,
@@ -41,6 +42,7 @@ const accountItems: NavItem[] = [
   { href: '/app/settings', label: 'Paramètres', icon: Settings },
   { href: '/app/billing', label: 'Abonnement', icon: Crown },
   { href: '/app/help', label: "Centre d'aide", icon: HelpCircle },
+  { href: '/app/support', label: 'Mes demandes', icon: LifeBuoy },
 ];
 
 export function AppSidebar(): React.JSX.Element {

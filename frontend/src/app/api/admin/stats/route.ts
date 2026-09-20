@@ -25,13 +25,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const limited = await enforceAdminRateLimit(auth.admin.id);
     if (limited) return limited;
 
-    const [activeUsers, paidProfiles] = await Promise.all([
+    const [activeUsers, paidProfiles, openTicketCount] = await Promise.all([
       prisma.user.count({ where: { status: 'ACTIVE' } }),
       prisma.profile.count({ where: { plan: { in: ['PLUS', 'BABY'] } } }),
+      prisma.supportTicket.count({ where: { status: 'OPEN' } }),
     ]);
 
     return NextResponse.json(
-      { activeUsers, paidProfiles },
+      { activeUsers, paidProfiles, openTicketCount },
       { headers: { 'x-request-id': ctx.requestId } },
     );
   });

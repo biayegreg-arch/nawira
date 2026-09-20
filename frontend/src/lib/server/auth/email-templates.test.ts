@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { verificationEmail, resetPasswordEmail } from './email-templates';
+import { describe, it, expect, afterEach } from 'vitest';
+import { verificationEmail, resetPasswordEmail, supportTicketReplyEmail } from './email-templates';
 
 describe('verificationEmail', () => {
   it('returns { subject, html, text } all non-empty', () => {
@@ -82,5 +82,28 @@ describe('resetPasswordEmail', () => {
     const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
     const t = resetPasswordEmail({ code: 'WXYZ9876', email: 'a@b.com', expiresAt });
     expect(t.text).toMatch(/in 1[45] minutes/);
+  });
+});
+
+describe('supportTicketReplyEmail', () => {
+  const originalAppUrl = process.env.APP_URL;
+  afterEach(() => {
+    if (originalAppUrl === undefined) delete process.env.APP_URL;
+    else process.env.APP_URL = originalAppUrl;
+  });
+
+  it('builds the link from APP_URL (trailing slash stripped)', () => {
+    process.env.APP_URL = 'https://staging.example.com/';
+    const tpl = supportTicketReplyEmail({ ticketId: 'ticket_123' });
+    expect(tpl.html).toContain('https://staging.example.com/app/support/ticket_123');
+    expect(tpl.text).toContain('https://staging.example.com/app/support/ticket_123');
+    expect(tpl.html).not.toContain('nawira.app');
+  });
+
+  it('renders a subject and a link to the ticket thread', () => {
+    const tpl = supportTicketReplyEmail({ ticketId: 'ticket_123' });
+    expect(tpl.subject).toBe('Réponse à votre demande de support NAWIRA');
+    expect(tpl.html).toContain('/app/support/ticket_123');
+    expect(tpl.text).toContain('/app/support/ticket_123');
   });
 });

@@ -145,6 +145,15 @@ async function dispatchEvent(deps: OutboxDispatcherDeps, event: OutboxEvent): Pr
       await deps.emailQueue.enqueue({ to, subject: tpl.subject, html: tpl.html });
       return;
     }
+    case 'email.support_ticket_reply': {
+      // E11 — emitted by the admin support-ticket reply route.
+      if (!deps.emailQueue) throw new Error('email queue not configured');
+      const { supportTicketReplyEmail } = await import('../auth/email-templates');
+      const { to, subject, ticketId } = event.payload;
+      const tpl = supportTicketReplyEmail({ ticketId });
+      await deps.emailQueue.enqueue({ to, subject, html: tpl.html });
+      return;
+    }
     default: {
       // Exhaustive check — TS will yell if we add a new variant and forget it.
       const _exhaustive: never = event;
