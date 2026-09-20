@@ -53,8 +53,8 @@ const TIPS: Tip[] = [
 
 export function ConceptionTipsCard(): React.JSX.Element {
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
-      <h2 className="mb-5 flex items-center gap-2 text-lg font-bold text-navy">
+    <div className="rounded-lg border border-border bg-white p-4 sm:p-6">
+      <h2 className="mb-5 flex items-center gap-2 text-base font-bold md:text-lg text-navy">
         <Lightbulb size={18} className="text-amber" />
         Conseils pour cette période
       </h2>
@@ -66,9 +66,9 @@ export function ConceptionTipsCard(): React.JSX.Element {
             className={`flex gap-3 rounded-lg border border-border p-3 ${tip.bg}`}
           >
             <tip.icon size={18} className={`mt-0.5 shrink-0 ${tip.color}`} />
-            <div>
+            <div className="min-w-0">
               <div className={`mb-1 text-sm font-semibold ${tip.color}`}>{tip.title}</div>
-              <p className="text-xs text-muted-foreground">{tip.body}</p>
+              <p className="break-words text-sm text-muted-foreground">{tip.body}</p>
             </div>
           </div>
         ))}
@@ -77,7 +77,7 @@ export function ConceptionTipsCard(): React.JSX.Element {
       <div className="mt-5 rounded-lg bg-green-soft p-4">
         <div className="flex gap-3">
           <Info size={16} className="mt-0.5 shrink-0 text-green" />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             NAWIRA ne pose pas de diagnostic et ne remplace pas un avis médical. Pour tout
             accompagnement personnalisé sur ton projet bébé, consulte un professionnel de santé.
           </p>

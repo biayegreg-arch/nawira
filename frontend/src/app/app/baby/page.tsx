@@ -138,7 +138,7 @@ export default function BabyPage(): React.JSX.Element | null {
 
   if (error) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8 lg:max-w-none">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Impossible de charger tes données. Réessaie plus tard.
         </div>
@@ -148,7 +148,7 @@ export default function BabyPage(): React.JSX.Element | null {
 
   if (cycles === null || profileStats === null || profileCreatedAt === null) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8 lg:max-w-none">
         <div className="h-48 animate-pulse rounded-xl bg-gray-100" />
       </div>
     );
@@ -161,11 +161,11 @@ export default function BabyPage(): React.JSX.Element | null {
   );
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8 lg:max-w-none">
       {offlineCachedAt && <OfflineDataBanner cachedAt={offlineCachedAt} />}
       <div className="mb-6">
-        <h1 className="flex items-center gap-3 text-2xl font-bold text-navy">
-          <span className="text-3xl">🌿</span>
+        <h1 className="flex items-center gap-3 text-2xl font-bold leading-tight text-navy md:text-3xl">
+          <span className="text-2xl md:text-3xl">🌿</span>
           Projet Bébé
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -175,8 +175,8 @@ export default function BabyPage(): React.JSX.Element | null {
 
       <ProjetBebeTabs active="apercu" />
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <div className="animate-fade-in-up flex flex-col gap-5" style={staggerDelay(1)}>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <div className="animate-fade-in-up flex min-w-0 flex-col gap-5" style={staggerDelay(1)}>
           <FertilityWindowCard prediction={prediction} today={today} />
           <OtherSignalsCard
             initialValues={{
@@ -188,7 +188,7 @@ export default function BabyPage(): React.JSX.Element | null {
             onSubmit={handleSaveOther}
           />
         </div>
-        <div className="animate-fade-in-up flex flex-col gap-5" style={staggerDelay(2)}>
+        <div className="animate-fade-in-up flex min-w-0 flex-col gap-5" style={staggerDelay(2)}>
           <LHTestTracker todayResult={signals.lhResult} recentEntries={recentLhEntries} />
           <ConceptionStatsCard
             monthsActive={profileStats.monthsActive}
@@ -201,11 +201,11 @@ export default function BabyPage(): React.JSX.Element | null {
       </div>
 
       <div
-        className="animate-fade-in-up mt-6 rounded-lg border border-border bg-green-soft/40 p-6"
+        className="animate-fade-in-up mt-6 rounded-lg border border-border bg-green-soft/40 p-4 sm:p-6"
         style={staggerDelay(3)}
       >
-        <div className="flex items-start justify-between gap-4">
-          <div>
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
             <h3 className="mb-2 flex items-center gap-2 text-base font-bold text-navy">
               <span>👑</span>
               Déverrouille Projet Bébé complet
@@ -216,12 +216,12 @@ export default function BabyPage(): React.JSX.Element | null {
             </p>
             <Link
               href="/app/billing"
-              className="inline-flex items-center justify-center rounded-md bg-green px-4 py-2 text-sm font-semibold text-white"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-green px-4 py-2 text-sm font-semibold text-white sm:w-auto"
             >
               Essayer gratuitement
             </Link>
           </div>
-          <span className="shrink-0 text-4xl">🎁</span>
+          <span className="shrink-0 text-3xl md:text-4xl">🎁</span>
         </div>
       </div>
     </div>

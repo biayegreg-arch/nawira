@@ -71,7 +71,7 @@ export default function FertilityCalendarPage(): React.JSX.Element | null {
 
   if (error) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8 lg:max-w-none">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Impossible de charger ton calendrier. Réessaie plus tard.
         </div>
@@ -81,7 +81,7 @@ export default function FertilityCalendarPage(): React.JSX.Element | null {
 
   if (cycles === null) {
     return (
-      <div className="p-4 lg:p-8">
+      <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8 lg:max-w-none">
         <div className="h-96 animate-pulse rounded-xl bg-gray-100" />
       </div>
     );
@@ -91,10 +91,10 @@ export default function FertilityCalendarPage(): React.JSX.Element | null {
   const next = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
   return (
-    <div className="p-4 lg:p-8">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:p-8 lg:max-w-none">
       <div className="mb-6">
-        <h1 className="flex items-center gap-3 text-2xl font-bold text-navy">
-          <span className="text-3xl">📅</span>
+        <h1 className="flex items-center gap-3 text-2xl font-bold leading-tight text-navy md:text-3xl">
+          <span className="text-2xl md:text-3xl">📅</span>
           Calendrier de fertilité
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -104,12 +104,12 @@ export default function FertilityCalendarPage(): React.JSX.Element | null {
 
       <ProjetBebeTabs active="calendrier" />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-        <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="flex min-w-0 flex-col gap-5">
           {[now, next].map((monthDate, i) => (
             <div
               key={`${monthDate.getFullYear()}-${monthDate.getMonth()}`}
-              className="animate-fade-in-up rounded-lg border border-border bg-white p-5 lg:p-6"
+              className="animate-fade-in-up rounded-lg border border-border bg-white p-4 sm:p-5 lg:p-6"
               style={staggerDelay(i)}
             >
               <div className="mb-5 text-base font-semibold text-navy capitalize">
@@ -132,7 +132,10 @@ export default function FertilityCalendarPage(): React.JSX.Element | null {
       </div>
 
       <div className="mt-5">
-        <Link href="/app/calendar" className="text-sm font-medium text-primary">
+        <Link
+          href="/app/calendar"
+          className="inline-flex min-h-11 items-center text-sm font-medium text-primary"
+        >
           Voir le calendrier complet (règles, prédictions) →
         </Link>
       </div>

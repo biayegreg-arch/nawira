@@ -20,9 +20,9 @@ const TIPS = [
 
 export function FertilityCalendarInfo(): React.JSX.Element {
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border bg-white p-6">
-      <h3 className="flex items-center gap-2 text-sm font-bold text-navy">
-        <Lightbulb size={16} className="text-amber" />
+    <div className="flex flex-col gap-4 rounded-lg border border-border bg-white p-4 sm:p-6">
+      <h3 className="flex items-center gap-2 text-base font-bold text-navy">
+        <Lightbulb size={16} className="shrink-0 text-amber" />
         Conseils pour optimiser le suivi
       </h3>
 
@@ -31,9 +31,9 @@ export function FertilityCalendarInfo(): React.JSX.Element {
           <div key={tip.title} className="rounded-lg border border-border bg-gray-50 p-3">
             <div className="flex gap-3">
               <span className="shrink-0 text-lg">{tip.icon}</span>
-              <div>
-                <div className="text-xs font-semibold text-navy">{tip.title}</div>
-                <div className="mt-1 text-xs text-muted-foreground">{tip.desc}</div>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-navy">{tip.title}</div>
+                <div className="mt-1 text-sm text-muted-foreground">{tip.desc}</div>
               </div>
             </div>
           </div>
@@ -43,7 +43,7 @@ export function FertilityCalendarInfo(): React.JSX.Element {
       <div className="rounded-lg border border-border bg-amber-soft p-4">
         <div className="flex items-start gap-3">
           <Info size={16} className="mt-0.5 shrink-0 text-amber" />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             <strong className="text-navy">Conseil :</strong> le jour de l&rsquo;ovulation est une
             estimation. Couple les données de NAWIRA avec un test LH pour plus de précision.
           </p>

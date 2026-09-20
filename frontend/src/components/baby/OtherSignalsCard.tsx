@@ -62,25 +62,25 @@ export function OtherSignalsCard({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-5 rounded-xl border border-border bg-white p-6"
+      className="flex flex-col gap-5 rounded-xl border border-border bg-white p-4 sm:p-6"
     >
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-soft text-rose">
           <Thermometer size={18} />
         </div>
-        <h2 className="text-lg font-bold text-navy">Autres signaux du jour</h2>
+        <h2 className="text-base font-bold text-navy md:text-lg">Autres signaux du jour</h2>
       </div>
 
       <section className="flex flex-col gap-2">
         <span className="text-sm font-medium text-navy">Température basale</span>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <input
             type="number"
             step="0.1"
             value={temperatureValue}
             onChange={(e) => setTemperatureValue(e.target.value)}
             placeholder="Ex : 36.8"
-            className="w-28 rounded-lg border border-border px-3.5 py-3 text-sm text-navy outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            className="min-h-11 w-28 rounded-lg border border-border px-3.5 py-3 text-base text-navy md:text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
           <ChipGroup
             options={UNIT_OPTIONS}
