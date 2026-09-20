@@ -16,6 +16,10 @@ interface ArticleRow {
   updatedAt: string;
 }
 
+interface ArticleDetailResponse {
+  article: ArticleRow & { body: string };
+}
+
 interface ArticleListResponse {
   items: ArticleRow[];
   nextCursor: string | null;
@@ -27,7 +31,9 @@ function errorMessage(err: unknown): string {
     case 'SLUG_TAKEN':
       return 'Ce slug est déjà utilisé.';
     case 'VALIDATION_FAILED':
-      return 'Titre ou contenu invalide.';
+      return 'Titre, slug ou contenu invalide.';
+    case 'ARTICLE_NOT_FOUND':
+      return 'Article introuvable.';
     default:
       return err.message;
   }
@@ -46,6 +52,13 @@ export default function AdminArticlesPage(): React.JSX.Element {
   const [body, setBody] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editSlug, setEditSlug] = useState('');
+  const [editBody, setEditBody] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -93,6 +106,45 @@ export default function AdminArticlesPage(): React.JSX.Element {
       toast(errorMessage(err), 'error');
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function startEdit(a: ArticleRow): Promise<void> {
+    if (loadingEditId) return;
+    setLoadingEditId(a.id);
+    try {
+      const res = await api<ArticleDetailResponse>(`/api/admin/articles/${a.id}`);
+      setEditTitle(res.article.title);
+      setEditSlug(res.article.slug);
+      setEditBody(res.article.body);
+      setEditingId(a.id);
+    } catch (err) {
+      toast(errorMessage(err), 'error');
+    } finally {
+      setLoadingEditId(null);
+    }
+  }
+
+  async function saveEdit(): Promise<void> {
+    if (!editingId || !editTitle.trim() || !editSlug.trim() || !editBody.trim()) return;
+    setSavingEdit(true);
+    try {
+      const res = await api<ArticleDetailResponse>(`/api/admin/articles/${editingId}`, {
+        method: 'PATCH',
+        body: { title: editTitle, slug: editSlug, body: editBody },
+      });
+      const { title: t, slug, status, updatedAt } = res.article;
+      setArticles((prev) =>
+        prev === null
+          ? prev
+          : prev.map((x) => (x.id === editingId ? { ...x, title: t, slug, status, updatedAt } : x)),
+      );
+      setEditingId(null);
+      toast('Article modifié.', 'success');
+    } catch (err) {
+      toast(errorMessage(err), 'error');
+    } finally {
+      setSavingEdit(false);
     }
   }
 
@@ -163,38 +215,94 @@ export default function AdminArticlesPage(): React.JSX.Element {
         <p className="text-sm text-muted-foreground">Aucun article.</p>
       ) : (
         <div className="flex flex-col gap-2">
-          {articles.map((a) => (
-            <div
-              key={a.id}
-              className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
-            >
-              <div className="flex min-w-0 items-start justify-between gap-3 sm:flex-1">
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold text-navy">{a.title}</div>
-                  <div className="break-all text-xs text-muted-foreground">/{a.slug}</div>
+          {articles.map((a) =>
+            editingId === a.id ? (
+              <div
+                key={a.id}
+                className="flex flex-col gap-3 rounded-xl border border-border bg-white p-4"
+              >
+                <input
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  placeholder="Titre"
+                  className="min-h-11 w-full rounded-lg border border-border p-3 text-base text-navy outline-none focus:border-primary md:text-sm"
+                />
+                <input
+                  value={editSlug}
+                  onChange={(e) => setEditSlug(e.target.value)}
+                  placeholder="slug-de-l-article"
+                  autoCapitalize="none"
+                  className="min-h-11 w-full rounded-lg border border-border p-3 text-base text-navy outline-none focus:border-primary md:text-sm"
+                />
+                <textarea
+                  value={editBody}
+                  onChange={(e) => setEditBody(e.target.value)}
+                  rows={8}
+                  placeholder="Contenu"
+                  className="min-h-11 w-full rounded-lg border border-border p-3 text-base text-navy outline-none focus:border-primary md:text-sm"
+                />
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <button
+                    onClick={() => setEditingId(null)}
+                    disabled={savingEdit}
+                    className="min-h-11 w-full rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-navy disabled:opacity-50 sm:w-auto"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={() => void saveEdit()}
+                    disabled={
+                      savingEdit || !editTitle.trim() || !editSlug.trim() || !editBody.trim()
+                    }
+                    className="min-h-11 w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:w-auto"
+                  >
+                    {savingEdit ? 'Enregistrement…' : 'Enregistrer'}
+                  </button>
                 </div>
-                <Badge tone={a.status === 'PUBLISHED' ? 'success' : 'neutral'} className="shrink-0">
-                  {a.status === 'PUBLISHED' ? 'Publié' : 'Brouillon'}
-                </Badge>
               </div>
-              {canWrite && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => void togglePublish(a)}
-                    className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-medium text-primary underline"
+            ) : (
+              <div
+                key={a.id}
+                className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+              >
+                <div className="flex min-w-0 items-start justify-between gap-3 sm:flex-1">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold text-navy">{a.title}</div>
+                    <div className="break-all text-xs text-muted-foreground">/{a.slug}</div>
+                  </div>
+                  <Badge
+                    tone={a.status === 'PUBLISHED' ? 'success' : 'neutral'}
+                    className="shrink-0"
                   >
-                    {a.status === 'DRAFT' ? 'Publier' : 'Dépublier'}
-                  </button>
-                  <button
-                    onClick={() => void remove(a)}
-                    className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-medium text-danger underline"
-                  >
-                    Supprimer
-                  </button>
+                    {a.status === 'PUBLISHED' ? 'Publié' : 'Brouillon'}
+                  </Badge>
                 </div>
-              )}
-            </div>
-          ))}
+                {canWrite && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => void startEdit(a)}
+                      disabled={loadingEditId !== null}
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-medium text-primary underline disabled:opacity-50"
+                    >
+                      {loadingEditId === a.id ? 'Chargement…' : 'Modifier'}
+                    </button>
+                    <button
+                      onClick={() => void togglePublish(a)}
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-medium text-primary underline"
+                    >
+                      {a.status === 'DRAFT' ? 'Publier' : 'Dépublier'}
+                    </button>
+                    <button
+                      onClick={() => void remove(a)}
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center px-2 text-xs font-medium text-danger underline"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                )}
+              </div>
+            ),
+          )}
         </div>
       )}
 
