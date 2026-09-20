@@ -6,13 +6,14 @@ import { api } from '@/lib/api';
 import { track } from '@/lib/analytics';
 import { staggerDelay } from '@/lib/utils';
 import { CurrentPlanCard } from '@/components/billing/CurrentPlanCard';
+import { CouponBox, type AppliedCoupon } from '@/components/billing/CouponBox';
 import { PremiumPlansGrid } from '@/components/billing/PremiumPlansGrid';
 import type { BillingPlan } from '@/components/billing/plans-data';
 
 const FAQS: Array<{ q: string; a: string }> = [
   {
     q: 'Comment passer à un plan payant ?',
-    a: 'NAWIRA n’a pas encore de paiement en ligne intégré. Clique sur « Demander ce plan » pour contacter l’équipe NAWIRA, qui active ton plan manuellement.',
+    a: 'NAWIRA n’a pas encore de paiement en ligne intégré. Saisis ton éventuel code promo pour voir le prix réduit, puis clique sur « Demander ce plan » : ton code est joint à ta demande et l’équipe NAWIRA active ton plan manuellement.',
   },
   {
     q: 'Puis-je changer ou annuler mon plan ?',
@@ -38,6 +39,7 @@ export default function BillingPage(): React.JSX.Element | null {
   const [planExpiresAt, setPlanExpiresAt] = useState<string | null>(null);
   const [prices, setPrices] = useState<Partial<Record<'PLUS' | 'BABY', number>>>({});
   const [error, setError] = useState(false);
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
 
   const load = useCallback(async () => {
     setError(false);
@@ -101,7 +103,12 @@ export default function BillingPage(): React.JSX.Element | null {
       </div>
 
       <div className="animate-fade-in-up mb-8" style={staggerDelay(1)}>
-        <PremiumPlansGrid currentPlan={plan} prices={prices} />
+        {plan !== 'BABY' && (
+          <div className="mb-6">
+            <CouponBox applied={coupon} onApply={setCoupon} />
+          </div>
+        )}
+        <PremiumPlansGrid currentPlan={plan} prices={prices} coupon={coupon} />
       </div>
 
       <div

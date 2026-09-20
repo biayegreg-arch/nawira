@@ -9,23 +9,23 @@ datasource db {
 }
 
 model User {
-  id                String    @id @default(cuid())
-  email             String    @unique
+  id              String    @id @default(cuid())
+  email           String    @unique
   // Nullable: OAuth-only users (e.g. signed up with Google) never set a
   // password. Email/password signup still requires it; the auth route
   // enforces presence at runtime.
-  passwordHash      String?
-  emailVerifiedAt   DateTime?
-  tokenVersion      Int       @default(0)
+  passwordHash    String?
+  emailVerifiedAt DateTime?
+  tokenVersion    Int       @default(0)
   // Optional display name — populated from OAuth profile on first sign-in.
   // Email/password users can fill it later via /api/auth/me PATCH (future).
-  name              String?
+  name            String?
   // Optional avatar URL — populated from OAuth profile on first sign-in.
-  avatarUrl         String?
+  avatarUrl       String?
   // App-wide role. USER is the default; ADMIN unlocks /admin back-office;
   // SUPERADMIN can promote/demote other admins. Bootstrap an initial
   // SUPERADMIN via `pnpm db:make-superadmin <email>` (see scripts).
-  role              String    @default("USER") // USER | ADMIN | SUPERADMIN
+  role            String    @default("USER") // USER | ADMIN | SUPERADMIN
   // Account status. ACTIVE = login + refresh allowed; SUSPENDED = both
   // refused with 403 ACCOUNT_SUSPENDED. Mutated via /api/admin/users/[id]/status
   // (ADMIN can suspend; only SUPERADMIN can restore). DELETED = terminal,
@@ -34,9 +34,9 @@ model User {
   // already scrambles `email` (breaks login lookup) and bumps `tokenVersion`
   // (invalidates every refresh token), so login/refresh are unreachable for
   // a DELETED row without a separate status branch.
-  status            String    @default("ACTIVE") // ACTIVE | SUSPENDED | DELETED
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  status          String    @default("ACTIVE") // ACTIVE | SUSPENDED | DELETED
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   verificationCodes      VerificationCode[]
   uploads                FileUpload[]
@@ -123,6 +123,20 @@ model PricingPlan {
   updatedAt DateTime @updatedAt
   updatedBy String? // User.id of the admin who last changed it (denormalized
   // convenience; the authoritative trail is AdminAction)
+}
+
+// Discount coupon, created by a SUPERADMIN and applied by a user on the
+// billing page before requesting a paid plan. There is no payment gateway
+// (plans are admin-granted), so a coupon is validated + priced server-side
+// but never "redeemed" — no usage counter.
+model Coupon {
+  id         String    @id @default(cuid())
+  code       String    @unique // stored uppercase
+  percentOff Int // 1..100
+  active     Boolean   @default(true)
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  createdBy  String? // User.id of the creating admin (AdminAction is the authoritative trail)
 }
 
 // ───────────────────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 import { Check } from 'lucide-react';
 import { BILLING_PLANS, type BillingPlan } from '@/components/billing/plans-data';
 import { staggerDelay } from '@/lib/utils';
+import type { AppliedCoupon } from '@/components/billing/CouponBox';
 
 function formatFcfa(amount: number): string {
   if (amount === 0) return 'Gratuit';
@@ -12,11 +13,13 @@ const PLAN_RANK: Record<BillingPlan['key'], number> = { FREE: 0, PLUS: 1, BABY: 
 interface PremiumPlansGridProps {
   currentPlan: BillingPlan['key'];
   prices: Partial<Record<'PLUS' | 'BABY', number>>;
+  coupon?: AppliedCoupon | null;
 }
 
 export function PremiumPlansGrid({
   currentPlan,
   prices,
+  coupon = null,
 }: PremiumPlansGridProps): React.JSX.Element {
   return (
     <div>
@@ -41,14 +44,30 @@ export function PremiumPlansGrid({
             <p className="mb-3 text-xs text-muted-foreground">{plan.promise}</p>
 
             <div className="mb-4 border-b border-border pb-4">
-              <div className="flex items-baseline">
-                <span className="text-2xl font-bold text-navy">
-                  {formatFcfa(plan.key === 'FREE' ? 0 : (prices[plan.key] ?? plan.priceFcfa))}
-                </span>
-                {plan.key !== 'FREE' && (
-                  <span className="ml-1 text-xs text-muted-foreground">/mois</span>
-                )}
-              </div>
+              {(() => {
+                const original = plan.key === 'FREE' ? 0 : (prices[plan.key] ?? plan.priceFcfa);
+                const discounted = plan.key === 'FREE' ? undefined : coupon?.discounted[plan.key];
+                return (
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="text-2xl font-bold text-navy">
+                      {formatFcfa(discounted ?? original)}
+                    </span>
+                    {plan.key !== 'FREE' && (
+                      <span className="text-xs text-muted-foreground">/mois</span>
+                    )}
+                    {discounted !== undefined && (
+                      <>
+                        <span className="text-sm text-muted-foreground line-through">
+                          {formatFcfa(original)}
+                        </span>
+                        <span className="rounded-full bg-green-soft px-2 py-0.5 text-xs font-semibold text-green">
+                          −{coupon?.percentOff}%
+                        </span>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="mb-5 flex flex-1 flex-col gap-2">
@@ -82,7 +101,11 @@ export function PremiumPlansGrid({
               <a
                 href={`mailto:support@nawira.app?subject=${encodeURIComponent(
                   `Demande de passage au plan ${plan.name}`,
-                )}`}
+                )}${
+                  coupon
+                    ? `&body=${encodeURIComponent(`Code promo : ${coupon.code} (−${coupon.percentOff}%)`)}`
+                    : ''
+                }`}
                 className="block w-full rounded-md bg-primary px-4 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-primary/90"
               >
                 Demander ce plan

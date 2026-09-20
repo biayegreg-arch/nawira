@@ -5,6 +5,7 @@ import { api, ApiError } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { useAdmin } from '@/contexts/AdminContext';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { CouponsSection } from '@/components/admin/CouponsSection';
 
 interface PricingPlanRow {
   key: 'PLUS' | 'BABY';
@@ -134,6 +135,8 @@ export default function AdminPricingPage(): React.JSX.Element {
           ))}
         </div>
       )}
+
+      <CouponsSection canWrite={canWrite} />
     </div>
   );
 }
