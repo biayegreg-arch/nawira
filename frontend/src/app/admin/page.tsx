@@ -87,10 +87,17 @@ export default function AdminOverviewPage(): React.JSX.Element {
     setUsersLoading(true);
     setUsersError(null);
     try {
-      const params = new URLSearchParams({ limit: String(PREVIEW_LIMIT) });
+      // Fetch a wider batch than the preview shows, then drop DELETED rows
+      // client-side — a deleted account's email is scrambled by
+      // deleteAccount() (E8 Part B), so it renders as a garbled
+      // "deleted-cm…" string that looks broken in an at-a-glance widget.
+      // The route itself stays untouched: /admin/users' full list
+      // legitimately wants deleted accounts visible (audit trail), only
+      // this compact "recent activity" preview doesn't.
+      const params = new URLSearchParams({ limit: String(PREVIEW_LIMIT * 4) });
       if (query) params.set('q', query);
       const res = await api<AdminUserListResponse>(`/api/admin/users?${params.toString()}`);
-      setUsers(res.items);
+      setUsers(res.items.filter((u) => u.status !== 'DELETED').slice(0, PREVIEW_LIMIT));
       setTotal(res.total);
     } catch (err) {
       setUsersError(err instanceof ApiError ? err.message : 'Une erreur est survenue.');
