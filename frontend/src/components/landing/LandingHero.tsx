@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { CheckCircle, Heart, Lock } from 'lucide-react';
 import { LinkButton } from '@/components/ui/Button';
 
@@ -57,9 +58,15 @@ export function LandingHero(): React.JSX.Element {
 
         {/* Hero image */}
         <div className="relative -mx-4 aspect-[4/3] overflow-hidden sm:mx-0 sm:rounded-2xl lg:flex-1">
-          <img
+          {/* width/height set the 4:3 ratio; the container and classes make it responsive.
+              `fill` is avoided: it emits an inline style attribute that the CSP style-src blocks. */}
+          <Image
             src={HERO_IMAGE}
             alt="Femme africaine souriante, confiante"
+            width={1200}
+            height={900}
+            priority
+            sizes="(min-width: 1024px) 50vw, 100vw"
             className="h-full w-full object-cover object-top"
           />
         </div>

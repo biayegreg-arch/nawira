@@ -29,6 +29,11 @@ const config: NextConfig = {
   // into .next/standalone — required by the Docker runtime image (frontend/Dockerfile).
   // Has no impact on `next dev` / `next start` workflows.
   output: 'standalone',
+  // Remote images go through next/image, which serves them from this origin,
+  // so the CSP img-src stays 'self' (no third-party image host is allowed in the browser).
+  images: {
+    remotePatterns: [{ protocol: 'https', hostname: 'images.unsplash.com' }],
+  },
   async headers() {
     return [
       {
