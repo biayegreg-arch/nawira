@@ -15,7 +15,7 @@ export function LandingNav(): React.JSX.Element {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="w-full border-b border-border bg-white">
+    <nav className="relative w-full border-b border-border bg-white">
       <div className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-3 sm:px-6 lg:px-12">
         {/* Logo */}
         <a href="/" className="flex min-h-11 items-center gap-2">
@@ -60,22 +60,22 @@ export function LandingNav(): React.JSX.Element {
         </button>
       </div>
 
-      {/* Mobile menu panel */}
+      {/* Mobile dropdown: overlays the page under the toggle instead of pushing content down */}
       {open && (
-        <div className="border-t border-border px-4 py-4 lg:hidden">
-          <div className="flex flex-col gap-1">
+        <div className="absolute right-4 top-full z-50 mt-2 w-60 rounded-xl border border-border bg-white p-2 shadow-lg sm:right-6 lg:hidden">
+          <div className="flex flex-col">
             {navLinks.map((item) => (
               <a
                 key={item.label}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="flex min-h-11 items-center rounded-lg px-3 py-2.5 text-sm font-medium text-body hover:bg-gray-50"
+                className="flex min-h-11 items-center rounded-lg px-3 text-sm font-medium text-body hover:bg-gray-50"
               >
                 {item.label}
               </a>
             ))}
           </div>
-          <div className="mt-4 flex flex-col gap-3">
+          <div className="mt-2 flex flex-col gap-2 border-t border-border pt-2">
             <LinkButton href="/login" variant="secondary" className="w-full">
               Se connecter
             </LinkButton>
