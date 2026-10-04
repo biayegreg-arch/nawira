@@ -12,11 +12,11 @@ const linkGroups: Record<string, Array<{ label: string; href: string }>> = {
 export function LandingFooter(): React.JSX.Element {
   return (
     <footer className="w-full border-t border-border">
-      <div className="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 lg:px-12 lg:py-12">
-        <div className="flex flex-col gap-8 sm:flex-row sm:flex-wrap sm:gap-16">
+      <div className="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-12 lg:py-12">
+        <div className="flex flex-col gap-6 sm:flex-row sm:flex-wrap sm:gap-16">
           {/* Brand */}
           <div className="max-w-xs flex-shrink-0">
-            <div className="mb-3 flex items-center gap-2">
+            <div className="mb-2 flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary">
                 <Activity className="h-3.5 w-3.5 text-white" />
               </span>
@@ -30,13 +30,13 @@ export function LandingFooter(): React.JSX.Element {
           {/* Links */}
           {Object.entries(linkGroups).map(([category, items]) => (
             <div key={category} className="flex-1">
-              <h4 className="mb-4 text-sm font-semibold text-navy">{category}</h4>
+              <h4 className="mb-2 text-sm font-semibold text-navy">{category}</h4>
               <ul>
                 {items.map((item) => (
                   <li key={item.label}>
                     <a
                       href={item.href}
-                      className="inline-flex min-h-11 min-w-11 items-center text-sm text-muted-foreground"
+                      className="inline-flex min-h-9 min-w-11 items-center py-1 text-sm text-muted-foreground"
                     >
                       {item.label}
                     </a>
