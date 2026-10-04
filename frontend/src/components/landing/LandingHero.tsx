@@ -2,8 +2,7 @@ import Image from 'next/image';
 import { CheckCircle, Heart, Lock } from 'lucide-react';
 import { LinkButton } from '@/components/ui/Button';
 
-const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=1200&q=80';
+const HERO_IMAGE = '/images/hero-serenity.jpg';
 
 export function LandingHero(): React.JSX.Element {
   return (
@@ -56,18 +55,19 @@ export function LandingHero(): React.JSX.Element {
           </div>
         </div>
 
-        {/* Hero image */}
-        <div className="relative -mx-4 aspect-[4/3] overflow-hidden sm:mx-0 sm:rounded-2xl lg:flex-1">
-          {/* width/height set the 4:3 ratio; the container and classes make it responsive.
+        {/* Hero image: a branded banner (logo + tagline baked in), not a plain photo — the
+            container ratio matches the source exactly so object-cover never crops into it. */}
+        <div className="relative -mx-4 aspect-[3/2] overflow-hidden shadow-sm sm:mx-0 sm:rounded-2xl lg:flex-1">
+          {/* width/height set the 3:2 ratio; the container and classes make it responsive.
               `fill` is avoided: it emits an inline style attribute that the CSP style-src blocks. */}
           <Image
             src={HERO_IMAGE}
-            alt="Femme africaine souriante, confiante"
-            width={1200}
-            height={900}
+            alt="Femme détendue, lisant sereinement — NAWIRA, votre cycle, votre santé, votre avenir"
+            width={1536}
+            height={1024}
             priority
             sizes="(min-width: 1024px) 50vw, 100vw"
-            className="h-full w-full object-cover object-top"
+            className="h-full w-full object-cover object-center"
           />
         </div>
       </div>
