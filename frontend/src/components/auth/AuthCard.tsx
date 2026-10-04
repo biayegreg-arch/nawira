@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { Activity } from 'lucide-react';
 import { type ReactNode } from 'react';
+import { Logo } from '@/components/brand/Logo';
 
 interface AuthCardProps {
   title: string;
@@ -13,9 +13,7 @@ export function AuthCard({ title, subtitle, children }: AuthCardProps): React.JS
     <main className="flex min-h-dvh w-full items-center justify-center bg-background px-4 py-8 sm:py-12">
       <div className="mx-auto w-full max-w-md">
         <Link href="/" className="mb-6 flex min-h-11 items-center justify-center gap-2 sm:mb-8">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-            <Activity className="h-4 w-4 text-white" />
-          </span>
+          <Logo size={32} />
           <span className="font-headings text-xl font-bold text-navy">NAWIRA</span>
         </Link>
 

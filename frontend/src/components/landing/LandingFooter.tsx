@@ -1,4 +1,4 @@
-import { Activity } from 'lucide-react';
+import { Logo } from '@/components/brand/Logo';
 
 const linkGroups: Record<string, Array<{ label: string; href: string }>> = {
   Produit: [
@@ -17,9 +17,7 @@ export function LandingFooter(): React.JSX.Element {
           {/* Brand */}
           <div className="max-w-xs flex-shrink-0">
             <div className="mb-2 flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary">
-                <Activity className="h-3.5 w-3.5 text-white" />
-              </span>
+              <Logo size={28} />
               <span className="font-headings text-lg font-bold text-navy">NAWIRA</span>
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Logo } from '@/components/brand/Logo';
 import {
   Home,
   Calendar,
@@ -56,30 +57,7 @@ export function AppSidebar(): React.JSX.Element {
     <div className="flex w-64 shrink-0 flex-col bg-gradient-to-b from-sidebar-from to-sidebar-to">
       <div className="px-6 pt-8 pb-6">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/15">
-            <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
-              <circle
-                cx="17"
-                cy="17"
-                r="16"
-                stroke="white"
-                strokeWidth="1.5"
-                fill="none"
-                opacity="0.3"
-              />
-              <path
-                d="M17 6 C17 6, 22 10, 22 17 C22 24, 17 28, 17 28 C17 28, 12 24, 12 17 C12 10, 17 6, 17 6Z"
-                fill="white"
-                opacity="0.9"
-              />
-              <path
-                d="M6 17 C6 17, 10 12, 17 12 C24 12, 28 17, 28 17 C28 17, 24 22, 17 22 C10 22, 6 17, 6 17Z"
-                fill="white"
-                opacity="0.5"
-              />
-              <circle cx="17" cy="17" r="3" fill="white" />
-            </svg>
-          </div>
+          <Logo size={56} />
           <div className="text-center">
             <div className="text-xl font-bold tracking-widest text-white">NAWIRA</div>
             <div className="mt-0.5 text-xs leading-tight text-white/65">

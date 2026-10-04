@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { Logo } from '@/components/brand/Logo';
 import { LinkButton } from '@/components/ui/Button';
 
 const navLinks = [
@@ -29,9 +30,7 @@ export function LandingNav(): React.JSX.Element {
       <div className="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-3 sm:px-6 lg:px-12">
         {/* Logo */}
         <a href="/" className="flex min-h-11 items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-            <Activity className="h-4 w-4 text-white" />
-          </span>
+          <Logo size={32} />
           <span className="font-headings text-xl font-bold text-navy">NAWIRA</span>
         </a>
 

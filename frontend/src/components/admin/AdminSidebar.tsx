@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShieldCheck } from 'lucide-react';
+import { Logo } from '@/components/brand/Logo';
 import { cn } from '@/lib/utils';
 import { ADMIN_NAV } from './admin-nav';
 
@@ -21,9 +21,7 @@ export function AdminSidebar({ email, role }: AdminSidebarProps): React.JSX.Elem
     <div className="flex w-64 shrink-0 flex-col bg-gradient-to-b from-sidebar-from to-sidebar-to">
       <div className="px-6 pt-8 pb-6">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/15">
-            <ShieldCheck className="h-7 w-7 text-white" aria-hidden="true" />
-          </div>
+          <Logo size={56} />
           <div className="text-center">
             <div className="text-xl font-bold tracking-widest text-white">NAWIRA</div>
             <div className="mt-0.5 text-xs leading-tight text-white/65">Administration</div>
