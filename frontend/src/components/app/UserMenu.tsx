@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { api, ApiError } from '@/lib/api';
 import { API_URL, COOKIE_PREFIX } from '@/lib/constants';
+import { compressImageForUpload } from '@/lib/image-compress';
 import { greetingName } from '@/lib/utils';
 import { LogoutButton } from '@/components/app/LogoutButton';
 
@@ -60,8 +61,13 @@ export function UserMenu(): React.JSX.Element | null {
 
     setUploading(true);
     try {
+      // Phone photos routinely exceed the ~4.3MB hard ceiling Vercel places
+      // on every serverless function's request body (not something the app
+      // can raise) — downscale client-side first so a normal photo fits.
+      const toUpload = await compressImageForUpload(file);
+
       const form = new FormData();
-      form.append('file', file);
+      form.append('file', toUpload);
       const csrfToken = readCsrfToken();
       const uploadRes = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',
@@ -70,6 +76,14 @@ export function UserMenu(): React.JSX.Element | null {
         body: form,
       });
       if (!uploadRes.ok) {
+        // A 413 past the platform's own body-size ceiling (still possible
+        // for very large originals) never reaches our JSON-returning route
+        // handler, so it has no `code` field to key off of — handle it by
+        // status instead.
+        if (uploadRes.status === 413) {
+          toast('Cette image est trop grande, réessaie avec une autre photo.', 'error');
+          return;
+        }
         const body = (await uploadRes.json().catch(() => ({}))) as { code?: string };
         const map: Record<string, string> = {
           FILE_TOO_LARGE: 'Cette image est trop grande.',

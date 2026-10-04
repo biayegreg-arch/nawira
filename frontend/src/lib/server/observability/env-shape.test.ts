@@ -62,7 +62,7 @@ describe('.env.example phase 4 additions (UP-01, UP-02)', () => {
 
   it('declares the upload allow-list and max-bytes defaults', () => {
     expect(src).toContain('UPLOAD_ALLOWED_MIME="image/jpeg,image/png,image/webp"');
-    expect(src).toContain('UPLOAD_MAX_BYTES="10485760"');
+    expect(src).toContain('UPLOAD_MAX_BYTES="4000000"');
   });
 
   it('declares CLOUDINARY_* keys with empty defaults', () => {
