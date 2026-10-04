@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Activity, Menu, X } from 'lucide-react';
 import { LinkButton } from '@/components/ui/Button';
 
@@ -13,6 +13,16 @@ const navLinks = [
 
 export function LandingNav(): React.JSX.Element {
   const [open, setOpen] = useState(false);
+
+  // Auto-close the dropdown as soon as the page starts scrolling, so it
+  // never trails the content while the visitor reads the page.
+  useEffect(() => {
+    if (!open) return;
+
+    const close = (): void => setOpen(false);
+    window.addEventListener('scroll', close, { passive: true });
+    return () => window.removeEventListener('scroll', close);
+  }, [open]);
 
   return (
     <nav className="relative w-full border-b border-border bg-white">

@@ -70,7 +70,7 @@ export function LandingFeatures(): React.JSX.Element {
     >
       <div className="mx-auto max-w-screen-xl">
         <div className="mb-10 flex flex-col gap-8 lg:mb-16 lg:flex-row lg:items-start lg:gap-16">
-          <div className="max-w-sm flex-shrink-0">
+          <div className="mx-auto max-w-sm flex-shrink-0 text-center sm:mx-0 sm:text-left">
             <h2 className="mb-4 font-headings text-2xl font-bold leading-tight text-navy md:text-3xl lg:text-4xl">
               Des outils puissants pour une vie plus sereine
             </h2>
@@ -82,7 +82,10 @@ export function LandingFeatures(): React.JSX.Element {
 
           <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => (
-              <div key={f.label} className="flex flex-col gap-2">
+              <div
+                key={f.label}
+                className="flex flex-col items-center gap-2 text-center sm:items-start sm:text-left"
+              >
                 <div
                   className={`flex h-10 w-10 items-center justify-center rounded-xl ${f.bgClass}`}
                 >
